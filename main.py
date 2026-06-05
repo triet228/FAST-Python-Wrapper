@@ -379,39 +379,40 @@ AIRCRAFT = {
 }
 
 
-# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# %                            %
-# % mission profile            %
-# %                            %
-# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# %% DEFINE THE MISSION TARGETS %%
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 MISSION = {
     "Target": {
-        # target value for each mission ID
+        # define the targets (in m or min)
         "Valu": [
             m("Aircraft.Specs.Performance.Range"),
             m('UnitConversionPkg.ConvLength(100, "naut mi", "m")'),
             45,
         ],
 
-        # target type for each mission ID
+        # define the target types ("Dist" or "Time")
         "Type": ["Dist", "Dist", "Time"],
     },
+
+    # %% DEFINE THE MISSION SEGMENTS %%
+    # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
     "Segs": [
-        # mission segment names
+        # define the segments
         "Takeoff", "Climb", "Climb", "Climb",
         "Cruise", "Descent", "Descent", "Descent",
         "Climb", "Climb", "Climb", "Cruise",
         "Cruise", "Descent", "Descent", "Descent", "Landing",
     ],
     "ID": [
-        # mission ID for each segment
+        # define the mission id (segments in same mission must be consecutive)
         1, 1, 1, 1,
         1, 1, 1, 1,
         2, 2, 2, 2,
         3, 3, 3, 3, 3,
     ],
     "AltBeg": [
-        # beginning altitude for each segment (m)
+        # define the starting altitudes (in m)
         m("Aircraft.Specs.Performance.Alts.Tko"),
         m("Aircraft.Specs.Performance.Alts.Tko"),
         m('UnitConversionPkg.ConvLength(3000, "ft", "m")'),
@@ -431,7 +432,7 @@ MISSION = {
         m("Aircraft.Specs.Performance.Alts.Tko"),
     ],
     "AltEnd": [
-        # ending altitude for each segment (m)
+        # define the ending altitudes (in m)
         m("Aircraft.Specs.Performance.Alts.Tko"),
         m('UnitConversionPkg.ConvLength(3000, "ft", "m")'),
         m("Aircraft.Specs.Performance.Alts.Crs"),
@@ -451,7 +452,7 @@ MISSION = {
         m("Aircraft.Specs.Performance.Alts.Tko"),
     ],
     "VelBeg": [
-        # beginning speed for each segment
+        # define the starting speeds (in m/s or mach)
         0,
         m("Aircraft.Specs.Performance.Vels.Tko"),
         m('UnitConversionPkg.ConvVel(200, "kts", "m/s")'),
@@ -471,7 +472,7 @@ MISSION = {
         m("1.2 * Aircraft.Specs.Performance.Vels.Tko"),
     ],
     "VelEnd": [
-        # ending speed for each segment
+        # define the ending speeds (in m/s or mach)
         m("Aircraft.Specs.Performance.Vels.Tko"),
         m('UnitConversionPkg.ConvVel(200, "kts", "m/s")'),
         m('UnitConversionPkg.ConvVel(200, "kts", "m/s")'),
@@ -491,27 +492,30 @@ MISSION = {
         0,
     ],
     "TypeBeg": [
-        # beginning speed type for each segment
+        # define the starting speed types (either "TAS", "EAS", or "Mach")
         "TAS", "TAS", "EAS", "EAS",
         "Mach", "Mach", "EAS", "EAS",
         "TAS", "EAS", "EAS", "TAS",
         "TAS", "TAS", "EAS", "EAS", "TAS",
     ],
     "TypeEnd": [
-        # ending speed type for each segment
+        # define the ending speed types (either "TAS", "EAS", or "Mach")
         "TAS", "EAS", "EAS", "Mach",
         "Mach", "EAS", "EAS", "TAS",
         "EAS", "EAS", "TAS", "TAS",
         "TAS", "EAS", "EAS", "TAS", "TAS",
     ],
     "ClbRate": [
-        # climb or descent rate for each segment (m/s)
+        # define the rate of climb/descent (in m/s)
         nan, nan, nan, nan,
         nan, nan, nan, nan,
         nan, nan, nan, nan,
         nan, nan, nan, nan, nan,
     ],
 }
+
+# %% REMEMBER THE MISSION PROFILE %%
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 # ----------------------------------------------------------
