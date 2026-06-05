@@ -43,7 +43,8 @@ class FastWrapper:
         self.engine = None
 
     def start(self):
-        # Reuse an already-running engine when the wrapper is held by the API.
+        # Reuse an already-running engine if the caller starts the wrapper once
+        # and runs multiple FAST cases through the same object.
         if self.engine:
             return self
 

@@ -9,7 +9,6 @@ This project does not include FAST or MATLAB Engine. Each user needs a local FAS
 ## Files
 
 - `wrapper.py`: core wrapper around MATLAB Engine and FAST.
-- `api.py`: optional FastAPI server.
 - `main.py`: direct local script with editable Python `AIRCRAFT`, `MISSION`, and propulsion graph inputs.
 - `pyproject.toml`: project metadata and Python dependencies.
 
@@ -101,44 +100,3 @@ FAST built-in propulsion architecture codes can be used directly:
 ```
 
 When `PropArch` is `"O"`, `main.py` attaches `GRAPH_BASED_PROPULSION` as `PropArchGraph`. The wrapper converts that Python structure into the MATLAB struct expected by FAST's graph-based propulsion architecture path. If `PropArch` is any built-in code such as `"C"` or `"E"`, the graph is ignored.
-
-## Run API
-
-```powershell
-uvicorn api:app --reload
-```
-
-The API uses the same `FAST_PATH` value from `main.py`.
-
-Health check:
-
-```powershell
-curl.exe http://127.0.0.1:8000/health
-```
-
-Run FAST:
-
-```powershell
-curl.exe -X POST http://127.0.0.1:8000/run `
-  -H "Content-Type: application/json" `
-  -d "{\"spec_name\":\"ERJ175LR\",\"mission_name\":\"ERJ_ClimbThenAccel\"}"
-```
-
-The API still supports package-style `spec_name` and `mission_name` calls. For richer Python-defined aircraft and mission inputs, use `main.py` directly so MATLAB expressions can be represented with `m("...")`.
-
-## Optional API Key
-
-Set `FAST_API_KEY` if you want the API to require an `x-api-key` header:
-
-```powershell
-$env:FAST_API_KEY="change-me"
-```
-
-Then call:
-
-```powershell
-curl.exe -X POST http://127.0.0.1:8000/run `
-  -H "Content-Type: application/json" `
-  -H "x-api-key: change-me" `
-  -d "{\"spec_name\":\"ERJ175LR\",\"mission_name\":\"ERJ_ClimbThenAccel\"}"
-```
