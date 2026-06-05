@@ -8,7 +8,7 @@ m = matlab_expr
 FAN_EFFICIENCY = m("EngineModelPkg.EngineSpecsPkg.CF34_8E5.EtaPoly.Fan")
 EM_EFFICIENCY = 0.96
 
-CUSTOM_PARALLEL_HYBRID_PROPULSION = {
+GRAPH_BASED_PROPULSION = {
     "Type": "O",
     "Arch": [
         [0, 0, 1, 1, 0, 0, 0, 0, 0],
@@ -128,7 +128,7 @@ AIRCRAFT = {
         },
         "Propulsion": {
             "MDotCF": 1.029,
-            "PropArch": CUSTOM_PARALLEL_HYBRID_PROPULSION,
+            "PropArch": GRAPH_BASED_PROPULSION,
             "Engine": m("EngineModelPkg.EngineSpecsPkg.CF34_8E5"),
             "NumEngines": 2,
             "T_W": {
