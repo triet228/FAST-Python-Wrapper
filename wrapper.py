@@ -92,8 +92,10 @@ class FastWrapper:
         )
 
         # MATLAB Engine exposes MATLAB workspace variables through a mapping.
-        # Pull only the values the wrapper promises in its Python response.
+        # Convert the FAST output struct into ordinary Python containers while
+        # keeping commonly used scalar fields available at the top level.
         fast_result = self.engine.workspace["fast_result"]
+        aircraft = self._to_python_data(fast_result)
         mtow = self._get_nested(fast_result, ["Specs", "Weight", "MTOW"])
 
         return {
@@ -101,6 +103,7 @@ class FastWrapper:
             "spec_name": spec_name,
             "mission_name": mission_name,
             "mtow": float(mtow),
+            "aircraft": aircraft,
             "log": log,
         }
 
@@ -128,11 +131,13 @@ class FastWrapper:
         )
 
         fast_result = self.engine.workspace["fast_result"]
+        aircraft = self._to_python_data(fast_result)
         mtow = self._get_nested(fast_result, ["Specs", "Weight", "MTOW"])
 
         return {
             "status": "success",
             "mtow": float(mtow),
+            "aircraft": aircraft,
             "log": log,
         }
 
@@ -322,3 +327,83 @@ class FastWrapper:
             current = current[key]
 
         return current
+
+    def _to_python_data(self, value):
+        if value is None or isinstance(value, str):
+            return value
+
+        if isinstance(value, bool) or isinstance(value, int) or isinstance(value, float):
+            return value
+
+        if isinstance(value, dict):
+            return {
+                key: self._to_python_data(item)
+                for key, item in value.items()
+            }
+
+        struct_fields = self._matlab_struct_fields(value)
+
+        if struct_fields is not None:
+            return {
+                key: self._to_python_data(value[key])
+                for key in struct_fields
+            }
+
+        if isinstance(value, list) or isinstance(value, tuple):
+            return self._convert_sequence(value)
+
+        if self._looks_like_matlab_array(value):
+            return self._convert_sequence(list(value))
+
+        return value
+
+    def _matlab_struct_fields(self, value):
+        if not hasattr(value, "__getitem__"):
+            return None
+
+        keys = None
+
+        if hasattr(value, "keys"):
+            try:
+                keys = list(value.keys())
+            except TypeError:
+                keys = None
+
+        for attribute_name in ("fieldnames", "_fieldnames"):
+            if keys is not None or not hasattr(value, attribute_name):
+                continue
+
+            attribute = getattr(value, attribute_name)
+
+            try:
+                if callable(attribute):
+                    keys = list(attribute())
+                else:
+                    keys = list(attribute)
+            except TypeError:
+                keys = None
+
+        if keys is None:
+            return None
+
+        if not all(isinstance(key, str) for key in keys):
+            return None
+
+        return keys
+
+    def _looks_like_matlab_array(self, value):
+        module_name = type(value).__module__
+
+        return (
+            module_name.startswith("matlab.")
+            and hasattr(value, "__iter__")
+            and not isinstance(value, str)
+        )
+
+    def _convert_sequence(self, value):
+        items = [self._to_python_data(item) for item in value]
+
+        if len(items) == 1 and not isinstance(items[0], dict):
+            return items[0]
+
+        return items

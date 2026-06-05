@@ -72,6 +72,17 @@ python main.py
 
 The current custom graph example returns a successful result with `mtow` near `57537.66416956265` kg. FAST may also print a thrust overconstraint warning before the iteration log.
 
+The wrapper also returns the full FAST output aircraft struct converted into
+plain Python dictionaries and lists:
+
+```python
+result = fast.run(aircraft=AIRCRAFT, mission=MISSION)
+aircraft = result["aircraft"]
+
+mtow = aircraft["Specs"]["Weight"]["MTOW"]
+mission_profile = aircraft["Mission"]["Profile"]
+```
+
 `main.py` is the main editable entry point. It defines FAST inputs as Python dictionaries:
 
 ```python
