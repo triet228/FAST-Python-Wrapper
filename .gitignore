@@ -22,3 +22,5 @@ dist/
 .env.*
 
 matlab-engine-python/
+FAST/
+FAST-models/
