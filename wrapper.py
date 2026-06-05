@@ -1,6 +1,7 @@
 # wrapper.py
 import os
 import re
+from copy import deepcopy
 from pathlib import Path
 
 
@@ -79,6 +80,7 @@ class FastWrapper:
         if aircraft is None or mission is None:
             raise ValueError("aircraft and mission must be provided together.")
 
+        aircraft = self._prepare_aircraft(aircraft)
         aircraft_literal = self._to_matlab_literal(aircraft)
         mission_literal = self._to_matlab_literal(mission)
 
@@ -140,6 +142,39 @@ class FastWrapper:
     def _validate_matlab_name(self, value, field_name):
         if not VALID_MATLAB_NAME.match(value):
             raise ValueError(f"{field_name} must be a simple MATLAB identifier.")
+
+    def _prepare_aircraft(self, aircraft):
+        aircraft = deepcopy(aircraft)
+
+        try:
+            propulsion = aircraft["Specs"]["Propulsion"]
+        except KeyError:
+            return aircraft
+
+        prop_arch = propulsion.get("PropArch")
+
+        if not isinstance(prop_arch, str):
+            return aircraft
+
+        arch_type = prop_arch.upper()
+
+        if arch_type == "O":
+            graph = propulsion.get("PropArchGraph")
+
+            if graph is None:
+                raise ValueError(
+                    'PropArchGraph is required when "PropArch" is "O".'
+                )
+
+            prop_arch = deepcopy(graph)
+            prop_arch["Type"] = "O"
+            propulsion["PropArch"] = prop_arch
+            del propulsion["PropArchGraph"]
+            return aircraft
+
+        propulsion["PropArch"] = {"Type": arch_type}
+        propulsion.pop("PropArchGraph", None)
+        return aircraft
 
     def _to_matlab_literal(self, value):
         if isinstance(value, MatlabExpression):
