@@ -15,6 +15,11 @@ class MatlabExpression:
         self.value = value
 
 
+class MatlabRow:
+    def __init__(self, value):
+        self.value = value
+
+
 def matlab_expr(value):
     return MatlabExpression(value)
 
@@ -163,6 +168,11 @@ class FastWrapper:
 
             prop_arch = deepcopy(graph)
             prop_arch["Type"] = "O"
+
+            for field_name in ("SrcType", "TrnType"):
+                if field_name in prop_arch:
+                    prop_arch[field_name] = MatlabRow(prop_arch[field_name])
+
             propulsion["PropArch"] = prop_arch
             del propulsion["PropArchGraph"]
             return aircraft
@@ -174,6 +184,9 @@ class FastWrapper:
     def _to_matlab_literal(self, value):
         if isinstance(value, MatlabExpression):
             return value.value
+
+        if isinstance(value, MatlabRow):
+            return self._to_matlab_row(value.value)
 
         if isinstance(value, dict):
             fields = []
@@ -231,6 +244,15 @@ class FastWrapper:
             rows.append(", ".join(self._to_matlab_literal(item) for item in row))
 
         return "[" + "; ".join(rows) + "]"
+
+    def _to_matlab_row(self, value):
+        if not value:
+            return "[]"
+
+        if any(isinstance(item, list) or isinstance(item, tuple) for item in value):
+            raise TypeError("MATLAB row values must be one-dimensional.")
+
+        return "[" + ", ".join(self._to_matlab_literal(item) for item in value) + "]"
 
     def _get_nested(self, value, keys):
         current = value

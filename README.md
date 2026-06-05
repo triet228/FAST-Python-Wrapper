@@ -15,10 +15,17 @@ This project does not include FAST or MATLAB Engine. Each user needs a local FAS
 
 ## Requirements
 
-- Python 3.10 or newer
+- Python 3.10 or newer supported by your MATLAB release
 - MATLAB
 - MATLAB Engine for Python
 - A local FAST repo
+
+This repo has been smoke-tested on Windows with:
+
+- Conda environment `fast_python_wrapper`
+- Python 3.11
+- MATLAB R2025b
+- FAST checkout at `C:\Users\homin\Projects\FAST`
 
 Install the Python dependencies:
 
@@ -26,7 +33,9 @@ Install the Python dependencies:
 python -m pip install -e .
 ```
 
-Install MATLAB Engine for Python from your local MATLAB installation if `import matlab.engine` does not work.
+Install MATLAB Engine for Python from your local MATLAB installation if `import matlab.engine` does not work. For MATLAB R2025b, use Python 3.9, 3.10, 3.11, or 3.12.
+
+If MathWorks' local installer cannot build directly from `C:\Program Files`, copy the engine package into a writable temporary folder and install from there, or install the shipped `matlab` package into the environment with paths pointing back to the MATLAB installation.
 
 ## FAST Path
 
@@ -54,6 +63,15 @@ print(result)
 ```powershell
 python main.py
 ```
+
+With the tested Windows setup above:
+
+```powershell
+conda activate fast_python_wrapper
+python main.py
+```
+
+The current custom graph example returns a successful result with `mtow` near `57537.66416956265` kg. FAST may also print a thrust overconstraint warning before the iteration log.
 
 `main.py` is the main editable entry point. It defines FAST inputs as Python dictionaries:
 
