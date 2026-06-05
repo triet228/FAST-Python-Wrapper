@@ -187,7 +187,7 @@ Aircraft.Settings.Analysis.Type = +1;
 % plot results or not
 % 0 = no plotting
 % 1 =    plotting
-Aircraft.Settings.Plotting = 1;
+Aircraft.Settings.Plotting = 0;
 
 % ----------------------------------------------------------
 

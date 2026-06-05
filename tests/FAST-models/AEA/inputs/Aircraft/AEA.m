@@ -262,7 +262,7 @@ Aircraft.Settings.Analysis.Type = +1;
 % plotting, either:
 %     1 for plotting on
 %     0 for plotting off
-Aircraft.Settings.Plotting = 1;
+Aircraft.Settings.Plotting = 0;
 
 Aircraft.Settings.Table = 0;
 
