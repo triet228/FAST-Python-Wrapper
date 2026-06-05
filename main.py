@@ -5,6 +5,21 @@ from wrapper import FastWrapper, matlab_expr
 nan = float("nan")
 m = matlab_expr
 
+
+# =============================================================================
+# AIRCRAFT
+# =============================================================================
+# Edit this block for the aircraft-level FAST input structure.
+#
+# Notes:
+# - Use plain Python numbers and strings for fixed values.
+# - Use nan when a FAST field should be left for FAST preprocessing/regression.
+# - Use m("...") when the value should be evaluated by MATLAB, such as
+#   UnitConversionPkg calls or EngineModelPkg references.
+# - Set Specs -> Propulsion -> PropArch to a FAST architecture code:
+#   "C", "E", "PHE", "SHE", "TE", "PE", or "O".
+# - When PropArch is "O", the graph-based propulsion block later in this file
+#   is attached automatically as PropArchGraph.
 AIRCRAFT = {
     "Specs": {
         "TLAR": {
@@ -135,6 +150,15 @@ AIRCRAFT = {
 }
 
 
+# =============================================================================
+# MISSION
+# =============================================================================
+# Edit this block for the mission profile that FAST attaches to Aircraft.
+#
+# The mission arrays are aligned by row. For each segment index, Segs, ID,
+# AltBeg, AltEnd, VelBeg, VelEnd, TypeBeg, TypeEnd, and ClbRate describe the
+# same mission segment. Target.Valu and Target.Type describe the distance/time
+# goals for each mission ID.
 MISSION = {
     "Target": {
         "Valu": [
@@ -282,6 +306,21 @@ MISSION = {
 }
 
 
+# =============================================================================
+# PROPULSION GRAPH
+# =============================================================================
+# Edit this block only when AIRCRAFT["Specs"]["Propulsion"]["PropArch"] is "O".
+#
+# FAST's graph-based propulsion architecture uses:
+# - Arch: adjacency matrix for source, transmitter, and sink connections.
+# - OperUps / OperDwn: MATLAB function handles that define upstream/downstream
+#   power split matrices. The lambda argument is supplied by FAST during the
+#   power-flow analysis.
+# - EtaUps / EtaDwn: efficiency matrices for upstream/downstream propagation.
+# - SrcType: source component types, where FAST uses 1 for fuel and 0 for
+#   battery in CreatePropArch.
+# - TrnType: transmitter component types, where FAST uses 1 for engine,
+#   0 for electric motor, 2 for propeller/fan, and 3 for electric generator.
 FAN_EFFICIENCY = 0.99
 EM_EFFICIENCY = 0.96
 GRAPH_BASED_PROPULSION = {
@@ -347,10 +386,15 @@ GRAPH_BASED_PROPULSION = {
 }
 
 
+# Attach the graph definition only for the custom "O" architecture. Built-in
+# FAST architectures such as "C" or "E" ignore this graph.
 if AIRCRAFT["Specs"]["Propulsion"]["PropArch"].upper() == "O":
     AIRCRAFT["Specs"]["Propulsion"]["PropArchGraph"] = GRAPH_BASED_PROPULSION
 
 
+# =============================================================================
+# RUN
+# =============================================================================
 def main():
     with FastWrapper() as fast:
         result = fast.run(aircraft=AIRCRAFT, mission=MISSION)
