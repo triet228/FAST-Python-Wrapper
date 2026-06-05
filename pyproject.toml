@@ -1,0 +1,17 @@
+[project]
+name = "fast-python-wrapper"
+version = "0.1.0"
+description = "Unofficial Python wrapper for running FAST through MATLAB Engine."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+]
+
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["wrapper", "api"]
