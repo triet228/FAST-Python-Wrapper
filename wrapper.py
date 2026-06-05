@@ -16,7 +16,7 @@ class MatlabExpression:
     Inputs:
         value: MATLAB expression text, such as a UnitConversionPkg call.
 
-    Output:
+    Outputs:
         A wrapper object consumed by FastWrapper._to_matlab_literal().
 
     Assumptions:
@@ -38,7 +38,7 @@ class MatlabRow:
     Inputs:
         value: One-dimensional list or tuple.
 
-    Output:
+    Outputs:
         A wrapper object consumed by FastWrapper._to_matlab_literal().
 
     Assumptions:
@@ -76,7 +76,7 @@ def load_env_file():
         values.
     """
 
-    # load local machine paths from .env, copying .env.example on first run
+    # Load local machine paths from .env, copying .env.example on first run.
     env_path = PROJECT_ROOT / ".env"
     example_env_path = PROJECT_ROOT / ".env.example"
 
@@ -114,7 +114,7 @@ def required_env_path(name):
         template paths and cannot point to a usable FAST checkout.
     """
 
-    # require a configured environment path before calling FAST
+    # Require a configured environment path before calling FAST.
     value = os.environ.get(name, "").strip()
 
     if not value or r"\path\to\\" in value or r"\path\to" in value:
