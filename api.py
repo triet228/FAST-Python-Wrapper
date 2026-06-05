@@ -52,6 +52,8 @@ def run_fast(inputs=Body(default_factory=dict), x_api_key=Header(None)):
         return wrapper.run(
             spec_name=inputs.get("spec_name"),
             mission_name=inputs.get("mission_name"),
+            aircraft=inputs.get("aircraft"),
+            mission=inputs.get("mission"),
         )
     except Exception as error:
         raise HTTPException(

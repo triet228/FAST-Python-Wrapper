@@ -7,6 +7,16 @@ from pathlib import Path
 DEFAULT_SPEC_NAME = "ERJ175LR"
 DEFAULT_MISSION_NAME = "ERJ_ClimbThenAccel"
 VALID_MATLAB_NAME = re.compile(r"^[A-Za-z]\w*$")
+VALID_STRUCT_FIELD = re.compile(r"^[A-Za-z]\w*$")
+
+
+class MatlabExpression:
+    def __init__(self, value):
+        self.value = value
+
+
+def matlab_expr(value):
+    return MatlabExpression(value)
 
 
 class FastWrapper:
@@ -34,8 +44,11 @@ class FastWrapper:
             self.engine.quit()
             self.engine = None
 
-    def run(self, spec_name=None, mission_name=None):
+    def run(self, spec_name=None, mission_name=None, aircraft=None, mission=None):
         self._require_engine()
+
+        if aircraft is not None or mission is not None:
+            return self._run_structs(aircraft, mission)
 
         spec_name = spec_name or DEFAULT_SPEC_NAME
         mission_name = mission_name or DEFAULT_MISSION_NAME
@@ -58,6 +71,31 @@ class FastWrapper:
             "status": "success",
             "spec_name": spec_name,
             "mission_name": mission_name,
+            "mtow": float(mtow),
+            "log": log,
+        }
+
+    def _run_structs(self, aircraft, mission):
+        if aircraft is None or mission is None:
+            raise ValueError("aircraft and mission must be provided together.")
+
+        aircraft_literal = self._to_matlab_literal(aircraft)
+        mission_literal = self._to_matlab_literal(mission)
+
+        log = self.engine.evalc(
+            f"""
+            aircraft_spec = {aircraft_literal};
+            mission_profile = @(Aircraft) setfield(Aircraft, "Mission", "Profile", {mission_literal});
+            fast_result = Main(aircraft_spec, mission_profile);
+            """,
+            nargout=1,
+        )
+
+        fast_result = self.engine.workspace["fast_result"]
+        mtow = self._get_nested(fast_result, ["Specs", "Weight", "MTOW"])
+
+        return {
+            "status": "success",
             "mtow": float(mtow),
             "log": log,
         }
@@ -102,6 +140,67 @@ class FastWrapper:
     def _validate_matlab_name(self, value, field_name):
         if not VALID_MATLAB_NAME.match(value):
             raise ValueError(f"{field_name} must be a simple MATLAB identifier.")
+
+    def _to_matlab_literal(self, value):
+        if isinstance(value, MatlabExpression):
+            return value.value
+
+        if isinstance(value, dict):
+            fields = []
+
+            for key, item in value.items():
+                if not VALID_STRUCT_FIELD.match(key):
+                    raise ValueError(f"Invalid MATLAB struct field name: {key}")
+
+                fields.append(f'"{key}", {self._to_matlab_literal(item)}')
+
+            if not fields:
+                return "struct()"
+
+            return f"struct({', '.join(fields)})"
+
+        if isinstance(value, str):
+            escaped_value = value.replace('"', '""')
+            return f'"{escaped_value}"'
+
+        if isinstance(value, bool):
+            return "true" if value else "false"
+
+        if isinstance(value, int) or isinstance(value, float):
+            if value != value:
+                return "NaN"
+
+            return repr(value)
+
+        if value is None:
+            return "[]"
+
+        if isinstance(value, list) or isinstance(value, tuple):
+            return self._to_matlab_array(value)
+
+        raise TypeError(f"Unsupported MATLAB literal value: {value!r}")
+
+    def _to_matlab_array(self, value):
+        if not value:
+            return "[]"
+
+        if all(isinstance(item, str) for item in value):
+            rows = [self._to_matlab_literal(item) for item in value]
+            return "[" + "; ".join(rows) + "]"
+
+        if all(not isinstance(item, list) and not isinstance(item, tuple) for item in value):
+            rows = [self._to_matlab_literal(item) for item in value]
+            return "[" + "; ".join(rows) + "]"
+
+        rows = []
+
+        for row in value:
+            if not isinstance(row, list) and not isinstance(row, tuple):
+                raise TypeError("MATLAB matrix rows must all be lists or tuples.")
+
+            rows.append(", ".join(self._to_matlab_literal(item) for item in row))
+
+        return "[" + "; ".join(rows) + "]"
 
     def _get_nested(self, value, keys):
         current = value
