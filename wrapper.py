@@ -316,7 +316,13 @@ class FastWrapper:
                     # FAST compares these vectors against transmitter/source
                     # counts as row vectors. If sent as columns, MATLAB's
                     # implicit expansion can produce invalid component indices.
-                    prop_arch[field_name] = MatlabRow(prop_arch[field_name])
+                    value = prop_arch[field_name]
+
+                    if (
+                        not isinstance(value, MatlabRow)
+                        and (isinstance(value, list) or isinstance(value, tuple))
+                    ):
+                        prop_arch[field_name] = MatlabRow(prop_arch[field_name])
 
             propulsion["PropArch"] = prop_arch
             del propulsion["PropArchGraph"]

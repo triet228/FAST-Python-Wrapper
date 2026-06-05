@@ -1,6 +1,6 @@
 # tests/helpers.py
 
-"""Helpers for comparing Python-wrapper and direct MATLAB FAST results.
+"""Helpers for comparing Python-wrapper and saved MATLAB FAST results.
 
 The tests intentionally run MATLAB instead of mocking it. The wrapper exists
 to preserve FAST behavior from Python-defined inputs, so the useful regression
@@ -8,6 +8,7 @@ boundary is the final FAST aircraft structure rather than isolated helper
 methods.
 """
 
+import importlib.util
 import json
 import math
 import pytest
@@ -23,7 +24,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 import main as wrapper_main
-from wrapper import FastWrapper, load_env_file, matlab_expr, required_env_path
+from wrapper import FastWrapper, load_env_file, required_env_path
 
 
 WRAPPER_METRICS = {
@@ -63,6 +64,15 @@ function [failures, skipped, compared] = compare_value(actual, expected, path, i
 
     if any(path == ignored_paths)
         skipped{end + 1} = char(path + " skipped: expected wrapper-specific or machine-specific value");
+        return;
+    end
+
+    if (ischar(actual) || isstring(actual)) && (ischar(expected) || isstring(expected))
+        compared = compared + 1;
+
+        if ~isequal(string(actual), string(expected))
+            failures{end + 1} = char(path + " text mismatch");
+        end
         return;
     end
 
@@ -152,15 +162,6 @@ function [failures, skipped, compared] = compare_value(actual, expected, path, i
         return;
     end
 
-    if ischar(actual) || isstring(actual)
-        compared = compared + 1;
-
-        if ~isequal(actual, expected)
-            failures{end + 1} = char(path + " text mismatch");
-        end
-        return;
-    end
-
     if isa(actual, "function_handle")
         compared = compared + 1;
 
@@ -185,10 +186,18 @@ end
 
 
 def skip_unless_matlab_available():
-    """Skip integration tests when MATLAB is not on PATH."""
+    """Skip integration tests when MATLAB or MATLAB Engine is unavailable."""
 
     if shutil.which("matlab") is None:
         pytest.skip("MATLAB executable is not available on PATH.")
+
+    try:
+        matlab_engine_spec = importlib.util.find_spec("matlab.engine")
+    except ModuleNotFoundError:
+        matlab_engine_spec = None
+
+    if matlab_engine_spec is None:
+        pytest.skip("MATLAB Engine for Python is not installed.")
 
 
 @pytest.fixture
@@ -330,16 +339,23 @@ fclose(fid);
 
 
 def assert_fast_model_wrapper_matches_saved_output(
-    case,
+    name,
+    aircraft,
+    mission,
+    saved,
     fast_path,
     fast_models_path,
     tmp_path,
 ):
-    """Run one vendored FAST-model case through the wrapper and compare .mat.
+    """Run one Python fixture case through the wrapper and compare .mat.
 
     Inputs:
-        case: Aircraft case metadata with name, aircraft function, mission
-            function, and saved OutputAircraft.mat path.
+        name: Aircraft case name used in failure output.
+        aircraft: Python dictionary generated from the vendored aircraft `.m`
+            input fixture.
+        mission: Python dictionary generated from the vendored mission `.m`
+            input fixture.
+        saved: Case-relative path to the saved OutputAircraft.mat baseline.
         fast_path: Local FAST checkout path.
         fast_models_path: Vendored test fixture root.
 
@@ -348,34 +364,23 @@ def assert_fast_model_wrapper_matches_saved_output(
         from the saved MATLAB FAST output field.
 
     Assumptions:
-        The vendored aircraft and mission `.m` files are trusted fixtures. They
-        are passed as MATLAB expressions through FastWrapper.run(), so the test
-        still exercises the wrapper entry point while preserving MATLAB-native
-        fixture definitions.
+        The explicit dictionaries in each test file were generated from the
+        vendored aircraft and mission `.m` files. This keeps the tests on the
+        same user-facing path as main.py: Python data goes into the wrapper,
+        FAST runs, and the final aircraft is checked recursively.
     """
 
     if not fast_models_path.exists():
         pytest.skip(f"FAST-models path not found: {fast_models_path}")
 
-    saved_path = fast_models_path / case["saved"]
-    report_path = tmp_path / f"{case['name'].lower()}_comparison.json"
-    script_path = tmp_path / f"compare_{case['name'].lower()}.m"
+    saved_path = fast_models_path / saved
+    report_path = tmp_path / f"{name.lower()}_comparison.json"
+    script_path = tmp_path / f"compare_{name.lower()}.m"
     write_text(script_path, MATLAB_COMPARE_SCRIPT)
 
     with FastWrapper(fast_path) as fast:
-        fast.engine.addpath(fast.engine.genpath(str(fast_models_path)), nargout=0)
         fast.engine.workspace["saved_path"] = str(saved_path)
         fast.engine.workspace["report_path"] = str(report_path)
-
-        aircraft_expression = f"feval('{case['aircraft']}')"
-
-        if "aircraft_expression" in case:
-            aircraft_expression = case["aircraft_expression"]
-
-        aircraft = matlab_expr(aircraft_expression)
-        mission = matlab_expr(
-            f"feval('{case['mission']}', Aircraft).Mission.Profile"
-        )
         fast.run(aircraft=aircraft, mission=mission)
         fast.engine.evalc(f"run('{script_path.as_posix()}')", nargout=1)
 
@@ -383,8 +388,8 @@ def assert_fast_model_wrapper_matches_saved_output(
     failures = report.get("failures", [])
     compared = report.get("compared", 0)
 
-    assert compared > 0, f"{case['name']} did not compare any output fields"
+    assert compared > 0, f"{name} did not compare any output fields"
     assert not failures, (
-        f"{case['name']} wrapper output differs from OutputAircraft.mat:\n"
+        f"{name} wrapper output differs from OutputAircraft.mat:\n"
         + "\n".join(failures[:50])
     )
