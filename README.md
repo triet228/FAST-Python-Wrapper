@@ -68,6 +68,20 @@ you know where MATLAB Engine is installed.
 Now install MATLAB Engine for Python. This is the package that lets Python
 start MATLAB.
 
+For MATLAB R2025b, install the matching engine package from PyPI:
+
+```powershell
+python -m pip install matlabengine==25.2.2
+```
+
+Check that Python can import MATLAB Engine:
+
+```powershell
+python -c "import matlab.engine; print('MATLAB Engine OK')"
+```
+
+If that prints `MATLAB Engine OK`, the environment is ready.
+
 If you do not know where MATLAB is installed, open MATLAB and run:
 
 ```matlab
@@ -88,34 +102,9 @@ C:\Program Files\MATLAB\R2025b
 
 Use that folder as `MATLAB_ROOT` in `.env`.
 
-First copy MATLAB's Python engine installer to a normal writable folder:
-
-In this command, replace `C:\Program Files\MATLAB\R2025b` with your
-`MATLAB_ROOT` if your MATLAB install folder is different.
-
-```powershell
-New-Item -ItemType Directory "$env:TEMP\matlab-engine-R2025b-python" -Force
-Copy-Item "C:\Program Files\MATLAB\R2025b\extern\engines\python\*" "$env:TEMP\matlab-engine-R2025b-python" -Recurse -Force
-```
-
-Then install MATLAB Engine from that copied folder:
-
-```powershell
-python -m pip install "$env:TEMP\matlab-engine-R2025b-python"
-```
-
-Check that Python can import MATLAB Engine:
-
-```powershell
-python -c "import matlab.engine; print('MATLAB Engine OK')"
-```
-
-If that prints `MATLAB Engine OK`, the environment is ready.
-
-Do not run `python -m pip install .` from inside
-`C:\Program Files\MATLAB\R2025b\extern\engines\python`. Windows often blocks
-pip from writing build files inside `C:\Program Files`, which causes an
-`Access is denied` error.
+Do not copy only `C:\Program Files\MATLAB\R2025b\extern\engines\python` into
+this repo and install from the copy. MATLAB Engine's local installer expects
+the full MATLAB folder structure around it.
 
 ## FAST Path
 
