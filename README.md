@@ -41,6 +41,7 @@ python -c "import matlab.engine; print('MATLAB Engine OK')"
 If this gives error, you will need to debug this before continue. If this prints `MATLAB Engine OK`, the environment is ready.
 > [!WARNING]
 > One bug might be that your Python version is not compatible with MATLAB Engine. Please check on [MATLAB Official Website](https://www.mathworks.com/support/requirements/python-compatibility.html). Edit [`pyproject.toml`](https://github.com/triet228/FAST-Python-Wrapper/blob/main/pyproject.toml) to match the correct python and matlabengine version. Then redo step 4 `pip install -e .` to install dependencies.
+
 > [!TIP]
 > Inside MATLAB, you can run `which matlab` to know where MATLAB is installed.
 
