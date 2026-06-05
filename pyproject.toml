@@ -3,6 +3,8 @@ name = "fast-python-wrapper"
 version = "0.1.0"
 description = "Python wrapper for running FAST through MATLAB Engine."
 readme = "README.md"
+
+# Make sure Python version is compatible with MATLAB Engine
 requires-python = "==3.11.*"
 dependencies = [
     "matlabengine==25.2.2",
