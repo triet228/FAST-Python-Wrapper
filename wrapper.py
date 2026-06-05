@@ -1,9 +1,12 @@
 # wrapper.py
+import os
 import re
 from copy import deepcopy
+from shutil import copyfile
 from pathlib import Path
 
 
+PROJECT_ROOT = Path(__file__).resolve().parent
 VALID_STRUCT_FIELD = re.compile(r"^[A-Za-z]\w*$")
 
 
@@ -26,6 +29,43 @@ class MatlabRow:
 def matlab_expr(value):
     # Public helper used by main.py as m("...").
     return MatlabExpression(value)
+
+
+def load_env_file():
+    # load local machine paths from .env, copying .env.example on first run
+    env_path = PROJECT_ROOT / ".env"
+    example_env_path = PROJECT_ROOT / ".env.example"
+
+    if not env_path.exists():
+        if example_env_path.exists():
+            copyfile(example_env_path, env_path)
+        else:
+            return
+
+    for raw_line in env_path.read_text().splitlines():
+        line = raw_line.strip()
+
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+
+        if key and key not in os.environ:
+            os.environ[key] = value
+
+
+def required_env_path(name):
+    # require a configured environment path before calling FAST
+    value = os.environ.get(name, "").strip()
+
+    if not value or r"\path\to\\" in value or r"\path\to" in value:
+        raise RuntimeError(
+            f"{name} is required. Edit .env and set {name} for your machine."
+        )
+
+    return value
 
 
 class FastWrapper:
