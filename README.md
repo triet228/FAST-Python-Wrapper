@@ -2,9 +2,6 @@
 
 Python wrapper for running [Future Aircraft Sizing Tool (FAST)](https://github.com/ideas-um/FAST) through MATLAB Engine.
 
-> [!WARNING]
-> Please confirm your Python version is compatible with MATLAB Engine on [MATLAB Official Website](https://www.mathworks.com/support/requirements/python-compatibility.html). Edit [`pyproject.toml`](https://github.com/triet228/FAST-Python-Wrapper/blob/main/pyproject.toml) to match the correct python and matlabengine version.
-
 ## Files
 
 - `wrapper.py`: core wrapper around MATLAB Engine and FAST.
@@ -17,6 +14,9 @@ Python wrapper for running [Future Aircraft Sizing Tool (FAST)](https://github.c
 
 - A local FAST directory
 - Use a virtual environment manager to download a virtual environment with the right Python version that is compatible with MATLAB Engine on [MATLAB Official Website](https://www.mathworks.com/support/requirements/python-compatibility.html). Edit [`pyproject.toml`](https://github.com/triet228/FAST-Python-Wrapper/blob/main/pyproject.toml) to match the correct python and matlabengine version.
+
+> [!WARNING]
+> Please make sure your Python version is compatible with MATLAB Engine and it's reflected in both your virtual environment and [`pyproject.toml`](https://github.com/triet228/FAST-Python-Wrapper/blob/main/pyproject.toml).
 
 
 ## Installations
@@ -51,5 +51,4 @@ Edit  `AIRCRAFT`, `MISSION`, and optional `GRAPH_BASED_PROPULSION` in [`main.py`
 python main.py
 ```
 
-> [!WARNING]
-> Please confirm your Python version is compatible with MATLAB Engine on [MATLAB Official Website](https://www.mathworks.com/support/requirements/python-compatibility.html). Edit [`pyproject.toml`](https://github.com/triet228/FAST-Python-Wrapper/blob/main/pyproject.toml) to match the correct python and matlabengine version.
+
