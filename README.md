@@ -10,6 +10,7 @@ This project does not include FAST or MATLAB Engine. Each user needs a local FAS
 
 - `wrapper.py`: core wrapper around MATLAB Engine and FAST.
 - `main.py`: direct local script with editable Python `AIRCRAFT`, `MISSION`, and propulsion graph inputs.
+- `.env.example`: example local path configuration.
 - `pyproject.toml`: project metadata and Python dependencies.
 
 ## Requirements
@@ -21,24 +22,104 @@ This project does not include FAST or MATLAB Engine. Each user needs a local FAS
 
 This repo has been smoke-tested on Windows with:
 
-- Conda environment `fast_python_wrapper`
+- Conda environment `fast`
 - Python 3.11
 - MATLAB R2025b
 - FAST checkout at `C:\Users\homin\Projects\FAST`
 
-Install the Python dependencies:
+## Setup
+
+Open PowerShell or Anaconda Prompt.
+
+Create a conda environment with Python 3.11:
 
 ```powershell
+conda create -n fast python=3.11
+conda activate fast
+```
+
+Go to the folder where you cloned this repo and install the wrapper:
+
+```powershell
+cd C:\path\to\FAST-Python-Wrapper
 python -m pip install -e .
 ```
 
-Install MATLAB Engine for Python from your local MATLAB installation if `import matlab.engine` does not work. For MATLAB R2025b, use Python 3.9, 3.10, 3.11, or 3.12.
+Create your local path settings:
 
-If MathWorks' local installer cannot build directly from `C:\Program Files`, copy the engine package into a writable temporary folder and install from there, or install the shipped `matlab` package into the environment with paths pointing back to the MATLAB installation.
+```powershell
+Copy-Item .env.example .env
+notepad .env
+```
+
+If `.env` does not exist yet, `python main.py` will also create it from
+`.env.example` and ask you to edit it.
+
+Set `FAST_PATH` to your local FAST checkout. For example:
+
+```text
+FAST_PATH=C:\Users\your-name\Projects\FAST
+MATLAB_ROOT=C:\Program Files\MATLAB\R2025b
+```
+
+`FAST_PATH` is used by `main.py`. `MATLAB_ROOT` is only a note for setup, so
+you know where MATLAB Engine is installed.
+
+Now install MATLAB Engine for Python. This is the package that lets Python
+start MATLAB.
+
+If you do not know where MATLAB is installed, open MATLAB and run:
+
+```matlab
+which matlab
+```
+
+Example output:
+
+```text
+C:\Program Files\MATLAB\R2025b\toolbox\matlab\general\matlab.m
+```
+
+In that example, the MATLAB install folder is:
+
+```text
+C:\Program Files\MATLAB\R2025b
+```
+
+Use that folder as `MATLAB_ROOT` in `.env`.
+
+First copy MATLAB's Python engine installer to a normal writable folder:
+
+In this command, replace `C:\Program Files\MATLAB\R2025b` with your
+`MATLAB_ROOT` if your MATLAB install folder is different.
+
+```powershell
+New-Item -ItemType Directory "$env:TEMP\matlab-engine-R2025b-python" -Force
+Copy-Item "C:\Program Files\MATLAB\R2025b\extern\engines\python\*" "$env:TEMP\matlab-engine-R2025b-python" -Recurse -Force
+```
+
+Then install MATLAB Engine from that copied folder:
+
+```powershell
+python -m pip install "$env:TEMP\matlab-engine-R2025b-python"
+```
+
+Check that Python can import MATLAB Engine:
+
+```powershell
+python -c "import matlab.engine; print('MATLAB Engine OK')"
+```
+
+If that prints `MATLAB Engine OK`, the environment is ready.
+
+Do not run `python -m pip install .` from inside
+`C:\Program Files\MATLAB\R2025b\extern\engines\python`. Windows often blocks
+pip from writing build files inside `C:\Program Files`, which causes an
+`Access is denied` error.
 
 ## FAST Path
 
-Set `FAST_PATH` at the top of `main.py` to the local FAST repo path. The path must contain:
+Set `FAST_PATH` in `.env` to the local FAST repo path. The path must contain:
 
 ```text
 Main.m
