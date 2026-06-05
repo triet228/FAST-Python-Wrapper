@@ -30,13 +30,7 @@ Install MATLAB Engine for Python from your local MATLAB installation if `import 
 
 ## FAST Path
 
-Set `FAST_PATH` to the local FAST repo path:
-
-```powershell
-$env:FAST_PATH="C:\Users\your-name\Projects\FAST"
-```
-
-The path must contain:
+Set `FAST_PATH` at the top of `main.py` to the local FAST repo path. The path must contain:
 
 ```text
 Main.m
@@ -44,7 +38,7 @@ Main.m
 +MissionProfilesPkg/
 ```
 
-You can also pass the path directly in Python. This legacy/package-style mode runs aircraft and mission functions already available inside the FAST checkout:
+You can also pass the path directly in Python. This package-style mode runs aircraft and mission functions already available inside the FAST checkout:
 
 ```python
 from wrapper import FastWrapper
@@ -95,6 +89,8 @@ When `PropArch` is `"O"`, `main.py` attaches `GRAPH_BASED_PROPULSION` as `PropAr
 ```powershell
 uvicorn api:app --reload
 ```
+
+The API uses the same `FAST_PATH` value from `main.py`.
 
 Health check:
 

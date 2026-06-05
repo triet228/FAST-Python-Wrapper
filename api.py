@@ -3,6 +3,7 @@ import os
 
 from fastapi import Body, FastAPI, Header, HTTPException
 
+from main import FAST_PATH
 from wrapper import FastWrapper
 
 
@@ -23,7 +24,7 @@ def get_wrapper():
     wrapper = getattr(app.state, "fast_wrapper", None)
 
     if not wrapper:
-        wrapper = FastWrapper()
+        wrapper = FastWrapper(FAST_PATH)
         wrapper.start()
         app.state.fast_wrapper = wrapper
 

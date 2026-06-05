@@ -1,5 +1,4 @@
 # wrapper.py
-import os
 import re
 from copy import deepcopy
 from pathlib import Path
@@ -109,14 +108,10 @@ class FastWrapper:
         self.stop()
 
     def _resolve_fast_path(self, fast_path):
-        raw_path = fast_path or os.environ.get("FAST_PATH")
+        if not fast_path:
+            raise RuntimeError("FAST path is required.")
 
-        if not raw_path:
-            raise RuntimeError(
-                "FAST path is required. Pass fast_path or set FAST_PATH."
-            )
-
-        path = Path(raw_path).expanduser().resolve()
+        path = Path(fast_path).expanduser().resolve()
         self._validate_fast_path(path)
         return path
 

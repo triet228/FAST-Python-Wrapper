@@ -1,6 +1,7 @@
 # main.py
 from wrapper import FastWrapper, matlab_expr
 
+FAST_PATH = r"C:\Users\homin\Projects\FAST"
 
 nan = float("nan")
 m = matlab_expr
@@ -367,7 +368,7 @@ if AIRCRAFT["Specs"]["Propulsion"]["PropArch"].upper() == "O":
 # RUN
 # =============================================================================
 def main():
-    with FastWrapper() as fast:
+    with FastWrapper(FAST_PATH) as fast:
         result = fast.run(aircraft=AIRCRAFT, mission=MISSION)
 
     print(result)
