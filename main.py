@@ -1,4 +1,6 @@
 # main.py
+import re
+
 from wrapper import FastWrapper, matlab_expr
 
 # Local FAST checkout. This repo does not vendor FAST; the wrapper adds this
@@ -434,16 +436,43 @@ if AIRCRAFT["Specs"]["Propulsion"]["PropArch"].upper() == "O":
 # =============================================================================
 # RUN
 # =============================================================================
+def clean_matlab_log(log):
+    # MATLAB warning output can include command-window backspace markers and
+    # clickable HTML anchors. Strip those so terminal output stays readable.
+    log = log.replace("\x08", "")
+    log = re.sub(r"<a\b[^>]*>", "", log)
+    log = log.replace("</a>", "")
+    return log.strip()
+
+
+def print_result(result):
+    print(f"Status: {result['status']}")
+
+    if "spec_name" in result:
+        print(f"Spec: {result['spec_name']}")
+
+    if "mission_name" in result:
+        print(f"Mission: {result['mission_name']}")
+
+    print(f"MTOW: {result['mtow']:.6f} kg")
+
+    log = clean_matlab_log(result.get("log", ""))
+
+    if log:
+        print()
+        print("FAST log:")
+        print(log)
+
+
 def main():
     # The context manager starts MATLAB, runs FAST, and shuts MATLAB down even
     # if FAST raises an error.
     with FastWrapper(FAST_PATH) as fast:
         result = fast.run(aircraft=AIRCRAFT, mission=MISSION)
 
-    # Printing the whole result includes FAST's MATLAB iteration log. Downstream
-    # scripts can import AIRCRAFT/MISSION and call FastWrapper directly if they
-    # want to handle the result programmatically instead.
-    print(result)
+    # Keep FastWrapper.run's dictionary return value unchanged for downstream
+    # code, but display the local script result as terminal-friendly text.
+    print_result(result)
 
 
 if __name__ == "__main__":
