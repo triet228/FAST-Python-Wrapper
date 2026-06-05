@@ -489,16 +489,6 @@ def clean_matlab_log(log):
 
 
 def print_result(result):
-    
-
-    if "spec_name" in result:
-        print(f"Spec: {result['spec_name']}")
-
-    if "mission_name" in result:
-        print(f"Mission: {result['mission_name']}")
-
-    
-
     log = clean_matlab_log(result.get("log", ""))
 
     if log:

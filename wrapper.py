@@ -4,13 +4,6 @@ from copy import deepcopy
 from pathlib import Path
 
 
-DEFAULT_SPEC_NAME = "ERJ175LR"
-DEFAULT_MISSION_NAME = "ERJ_ClimbThenAccel"
-
-# MATLAB package/function names are inserted into a MATLAB command string.
-# Keep them limited to plain identifiers so user input cannot escape into
-# arbitrary MATLAB code.
-VALID_MATLAB_NAME = re.compile(r"^[A-Za-z]\w*$")
 VALID_STRUCT_FIELD = re.compile(r"^[A-Za-z]\w*$")
 
 
@@ -68,48 +61,8 @@ class FastWrapper:
             self.engine.quit()
             self.engine = None
 
-    def run(self, spec_name=None, mission_name=None, aircraft=None, mission=None):
+    def run(self, aircraft, mission):
         self._require_engine()
-
-        # There are two run modes:
-        # 1. Python-defined aircraft/mission dictionaries from main.py.
-        # 2. Existing FAST package functions by name, such as ERJ175LR.
-        if aircraft is not None or mission is not None:
-            return self._run_structs(aircraft, mission)
-
-        spec_name = spec_name or DEFAULT_SPEC_NAME
-        mission_name = mission_name or DEFAULT_MISSION_NAME
-        self._validate_matlab_name(spec_name, "spec_name")
-        self._validate_matlab_name(mission_name, "mission_name")
-
-        log = self.engine.evalc(
-            f"""
-            aircraft_spec = AircraftSpecsPkg.{spec_name};
-            mission_profile = @MissionProfilesPkg.{mission_name};
-            fast_result = Main(aircraft_spec, mission_profile);
-            """,
-            nargout=1,
-        )
-
-        # MATLAB Engine exposes MATLAB workspace variables through a mapping.
-        # Convert the FAST output struct into ordinary Python containers while
-        # keeping commonly used scalar fields available at the top level.
-        fast_result = self.engine.workspace["fast_result"]
-        aircraft = self._to_python_data(fast_result)
-        mtow = self._get_nested(fast_result, ["Specs", "Weight", "MTOW"])
-
-        return {
-            "status": "success",
-            "spec_name": spec_name,
-            "mission_name": mission_name,
-            "mtow": float(mtow),
-            "aircraft": aircraft,
-            "log": log,
-        }
-
-    def _run_structs(self, aircraft, mission):
-        if aircraft is None or mission is None:
-            raise ValueError("aircraft and mission must be provided together.")
 
         # Convert Python dictionaries into MATLAB struct(...) literals. This is
         # slower than passing raw MATLAB objects, but it keeps main.py editable
@@ -156,17 +109,12 @@ class FastWrapper:
         return path
 
     def _validate_fast_path(self, path):
-        # These files/folders are the minimum needed for the wrapper's two
-        # supported modes: calling Main.m and resolving built-in spec/mission
-        # package functions.
+        # Main.m is the FAST entry point. The wrapper adds the whole FAST tree
+        # to MATLAB's path so package dependencies are resolved by MATLAB.
         if not path.exists() or not path.is_dir():
             raise RuntimeError(f"FAST path does not exist: {path}")
 
-        required_paths = [
-            path / "Main.m",
-            path / "+AircraftSpecsPkg",
-            path / "+MissionProfilesPkg",
-        ]
+        required_paths = [path / "Main.m"]
         missing_paths = [str(item) for item in required_paths if not item.exists()]
 
         if missing_paths:
@@ -176,10 +124,6 @@ class FastWrapper:
     def _require_engine(self):
         if not self.engine:
             raise RuntimeError("MATLAB engine is not running. Call start() first.")
-
-    def _validate_matlab_name(self, value, field_name):
-        if not VALID_MATLAB_NAME.match(value):
-            raise ValueError(f"{field_name} must be a simple MATLAB identifier.")
 
     def _prepare_aircraft(self, aircraft):
         # Work on a copy so callers can reuse their original Python dictionaries
