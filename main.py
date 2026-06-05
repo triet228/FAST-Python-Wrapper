@@ -575,16 +575,13 @@ if AIRCRAFT["Specs"]["Propulsion"]["PropArch"].upper() == "O":
 # % run FAST                   %
 # %                            %
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def clean_matlab_log(log):
+def print_result(result):
     # clean MATLAB command-window artifacts from captured FAST log
+    log = result.get("log", "")
     log = log.replace("\x08", "")
     log = re.sub(r"<a\b[^>]*>", "", log)
     log = log.replace("</a>", "")
-    return log.strip()
-
-
-def print_result(result):
-    log = clean_matlab_log(result.get("log", ""))
+    log = log.strip()
 
     if log:
         print()
