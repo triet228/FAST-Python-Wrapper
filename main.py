@@ -1,9 +1,16 @@
 # main.py
 from wrapper import FastWrapper, matlab_expr
 
+# Local FAST checkout. This repo does not vendor FAST; the wrapper adds this
+# folder and all subfolders to MATLAB's path before calling Main.m.
 FAST_PATH = r"C:\Users\homin\Projects\FAST"
 
+# FAST uses NaN as a meaningful "leave this unspecified" marker in many spec
+# fields. Keep one shared name so input blocks read like the MATLAB examples.
 nan = float("nan")
+
+# Short alias for MATLAB expressions. Anything wrapped in m("...") is evaluated
+# inside MATLAB instead of being treated as a Python string literal.
 m = matlab_expr
 
 
@@ -24,11 +31,15 @@ m = matlab_expr
 AIRCRAFT = {
     "Specs": {
         "TLAR": {
+            # Top-level aircraft requirements. FAST uses Class to select
+            # propulsion/aero logic, so spelling must match FAST expectations.
             "EIS": 2005,
             "Class": "Turbofan",
             "MaxPax": 78,
         },
         "Aero": {
+            # Lift-to-drag values and correction factors are supplied directly
+            # here. Unit conversions are unnecessary because L/D is unitless.
             "L_D": {
                 "ClbCF": 1.002,
                 "CrsCF": 1.000,
@@ -37,6 +48,8 @@ AIRCRAFT = {
                 "Des": 10.9773 * 1.002,
             },
             "W_S": {
+                # MATLAB performs the unit conversion so the expression can use
+                # FAST's UnitConversionPkg exactly like a native FAST spec file.
                 "SLS": m(
                     'UnitConversionPkg.ConvMass(109.25, "lbm", "kg") / '
                     '(UnitConversionPkg.ConvLength(1, "ft", "m")) ^ 2'
@@ -44,6 +57,8 @@ AIRCRAFT = {
             },
         },
         "Battery": {
+            # These names are case-sensitive MATLAB struct fields used by
+            # BatteryPkg.Discharging and BatteryPkg.Charging.
             "NomVolCell": 3.6,
             "MaxExtVolCell": 4.0880,
             "CapCell": 3,
@@ -57,6 +72,8 @@ AIRCRAFT = {
         },
         "Performance": {
             "Vels": {
+                # Takeoff is given in knots and converted to m/s. Cruise remains
+                # a Mach number because the corresponding Type fields use Mach.
                 "Tko": m('UnitConversionPkg.ConvVel(135, "kts", "m/s")'),
                 "Crs": 0.78,
             },
@@ -68,6 +85,8 @@ AIRCRAFT = {
             "RCMax": m('UnitConversionPkg.ConvVel(2250, "ft/min", "m/s")'),
         },
         "Weight": {
+            # MTOW and Fuel are the ERJ175LR baseline values converted from lbm.
+            # EG, EM, and Batt are sizing variables for electrified components.
             "MTOW": m('UnitConversionPkg.ConvMass(85517, "lbm", "kg")'),
             "EG": nan,
             "EM": 0,
@@ -77,6 +96,9 @@ AIRCRAFT = {
         },
         "Propulsion": {
             "MDotCF": 1.029,
+            # "O" tells FAST to use the custom graph in GRAPH_BASED_PROPULSION.
+            # Change this to "C", "E", "PHE", etc. to use FAST's built-in
+            # CreatePropArch definitions instead.
             "PropArch": "O",
             "Engine": m("EngineModelPkg.EngineSpecsPkg.CF34_8E5"),
             "NumEngines": 2,
@@ -92,6 +114,9 @@ AIRCRAFT = {
         },
         "Power": {
             "SpecEnergy": {
+                # Fuel is in kWh/kg-equivalent for FAST's energy accounting.
+                # Battery specific energy drives battery mass when battery power
+                # is used by the selected architecture.
                 "Fuel": 12,
                 "Batt": 0.25,
             },
@@ -105,6 +130,8 @@ AIRCRAFT = {
                 "EG": nan,
             },
             "LamUps": {
+                # Lambda schedules control upstream power split behavior in the
+                # graph function handles. Segment names match FAST mission phases.
                 "SLS": 1,
                 "Tko": 1,
                 "Clb": 1,
@@ -113,6 +140,8 @@ AIRCRAFT = {
                 "Lnd": 0,
             },
             "LamDwn": {
+                # Downstream lambda values describe how demand is allocated back
+                # through the propulsion graph during each phase.
                 "SLS": 0.1,
                 "Tko": 0.1,
                 "Clb": 0.01,
@@ -121,6 +150,8 @@ AIRCRAFT = {
                 "Lnd": 0,
             },
             "Battery": {
+                # Detailed battery model cell configuration. NaN would ask FAST
+                # to infer or ignore these depending on architecture and settings.
                 "ParCells": 100,
                 "SerCells": 62,
                 "BegSOC": 100,
@@ -128,18 +159,23 @@ AIRCRAFT = {
         },
     },
     "Settings": {
+        # NaN segment point counts let FAST use its own default discretization.
         "TkoPoints": nan,
         "ClbPoints": nan,
         "CrsPoints": nan,
         "DesPoints": nan,
         "OEW": {
+            # Outer empty-weight sizing loop controls.
             "MaxIter": 50,
             "Tol": 0.001,
         },
         "Analysis": {
+            # Type = 1 runs the sizing analysis used by this smoke-test example.
             "MaxIter": 30,
             "Type": 1,
         },
+        # Plotting/Table/PrintOut mirror FAST settings. PrintOut = 1 keeps the
+        # MATLAB iteration log visible in the Python result.
         "Degradation": 0,
         "PowerOpt": 0,
         "PowerStrat": -1,
@@ -162,6 +198,8 @@ AIRCRAFT = {
 # goals for each mission ID.
 MISSION = {
     "Target": {
+        # Mission ID 1 flies the aircraft design range, ID 2 is a 100 nmi
+        # diversion, and ID 3 is a 45 minute loiter/time target.
         "Valu": [
             m("Aircraft.Specs.Performance.Range"),
             m('UnitConversionPkg.ConvLength(100, "naut mi", "m")'),
@@ -170,18 +208,24 @@ MISSION = {
         "Type": ["Dist", "Dist", "Time"],
     },
     "Segs": [
+        # Each entry below is one mission segment. All other arrays in this
+        # mission block must have this same length and order.
         "Takeoff", "Climb", "Climb", "Climb",
         "Cruise", "Descent", "Descent", "Descent",
         "Climb", "Climb", "Climb", "Cruise",
         "Cruise", "Descent", "Descent", "Descent", "Landing",
     ],
     "ID": [
+        # IDs group segments into the target definitions above.
         1, 1, 1, 1,
         1, 1, 1, 1,
         2, 2, 2, 2,
         3, 3, 3, 3, 3,
     ],
     "AltBeg": [
+        # Beginning altitude for each segment. Expressions can reference the
+        # Aircraft struct because FAST evaluates the mission profile after the
+        # aircraft spec has been created.
         m("Aircraft.Specs.Performance.Alts.Tko"),
         m("Aircraft.Specs.Performance.Alts.Tko"),
         m('UnitConversionPkg.ConvLength(3000, "ft", "m")'),
@@ -201,6 +245,7 @@ MISSION = {
         m("Aircraft.Specs.Performance.Alts.Tko"),
     ],
     "AltEnd": [
+        # Ending altitude for each segment, aligned with Segs by index.
         m("Aircraft.Specs.Performance.Alts.Tko"),
         m('UnitConversionPkg.ConvLength(3000, "ft", "m")'),
         m("Aircraft.Specs.Performance.Alts.Crs"),
@@ -220,6 +265,8 @@ MISSION = {
         m("Aircraft.Specs.Performance.Alts.Tko"),
     ],
     "VelBeg": [
+        # Beginning speed for each segment. TypeBeg says whether the numeric
+        # value is TAS, EAS, or Mach.
         0,
         m("Aircraft.Specs.Performance.Vels.Tko"),
         m('UnitConversionPkg.ConvVel(200, "kts", "m/s")'),
@@ -239,6 +286,8 @@ MISSION = {
         m("1.2 * Aircraft.Specs.Performance.Vels.Tko"),
     ],
     "VelEnd": [
+        # Ending speed for each segment. TypeEnd supplies the matching speed
+        # interpretation for every value.
         m("Aircraft.Specs.Performance.Vels.Tko"),
         m('UnitConversionPkg.ConvVel(200, "kts", "m/s")'),
         m('UnitConversionPkg.ConvVel(200, "kts", "m/s")'),
@@ -258,18 +307,22 @@ MISSION = {
         0,
     ],
     "TypeBeg": [
+        # FAST accepts speed type labels such as TAS, EAS, and Mach.
         "TAS", "TAS", "EAS", "EAS",
         "Mach", "Mach", "EAS", "EAS",
         "TAS", "EAS", "EAS", "TAS",
         "TAS", "TAS", "EAS", "EAS", "TAS",
     ],
     "TypeEnd": [
+        # Keep this list aligned with VelEnd. A mismatch can produce confusing
+        # mission analysis errors in MATLAB.
         "TAS", "EAS", "EAS", "Mach",
         "Mach", "EAS", "EAS", "TAS",
         "EAS", "EAS", "TAS", "TAS",
         "TAS", "EAS", "EAS", "TAS", "TAS",
     ],
     "ClbRate": [
+        # NaN leaves climb/descent rates to FAST where not explicitly prescribed.
         nan, nan, nan, nan,
         nan, nan, nan, nan,
         nan, nan, nan, nan,
@@ -297,6 +350,11 @@ FAN_EFFICIENCY = 0.99
 EM_EFFICIENCY = 0.96
 GRAPH_BASED_PROPULSION = {
     "Arch": [
+        # Component order is:
+        # 0 fuel source, 1 battery source,
+        # 2-3 gas-turbine engines, 4-5 electric motors,
+        # 6-7 fans, 8 sink.
+        # A 1 at row i, column j means component i can power component j.
         [0, 0, 1, 1, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 1, 1, 0, 0, 0],
         [0, 0, 0, 0, 0, 0, 1, 0, 0],
@@ -308,6 +366,8 @@ GRAPH_BASED_PROPULSION = {
         [0, 0, 0, 0, 0, 0, 0, 0, 0],
     ],
     "OperUps": m(
+        # Upstream operation maps available power from sources toward the sink.
+        # lam is supplied by FAST from Settings/Power schedules for each phase.
         "@(lam) ["
         "0, 0, 1/2, 1/2, 0, 0, 0, 0, 0; "
         "0, 0, 0, 0, 1/2, 1/2, 0, 0, 0; "
@@ -320,6 +380,8 @@ GRAPH_BASED_PROPULSION = {
         "0, 0, 0, 0, 0, 0, 0, 0, 0]"
     ),
     "OperDwn": m(
+        # Downstream operation maps required sink power back toward sources.
+        # The lam terms split fan demand between engine and electric motor paths.
         "@(lam) ["
         "0, 0, 0, 0, 0, 0, 0, 0, 0; "
         "0, 0, 0, 0, 0, 0, 0, 0, 0; "
@@ -332,6 +394,8 @@ GRAPH_BASED_PROPULSION = {
         "0, 0, 0, 0, 0, 0, 1/2, 1/2, 0]"
     ),
     "EtaUps": [
+        # Eta matrices apply component efficiencies along allowed power paths.
+        # Entries left as 1 represent no loss on that connection.
         [1, 1, 1, 1, 1, 1, 1, 1, 1],
         [1, 1, 1, 1, EM_EFFICIENCY, EM_EFFICIENCY, 1, 1, 1],
         [1, 1, 1, 1, 1, 1, FAN_EFFICIENCY, 1, 1],
@@ -343,6 +407,7 @@ GRAPH_BASED_PROPULSION = {
         [1, 1, 1, 1, 1, 1, 1, 1, 1],
     ],
     "EtaDwn": [
+        # Downstream efficiencies mirror the demand-flow direction used by FAST.
         [1, 1, 1, 1, 1, 1, 1, 1, 1],
         [1, 1, 1, 1, 1, 1, 1, 1, 1],
         [1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -353,6 +418,8 @@ GRAPH_BASED_PROPULSION = {
         [1, 1, 1, FAN_EFFICIENCY, 1, FAN_EFFICIENCY, 1, 1, 1],
         [1, 1, 1, 1, 1, 1, 1, 1, 1],
     ],
+    # Source and transmitter type vectors must be MATLAB row vectors. wrapper.py
+    # handles that conversion specially when PropArch is "O".
     "SrcType": [1, 0],
     "TrnType": [1, 1, 0, 0, 2, 2],
 }
@@ -368,9 +435,14 @@ if AIRCRAFT["Specs"]["Propulsion"]["PropArch"].upper() == "O":
 # RUN
 # =============================================================================
 def main():
+    # The context manager starts MATLAB, runs FAST, and shuts MATLAB down even
+    # if FAST raises an error.
     with FastWrapper(FAST_PATH) as fast:
         result = fast.run(aircraft=AIRCRAFT, mission=MISSION)
 
+    # Printing the whole result includes FAST's MATLAB iteration log. Downstream
+    # scripts can import AIRCRAFT/MISSION and call FastWrapper directly if they
+    # want to handle the result programmatically instead.
     print(result)
 
 
