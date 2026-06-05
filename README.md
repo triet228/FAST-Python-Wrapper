@@ -1,183 +1,52 @@
 # FAST Python Wrapper
 
-Unofficial Python wrapper for running FAST through MATLAB Engine.
+Python wrapper for running [Future Aircraft Sizing Tool (FAST)](https://github.com/ideas-um/FAST) through MATLAB Engine.
 
-Use this repo as a lightweight integration layer around a local FAST installation.
-
-This project does not include FAST or MATLAB Engine. Each user needs a local FAST checkout and a working MATLAB Engine for Python installation.
+> [!WARNING]
+> Please confirm your Python version is compatible with MATLAB Engine on [MATLAB Official Website](https://www.mathworks.com/support/requirements/python-compatibility.html). Edit [`pyproject.toml`](https://github.com/triet228/FAST-Python-Wrapper/blob/main/pyproject.toml) to match the correct python and matlabengine version.
 
 ## Files
 
 - `wrapper.py`: core wrapper around MATLAB Engine and FAST.
-- `main.py`: direct local script with editable Python `AIRCRAFT`, `MISSION`, and propulsion graph inputs.
-- `.env.example`: example local path configuration.
+- `main.py`: direct local script with editable Python `AIRCRAFT`, `MISSION`, and optional `GRAPH_BASED_PROPULSION` if custom propulsion architecture is needed.
+- `.env.example`: example local path configuration, copy this to `.env` and edit the paths inside.
 - `pyproject.toml`: project metadata and Python dependencies.
+
 
 ## Requirements
 
-- Python 3.10 or newer supported by your MATLAB release
-- MATLAB
-- MATLAB Engine for Python
-- A local FAST repo
+- A local FAST directory
+- Use a virtual environment manager to download a virtual environment with the right Python version that is compatible with MATLAB Engine on [MATLAB Official Website](https://www.mathworks.com/support/requirements/python-compatibility.html). Edit [`pyproject.toml`](https://github.com/triet228/FAST-Python-Wrapper/blob/main/pyproject.toml) to match the correct python and matlabengine version.
 
-This repo has been smoke-tested on Windows with:
 
-- Conda environment `fast`
-- Python 3.11
-- MATLAB R2025b
-- FAST checkout at `C:\Users\homin\Projects\FAST`
+## Installations
 
-## Setup
-
-Open PowerShell or Anaconda Prompt.
-
-Create a conda environment with Python 3.11:
-
-```powershell
-conda create -n fast python=3.11
-conda activate fast
+1. Clone this [GitHub repository](https://github.com/triet228/FAST-Python-Wrapper) to your machine.
+2. Confirm Python version is compatible with MATLAB Engine. Edit [`pyproject.toml`](https://github.com/triet228/FAST-Python-Wrapper/blob/main/pyproject.toml) to match the correct python and matlabengine version.
+> [!WARNING]
+> Please confirm your Python version is compatible with MATLAB Engine on [MATLAB Official Website](https://www.mathworks.com/support/requirements/python-compatibility.html)
+4. Install dependencies:
+> [!TIP]
+> Command line can be run in VS Code Terminal
 ```
-
-Go to the folder where you cloned this repo and install the wrapper:
-
-```powershell
-cd C:\path\to\FAST-Python-Wrapper
-python -m pip install -e .
+pip install -e .
 ```
-
-Create your local path settings:
-
-```powershell
-Copy-Item .env.example .env
-notepad .env
-```
-
-If `.env` does not exist yet, `python main.py` will also create it from
-`.env.example` and ask you to edit it.
-
-Set `FAST_PATH` to your local FAST checkout. For example:
-
-```text
-FAST_PATH=C:\Users\your-name\Projects\FAST
-MATLAB_ROOT=C:\Program Files\MATLAB\R2025b
-```
-
-`FAST_PATH` is used by `main.py`. `MATLAB_ROOT` is only a note for setup, so
-you know where MATLAB Engine is installed.
-
-Now install MATLAB Engine for Python. This is the package that lets Python
-start MATLAB.
-
-For MATLAB R2025b, install the matching engine package from PyPI:
-
-```powershell
-python -m pip install matlabengine==25.2.2
-```
-
-Check that Python can import MATLAB Engine:
-
+4. Check that Python can import MATLAB Engine:
 ```powershell
 python -c "import matlab.engine; print('MATLAB Engine OK')"
 ```
+If this gives error, you will need to debug this before continue. If this prints `MATLAB Engine OK`, the environment is ready.
+> [!TIP]
+> Inside MATLAB, you can run `which matlab` to know where MATLAB is installed.
+6. Copy [`.env.example`](https://github.com/triet228/FAST-Python-Wrapper/blob/main/.env.example) to `.env` and set `FAST_PATH` to your local FAST directory.
 
-If that prints `MATLAB Engine OK`, the environment is ready.
 
-If you do not know where MATLAB is installed, open MATLAB and run:
+## How to Run
 
-```matlab
-which matlab
+Edit  `AIRCRAFT`, `MISSION`, and optional `GRAPH_BASED_PROPULSION` in [`main.py`](https://github.com/triet228/FAST-Python-Wrapper/blob/main/main.py) and run:
 ```
-
-Example output:
-
-```text
-C:\Program Files\MATLAB\R2025b\toolbox\matlab\general\matlab.m
-```
-
-In that example, the MATLAB install folder is:
-
-```text
-C:\Program Files\MATLAB\R2025b
-```
-
-Use that folder as `MATLAB_ROOT` in `.env`.
-
-Do not copy only `C:\Program Files\MATLAB\R2025b\extern\engines\python` into
-this repo and install from the copy. MATLAB Engine's local installer expects
-the full MATLAB folder structure around it.
-
-## FAST Path
-
-Set `FAST_PATH` in `.env` to the local FAST repo path. The path must contain:
-
-```text
-Main.m
-+AircraftSpecsPkg/
-+MissionProfilesPkg/
-```
-
-You can also pass the path directly in Python. This package-style mode runs aircraft and mission functions already available inside the FAST checkout:
-
-```python
-from wrapper import FastWrapper
-
-with FastWrapper("C:/Users/your-name/Projects/FAST") as fast:
-    result = fast.run("ERJ175LR", "ERJ_ClimbThenAccel")
-
-print(result)
-```
-
-## Run Directly
-
-```powershell
 python main.py
 ```
 
-With the tested Windows setup above:
-
-```powershell
-conda activate fast_python_wrapper
-python main.py
-```
-
-The current custom graph example returns a successful result with `mtow` near `57537.66416956265` kg. FAST may also print a thrust overconstraint warning before the iteration log.
-
-The wrapper also returns the full FAST output aircraft struct converted into
-plain Python dictionaries and lists:
-
-```python
-result = fast.run(aircraft=AIRCRAFT, mission=MISSION)
-aircraft = result["aircraft"]
-
-mtow = aircraft["Specs"]["Weight"]["MTOW"]
-mission_profile = aircraft["Mission"]["Profile"]
-```
-
-`main.py` is the main editable entry point. It defines FAST inputs as Python dictionaries:
-
-```python
-AIRCRAFT = {...}
-MISSION = {...}
-GRAPH_BASED_PROPULSION = {...}
-```
-
-Use plain Python values for constants, `nan` for FAST fields that should remain unspecified, and `m("...")` for MATLAB expressions such as `UnitConversionPkg` conversions or `EngineModelPkg` references.
-
-The aircraft propulsion architecture is selected with:
-
-```python
-"PropArch": "O"
-```
-
-FAST built-in propulsion architecture codes can be used directly:
-
-```python
-"PropArch": "C"    # conventional
-"PropArch": "E"    # fully electric
-"PropArch": "PHE"  # parallel hybrid electric
-"PropArch": "SHE"  # series hybrid electric
-"PropArch": "TE"   # turboelectric
-"PropArch": "PE"   # partially turboelectric
-```
-
-When `PropArch` is `"O"`, `main.py` attaches `GRAPH_BASED_PROPULSION` as `PropArchGraph`. The wrapper converts that Python structure into the MATLAB struct expected by FAST's graph-based propulsion architecture path. If `PropArch` is any built-in code such as `"C"` or `"E"`, the graph is ignored.
+> [!WARNING]
+> Please confirm your Python version is compatible with MATLAB Engine on [MATLAB Official Website](https://www.mathworks.com/support/requirements/python-compatibility.html). Edit [`pyproject.toml`](https://github.com/triet228/FAST-Python-Wrapper/blob/main/pyproject.toml) to match the correct python and matlabengine version.
