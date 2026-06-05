@@ -489,7 +489,7 @@ def clean_matlab_log(log):
 
 
 def print_result(result):
-    print(f"Status: {result['status']}")
+    
 
     if "spec_name" in result:
         print(f"Spec: {result['spec_name']}")
@@ -497,7 +497,7 @@ def print_result(result):
     if "mission_name" in result:
         print(f"Mission: {result['mission_name']}")
 
-    print(f"MTOW: {result['mtow']:.6f} kg")
+    
 
     log = clean_matlab_log(result.get("log", ""))
 
@@ -512,6 +512,10 @@ def main():
     # if FAST raises an error.
     with FastWrapper(FAST_PATH) as fast:
         result = fast.run(aircraft=AIRCRAFT, mission=MISSION)
+
+    # Custom print from result
+    print(f"Status: {result['status']}")
+    print(f"MTOW: {result['mtow']:.6f} kg")
 
     # Keep FastWrapper.run's dictionary return value unchanged for downstream
     # code, but display the local script result as terminal-friendly text.
