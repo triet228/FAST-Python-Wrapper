@@ -11,6 +11,20 @@ VALID_STRUCT_FIELD = re.compile(r"^[A-Za-z]\w*$")
 
 
 class MatlabExpression:
+    """Store MATLAB code that should be inserted as an expression.
+
+    Inputs:
+        value: MATLAB expression text, such as a UnitConversionPkg call.
+
+    Output:
+        A wrapper object consumed by FastWrapper._to_matlab_literal().
+
+    Assumptions:
+        The caller provides trusted MATLAB code. This class intentionally does
+        not escape or validate the expression because it is meant to preserve
+        native FAST syntax.
+    """
+
     # Values wrapped in this class are copied into the MATLAB script as code.
     # Use it for expressions such as UnitConversionPkg.ConvLength(...) or
     # EngineModelPkg.EngineSpecsPkg.CF34_8E5 that must be evaluated by MATLAB.
@@ -19,6 +33,20 @@ class MatlabExpression:
 
 
 class MatlabRow:
+    """Mark a Python sequence that must become a MATLAB row vector.
+
+    Inputs:
+        value: One-dimensional list or tuple.
+
+    Output:
+        A wrapper object consumed by FastWrapper._to_matlab_literal().
+
+    Assumptions:
+        FAST mission arrays normally use column vectors, so row vectors are only
+        requested explicitly for graph metadata fields that MATLAB compares by
+        component index.
+    """
+
     # Most Python lists become MATLAB column vectors because FAST mission
     # arrays are column-oriented. A few graph metadata fields must stay as row
     # vectors, so this wrapper marks those lists before literal conversion.
@@ -27,11 +55,26 @@ class MatlabRow:
 
 
 def matlab_expr(value):
+    """Return a MATLAB expression wrapper for values defined in Python specs."""
+
     # Public helper used by main.py as m("...").
     return MatlabExpression(value)
 
 
 def load_env_file():
+    """Load local environment variables from the project .env file.
+
+    Inputs:
+        None. The project root is inferred from this file location.
+
+    Outputs:
+        None. os.environ is updated for keys that are not already set.
+
+    Side effects:
+        Copies .env.example to .env on first run when .env is missing. Existing
+        process environment variables take priority over file values.
+    """
+
     # load local machine paths from .env, copying .env.example on first run
     env_path = PROJECT_ROOT / ".env"
     example_env_path = PROJECT_ROOT / ".env.example"
@@ -57,6 +100,19 @@ def load_env_file():
 
 
 def required_env_path(name):
+    """Return a required environment path value.
+
+    Inputs:
+        name: Environment variable name to read, such as FAST_PATH.
+
+    Outputs:
+        The configured path string.
+
+    Assumptions:
+        Placeholder values containing "\\path\\to" are invalid because they come
+        from templates and cannot point to a usable FAST checkout.
+    """
+
     # require a configured environment path before calling FAST
     value = os.environ.get(name, "").strip()
 
@@ -69,6 +125,20 @@ def required_env_path(name):
 
 
 class FastWrapper:
+    """Run FAST through MATLAB Engine using Python-defined inputs.
+
+    Inputs:
+        fast_path: Local FAST checkout path containing Main.m.
+
+    Outputs:
+        run() returns a dictionary with status, mtow, converted aircraft data,
+        and the captured MATLAB command-window log.
+
+    Side effects:
+        start() launches MATLAB, adds FAST to the MATLAB path, and stop() quits
+        the MATLAB process.
+    """
+
     def __init__(self, fast_path=None):
         # Validate the FAST checkout up front. Failing here gives a short Python
         # error instead of a later MATLAB path-resolution failure.
@@ -76,6 +146,8 @@ class FastWrapper:
         self.engine = None
 
     def start(self):
+        """Start MATLAB Engine and add the FAST checkout to MATLAB's path."""
+
         # Reuse an already-running engine if the caller starts the wrapper once
         # and runs multiple FAST cases through the same object.
         if self.engine:
@@ -95,6 +167,8 @@ class FastWrapper:
         return self
 
     def stop(self):
+        """Stop MATLAB Engine if this wrapper started it."""
+
         # MATLAB Engine owns an external MATLAB process. Explicitly quitting it
         # avoids leaving background MATLAB sessions after scripts or servers end.
         if self.engine:
@@ -102,6 +176,20 @@ class FastWrapper:
             self.engine = None
 
     def run(self, aircraft, mission):
+        """Run FAST with Python dictionaries for aircraft and mission inputs.
+
+        Inputs:
+            aircraft: Nested dictionary matching the FAST Aircraft structure.
+            mission: Nested dictionary matching the FAST Mission.Profile fields.
+
+        Outputs:
+            Dictionary containing:
+            - status: "success" when Main.m completes.
+            - mtow: maximum takeoff weight in kg from FAST output.
+            - aircraft: FAST output Aircraft structure converted to Python.
+            - log: MATLAB command-window text captured during the run.
+        """
+
         self._require_engine()
 
         # Convert Python dictionaries into MATLAB struct(...) literals. This is
@@ -135,12 +223,18 @@ class FastWrapper:
         }
 
     def __enter__(self):
+        """Start MATLAB when entering a with-block."""
+
         return self.start()
 
     def __exit__(self, exc_type, exc_value, traceback):
+        """Quit MATLAB when leaving a with-block."""
+
         self.stop()
 
     def _resolve_fast_path(self, fast_path):
+        """Resolve and validate the configured FAST checkout path."""
+
         if not fast_path:
             raise RuntimeError("FAST path is required.")
 
@@ -149,6 +243,8 @@ class FastWrapper:
         return path
 
     def _validate_fast_path(self, path):
+        """Check that the FAST checkout has the entry point used by wrapper."""
+
         # Main.m is the FAST entry point. The wrapper adds the whole FAST tree
         # to MATLAB's path so package dependencies are resolved by MATLAB.
         if not path.exists() or not path.is_dir():
@@ -162,10 +258,24 @@ class FastWrapper:
             raise RuntimeError(f"FAST path is missing required files: {joined_paths}")
 
     def _require_engine(self):
+        """Fail early if a FAST run is attempted before MATLAB starts."""
+
         if not self.engine:
             raise RuntimeError("MATLAB engine is not running. Call start() first.")
 
     def _prepare_aircraft(self, aircraft):
+        """Normalize Python aircraft input into the structure expected by FAST.
+
+        Inputs:
+            aircraft: User-editable Python aircraft dictionary.
+
+        Outputs:
+            A deep-copied aircraft dictionary safe to convert to MATLAB code.
+
+        Side effects:
+            None. The original input dictionary is not modified.
+        """
+
         # Work on a copy so callers can reuse their original Python dictionaries
         # after a run without hidden mutations from wrapper normalization.
         aircraft = deepcopy(aircraft)
@@ -215,6 +325,8 @@ class FastWrapper:
         return aircraft
 
     def _to_matlab_literal(self, value):
+        """Convert supported Python values into MATLAB literal source text."""
+
         # This function intentionally handles only the data types used by FAST
         # inputs. If a new type is needed, add it explicitly so unsupported
         # values fail before MATLAB receives malformed code.
@@ -265,6 +377,8 @@ class FastWrapper:
         raise TypeError(f"Unsupported MATLAB literal value: {value!r}")
 
     def _to_matlab_array(self, value):
+        """Convert Python list or tuple input into a MATLAB array literal."""
+
         if not value:
             return "[]"
 
@@ -293,6 +407,8 @@ class FastWrapper:
         return "[" + "; ".join(rows) + "]"
 
     def _to_matlab_row(self, value):
+        """Convert a one-dimensional Python sequence into a MATLAB row vector."""
+
         if not value:
             return "[]"
 
@@ -304,6 +420,8 @@ class FastWrapper:
         return "[" + ", ".join(self._to_matlab_literal(item) for item in value) + "]"
 
     def _get_nested(self, value, keys):
+        """Read a nested field from a MATLAB struct-like object."""
+
         # MATLAB structs returned through Engine behave like nested mappings.
         current = value
 
@@ -313,6 +431,11 @@ class FastWrapper:
         return current
 
     def _to_python_data(self, value):
+        """Convert MATLAB Engine return values into ordinary Python data."""
+
+        # MATLAB Engine returns a mix of Python scalars, matlab arrays, and
+        # struct-like objects. Normalize only recognized containers so unknown
+        # values remain available instead of being lossy-converted.
         if value is None or isinstance(value, str):
             return value
 
@@ -342,6 +465,8 @@ class FastWrapper:
         return value
 
     def _matlab_struct_fields(self, value):
+        """Return MATLAB struct field names when value behaves like a struct."""
+
         if not hasattr(value, "__getitem__"):
             return None
 
@@ -376,6 +501,8 @@ class FastWrapper:
         return keys
 
     def _looks_like_matlab_array(self, value):
+        """Detect MATLAB Engine array containers without importing matlab types."""
+
         module_name = type(value).__module__
 
         return (
@@ -385,6 +512,8 @@ class FastWrapper:
         )
 
     def _convert_sequence(self, value):
+        """Recursively convert list-like values returned by MATLAB Engine."""
+
         items = [self._to_python_data(item) for item in value]
 
         if len(items) == 1 and not isinstance(items[0], dict):
