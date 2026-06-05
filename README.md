@@ -2,6 +2,8 @@
 
 Unofficial Python wrapper for running FAST through MATLAB Engine.
 
+Use this repo as a lightweight integration layer around a local FAST installation.
+
 This project does not include FAST or MATLAB Engine. Each user needs a local FAST checkout and a working MATLAB Engine for Python installation.
 
 ## Files
