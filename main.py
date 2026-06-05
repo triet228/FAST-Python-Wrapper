@@ -7,6 +7,14 @@ m = matlab_expr
 
 FAN_EFFICIENCY = m("EngineModelPkg.EngineSpecsPkg.CF34_8E5.EtaPoly.Fan")
 EM_EFFICIENCY = 0.96
+PREBUILT_PROPULSION = {
+    "C": {"Type": "C"},
+    "E": {"Type": "E"},
+    "PHE": {"Type": "PHE"},
+    "SHE": {"Type": "SHE"},
+    "TE": {"Type": "TE"},
+    "PE": {"Type": "PE"},
+}
 
 GRAPH_BASED_PROPULSION = {
     "Type": "O",
@@ -71,6 +79,8 @@ GRAPH_BASED_PROPULSION = {
     "TrnType": [1, 1, 0, 0, 2, 2],
 }
 
+PROPULSION_ARCHITECTURE = GRAPH_BASED_PROPULSION
+
 
 AIRCRAFT = {
     "Specs": {
@@ -128,7 +138,7 @@ AIRCRAFT = {
         },
         "Propulsion": {
             "MDotCF": 1.029,
-            "PropArch": GRAPH_BASED_PROPULSION,
+            "PropArch": PROPULSION_ARCHITECTURE,
             "Engine": m("EngineModelPkg.EngineSpecsPkg.CF34_8E5"),
             "NumEngines": 2,
             "T_W": {
