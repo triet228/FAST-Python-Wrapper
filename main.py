@@ -5,6 +5,72 @@ from wrapper import FastWrapper, matlab_expr
 nan = float("nan")
 m = matlab_expr
 
+FAN_EFFICIENCY = m("EngineModelPkg.EngineSpecsPkg.CF34_8E5.EtaPoly.Fan")
+EM_EFFICIENCY = 0.96
+
+CUSTOM_PARALLEL_HYBRID_PROPULSION = {
+    "Type": "O",
+    "Arch": [
+        [0, 0, 1, 1, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 1, 1, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 1, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 1, 0],
+        [0, 0, 0, 0, 0, 0, 1, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 1, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 1],
+        [0, 0, 0, 0, 0, 0, 0, 0, 1],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    ],
+    "OperUps": m(
+        "@(lam) ["
+        "0, 0, 1/2, 1/2, 0, 0, 0, 0, 0; "
+        "0, 0, 0, 0, 1/2, 1/2, 0, 0, 0; "
+        "0, 0, 0, 0, 0, 0, 1, 0, 0; "
+        "0, 0, 0, 0, 0, 0, 0, 1, 0; "
+        "0, 0, 0, 0, 0, 0, lam, 0, 0; "
+        "0, 0, 0, 0, 0, 0, 0, lam, 0; "
+        "0, 0, 0, 0, 0, 0, 0, 0, 1; "
+        "0, 0, 0, 0, 0, 0, 0, 0, 1; "
+        "0, 0, 0, 0, 0, 0, 0, 0, 0]"
+    ),
+    "OperDwn": m(
+        "@(lam) ["
+        "0, 0, 0, 0, 0, 0, 0, 0, 0; "
+        "0, 0, 0, 0, 0, 0, 0, 0, 0; "
+        "1, 0, 0, 0, 0, 0, 0, 0, 0; "
+        "1, 0, 0, 0, 0, 0, 0, 0, 0; "
+        "0, 1, 0, 0, 0, 0, 0, 0, 0; "
+        "0, 1, 0, 0, 0, 0, 0, 0, 0; "
+        "0, 0, 1-lam, 0, lam, 0, 0, 0, 0; "
+        "0, 0, 0, 1-lam, 0, lam, 0, 0, 0; "
+        "0, 0, 0, 0, 0, 0, 1/2, 1/2, 0]"
+    ),
+    "EtaUps": [
+        [1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [1, 1, 1, 1, EM_EFFICIENCY, EM_EFFICIENCY, 1, 1, 1],
+        [1, 1, 1, 1, 1, 1, FAN_EFFICIENCY, 1, 1],
+        [1, 1, 1, 1, 1, 1, 1, FAN_EFFICIENCY, 1],
+        [1, 1, 1, 1, 1, 1, FAN_EFFICIENCY, 1, 1],
+        [1, 1, 1, 1, 1, 1, 1, FAN_EFFICIENCY, 1],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    ],
+    "EtaDwn": [
+        [1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [1, EM_EFFICIENCY, 1, 1, 1, 1, 1, 1, 1],
+        [1, EM_EFFICIENCY, 1, 1, 1, 1, 1, 1, 1],
+        [1, 1, FAN_EFFICIENCY, 1, FAN_EFFICIENCY, 1, 1, 1, 1],
+        [1, 1, 1, FAN_EFFICIENCY, 1, FAN_EFFICIENCY, 1, 1, 1],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    ],
+    "SrcType": [1, 0],
+    "TrnType": [1, 1, 0, 0, 2, 2],
+}
+
 
 AIRCRAFT = {
     "Specs": {
@@ -62,9 +128,7 @@ AIRCRAFT = {
         },
         "Propulsion": {
             "MDotCF": 1.029,
-            "PropArch": {
-                "Type": "PHE",
-            },
+            "PropArch": CUSTOM_PARALLEL_HYBRID_PROPULSION,
             "Engine": m("EngineModelPkg.EngineSpecsPkg.CF34_8E5"),
             "NumEngines": 2,
             "T_W": {
@@ -83,7 +147,7 @@ AIRCRAFT = {
                 "Batt": 0.25,
             },
             "Eta": {
-                "EM": nan,
+                "EM": EM_EFFICIENCY,
                 "EG": nan,
             },
             "P_W": {
