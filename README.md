@@ -10,7 +10,7 @@ This project does not include FAST or MATLAB Engine. Each user needs a local FAS
 
 - `wrapper.py`: core wrapper around MATLAB Engine and FAST.
 - `api.py`: optional FastAPI server.
-- `main.py`: direct local script that runs the default FAST case.
+- `main.py`: direct local script with editable Python `AIRCRAFT`, `MISSION`, and propulsion graph inputs.
 - `pyproject.toml`: project metadata and Python dependencies.
 
 ## Requirements
@@ -44,7 +44,7 @@ Main.m
 +MissionProfilesPkg/
 ```
 
-You can also pass the path directly in Python:
+You can also pass the path directly in Python. This legacy/package-style mode runs aircraft and mission functions already available inside the FAST checkout:
 
 ```python
 from wrapper import FastWrapper
@@ -61,12 +61,34 @@ print(result)
 python main.py
 ```
 
-By default, this runs:
+`main.py` is the main editable entry point. It defines FAST inputs as Python dictionaries:
 
-```text
-AircraftSpecsPkg.ERJ175LR
-MissionProfilesPkg.ERJ_ClimbThenAccel
+```python
+AIRCRAFT = {...}
+MISSION = {...}
+GRAPH_BASED_PROPULSION = {...}
 ```
+
+Use plain Python values for constants, `nan` for FAST fields that should remain unspecified, and `m("...")` for MATLAB expressions such as `UnitConversionPkg` conversions or `EngineModelPkg` references.
+
+The aircraft propulsion architecture is selected with:
+
+```python
+"PropArch": "O"
+```
+
+FAST built-in propulsion architecture codes can be used directly:
+
+```python
+"PropArch": "C"    # conventional
+"PropArch": "E"    # fully electric
+"PropArch": "PHE"  # parallel hybrid electric
+"PropArch": "SHE"  # series hybrid electric
+"PropArch": "TE"   # turboelectric
+"PropArch": "PE"   # partially turboelectric
+```
+
+When `PropArch` is `"O"`, `main.py` attaches `GRAPH_BASED_PROPULSION` as `PropArchGraph`. The wrapper converts that Python structure into the MATLAB struct expected by FAST's graph-based propulsion architecture path. If `PropArch` is any built-in code such as `"C"` or `"E"`, the graph is ignored.
 
 ## Run API
 
@@ -87,6 +109,8 @@ curl.exe -X POST http://127.0.0.1:8000/run `
   -H "Content-Type: application/json" `
   -d "{\"spec_name\":\"ERJ175LR\",\"mission_name\":\"ERJ_ClimbThenAccel\"}"
 ```
+
+The API still supports package-style `spec_name` and `mission_name` calls. For richer Python-defined aircraft and mission inputs, use `main.py` directly so MATLAB expressions can be represented with `m("...")`.
 
 ## Optional API Key
 
