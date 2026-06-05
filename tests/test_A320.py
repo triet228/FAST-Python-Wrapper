@@ -158,7 +158,7 @@ AIRCRAFT = {
             'MaxIter': 50,
             'Type': 1
         },
-        'Plotting': 1,
+        'Plotting': 0,
         'Table': 0,
         'VisualizeAircraft': 0
     }

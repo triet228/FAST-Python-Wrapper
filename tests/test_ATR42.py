@@ -105,7 +105,7 @@ AIRCRAFT = {
         'Analysis': {
             'Type': 1
         },
-        'Plotting': 1
+        'Plotting': 0
     }
 }
 
