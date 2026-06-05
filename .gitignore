@@ -16,7 +16,6 @@ dist/
 
 *.log
 *.out
-*.mat
 
 .env
 .env.*
@@ -24,6 +23,5 @@ dist/
 
 matlab-engine-python/
 FAST/
-FAST-models/
 
 AGENTS.md

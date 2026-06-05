@@ -278,6 +278,9 @@ class FastWrapper:
             None. The original input dictionary is not modified.
         """
 
+        if not isinstance(aircraft, dict):
+            return aircraft
+
         # Work on a copy so callers can reuse their original Python dictionaries
         # after a run without hidden mutations from wrapper normalization.
         aircraft = deepcopy(aircraft)

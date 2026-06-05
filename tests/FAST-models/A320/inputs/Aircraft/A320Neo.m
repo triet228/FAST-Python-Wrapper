@@ -1,0 +1,237 @@
+function [Aircraft] = A320Neo()
+%
+% [Aircraft] = A320Neo()
+% written by Max Arnson, marnson@umich.edu and Yi-Chih Wang,
+% ycwangd@umich.edu
+% last updated: 20 jun 2025
+% 
+% create a baseline model of the A320neo WV054. this version uses a 
+% conventional propulsion architecture.
+%
+% All required inputs contain "** required **" before the description of
+% the parameter to be specified. All other parameters may remain as NaN,
+% and they will be filled in by a statistical regression. For improved
+% accuracy, it is suggested to provide as many parameters as possible.
+%
+% INPUTS:
+%     none
+%
+% OUTPUTS:
+%     Aircraft - aircraft data structure to be used for analysis
+%                size/type/units: 1-by-1 / struct / []
+%
+
+
+%% TOP-LEVEL AIRCRAFT REQUIREMENTS %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% expected entry-into-service year
+Aircraft.Specs.TLAR.EIS = 2016;
+
+% ** required **
+% aircraft class, can be either:
+%     "Piston"    = piston engine
+%     "Turboprop" = turboprop engine
+%     "Turbofan"  = turbojet or turbofan engine
+Aircraft.Specs.TLAR.Class = "Turbofan";
+
+% ** required **
+% approximate number of passengers (payload / average passenger mass)
+Aircraft.Specs.TLAR.MaxPax = 15309 / 95;
+
+
+%% MODEL CALIBRATION FACTORS %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% calibration factors for lift-drag ratios
+Aircraft.Specs.Aero.L_D.ClbCF = 1;
+Aircraft.Specs.Aero.L_D.CrsCF = 1;
+
+% fuel flow calibration factor
+Aircraft.Specs.Propulsion.MDotCF = 1;
+
+% airframe weight calibration factor
+Aircraft.Specs.Weight.WairfCF = 1;
+ 
+
+%% VEHICLE PERFORMANCE %%
+%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% takeoff speed (m/s)
+Aircraft.Specs.Performance.Vels.Tko = UnitConversionPkg.ConvVel(135, "kts", "m/s");
+
+% cruise speed (mach)
+Aircraft.Specs.Performance.Vels.Crs = 0.82;
+
+% takeoff altitude (m)
+Aircraft.Specs.Performance.Alts.Tko = 0;
+
+% cruise altitude (m)
+Aircraft.Specs.Performance.Alts.Crs = UnitConversionPkg.ConvLength(35000, "ft", "m");
+
+% ** required **
+% design range (m)
+Aircraft.Specs.Performance.Range = 4815e3;
+
+% maximum rate of climb (m/s), assumed 2,250 ft/min
+Aircraft.Specs.Performance.RCMax = UnitConversionPkg.ConvLength(2250/60, "ft", "m");
+
+
+%% AERODYNAMICS %%
+%%%%%%%%%%%%%%%%%%
+
+% lift-drag ratio during climb  
+Aircraft.Specs.Aero.L_D.Clb = 16 * Aircraft.Specs.Aero.L_D.ClbCF;
+
+% lift-drag ratio during cruise 
+Aircraft.Specs.Aero.L_D.Crs = 18.23 * Aircraft.Specs.Aero.L_D.CrsCF;
+
+% assume same lift-drag ratio during climb and descent
+Aircraft.Specs.Aero.L_D.Des = Aircraft.Specs.Aero.L_D.Clb;
+
+% wing loading (kg / m^2)
+Aircraft.Specs.Aero.W_S.SLS = 79000 / 126.5;
+
+
+%% WEIGHTS %%
+%%%%%%%%%%%%%
+
+% maximum takeoff weight (kg)
+Aircraft.Specs.Weight.MTOW = 79000;
+
+% electric generator weight (kg)
+Aircraft.Specs.Weight.EG = NaN;
+
+% electric motor weight (kg)
+Aircraft.Specs.Weight.EM = NaN;
+
+% block fuel weight (kg)
+Aircraft.Specs.Weight.Fuel = 19000;
+
+% battery weight (kg), leave NaN for propulsion systems without batteries
+Aircraft.Specs.Weight.Batt = NaN;
+
+
+%% PROPULSION %%
+%%%%%%%%%%%%%%%%
+
+% ** required **
+% propulsion architecture, can be either:
+% "C"  = conventional
+% "E"   = fully electric
+% "PHE" = parallel hybrid electric
+% "SHE" = series hybrid electric
+% "TE"  = fully turboelectric
+% "PE"  = partially turboelectric
+Aircraft.Specs.Propulsion.PropArch.Type = "C";
+
+% **required** for configurations using gas-turbine engines
+% get the engine model
+Aircraft.Specs.Propulsion.Engine = EngineModelPkg.EngineSpecsPkg.LEAP_1A26;
+
+% number of engines
+Aircraft.Specs.Propulsion.NumEngines = 2;
+
+% thrust-weight ratio (if a turbojet/turbofan)
+Aircraft.Specs.Propulsion.T_W.SLS = 2.37e5 / (73500 * 9.81);
+
+% total sea-level static thrust available (N)
+Aircraft.Specs.Propulsion.Thrust.SLS = 2.37e5;
+
+% engine propulsive efficiency
+Aircraft.Specs.Propulsion.Eta.Prop = 0.8;
+
+
+%% POWER %%
+%%%%%%%%%%%
+
+% gravimetric specific energy of combustible fuel (kWh/kg)
+Aircraft.Specs.Power.SpecEnergy.Fuel = 12;
+
+% gravimetric specific energy of battery (kWh/kg), not used here
+Aircraft.Specs.Power.SpecEnergy.Batt = NaN;
+
+% electric motor and generator efficiencies, not used here just in HEA one
+Aircraft.Specs.Power.Eta.EM = NaN;
+Aircraft.Specs.Power.Eta.EG = NaN;
+
+% power-weight ratio for the aircraft (kW/kg, if a turboprop)
+Aircraft.Specs.Power.P_W.SLS = NaN;
+
+% power-weight ratio for the electric motor and generator (kW/kg)
+% leave as NaN if an electric motor or generator isn't in the powertrain
+Aircraft.Specs.Power.P_W.EM = NaN;
+Aircraft.Specs.Power.P_W.EG = NaN;
+
+% upstream power splits
+Aircraft.Specs.Power.LamUps.SLS = 0;
+Aircraft.Specs.Power.LamUps.Tko = 0;
+Aircraft.Specs.Power.LamUps.Clb = 0;
+Aircraft.Specs.Power.LamUps.Crs = 0;
+Aircraft.Specs.Power.LamUps.Des = 0;
+Aircraft.Specs.Power.LamUps.Lnd = 0;
+
+% downstream power splits
+Aircraft.Specs.Power.LamDwn.SLS = 0;
+Aircraft.Specs.Power.LamDwn.Tko = 0;
+Aircraft.Specs.Power.LamDwn.Clb = 0;
+Aircraft.Specs.Power.LamDwn.Crs = 0;
+Aircraft.Specs.Power.LamDwn.Des = 0;
+Aircraft.Specs.Power.LamDwn.Lnd = 0;
+
+% battery cells in series and parallel 
+Aircraft.Specs.Power.Battery.ParCells = NaN;
+Aircraft.Specs.Power.Battery.SerCells = NaN;
+
+% initial battery SOC
+Aircraft.Specs.Power.Battery.BegSOC = NaN;
+
+
+%% SETTINGS (LEAVE AS NaN FOR DEFAULTS) %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% number of control points in each segment
+Aircraft.Settings.TkoPoints = 4;
+Aircraft.Settings.ClbPoints = 5;
+Aircraft.Settings.CrsPoints = 5;
+Aircraft.Settings.DesPoints = 5;
+
+% maximum number of iterations during oew estimation
+Aircraft.Settings.OEW.MaxIter = 50;
+
+% oew relative tolerance for convergence
+Aircraft.Settings.OEW.Tol = 0.001;
+
+% maximum number of iterations during aircraft sizing
+Aircraft.Settings.Analysis.MaxIter = 50;
+
+% analysis type, either:
+%     +1 for on -design mode (aircraft performance and sizing)
+%     -1 for off-design mode (aircraft performance           )
+Aircraft.Settings.Analysis.Type = 1;
+
+% plotting, either:
+%     1 for plotting on
+%     0 for plotting off
+Aircraft.Settings.Plotting = 1;
+
+% return the mission history as a table (1) or not (0)
+Aircraft.Settings.Table = 0;
+
+% flag to visualize the aircraft while sizing
+Aircraft.Settings.VisualizeAircraft = 0;
+
+% check if the aircraft should be visualized
+if (Aircraft.Settings.VisualizeAircraft == 1)
+    
+    % connect a geometry to the aircraft
+    Aircraft.Geometry.Preset = VisualizationPkg.GeometrySpecsPkg.Transport;    
+    
+    % specify a fuselage length
+    Aircraft.Geometry.LengthSet = convlength(180, "ft", "m");
+    
+end
+
+% ----------------------------------------------------------
+
+end
