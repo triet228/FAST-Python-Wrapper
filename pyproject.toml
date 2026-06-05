@@ -1,9 +1,12 @@
 [project]
 name = "fast-python-wrapper"
 version = "0.1.0"
-description = "Unofficial Python wrapper for running FAST through MATLAB Engine."
+description = "Python wrapper for running FAST through MATLAB Engine."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = "==3.11.*"
+dependencies = [
+    "matlabengine==25.2.2",
+]
 
 [build-system]
 requires = ["setuptools>=69"]
