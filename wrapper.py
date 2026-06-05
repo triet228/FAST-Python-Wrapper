@@ -71,8 +71,9 @@ def load_env_file():
         None. os.environ is updated for keys that are not already set.
 
     Side effects:
-        Copies .env.example to .env on first run when .env is missing. Existing
-        process environment variables take priority over file values.
+        Copies .env.example to .env when .env is missing and the example file
+        exists. Existing process environment variables take priority over file
+        values.
     """
 
     # load local machine paths from .env, copying .env.example on first run
@@ -109,8 +110,8 @@ def required_env_path(name):
         The configured path string.
 
     Assumptions:
-        Placeholder values containing "\\path\\to" are invalid because they come
-        from templates and cannot point to a usable FAST checkout.
+        Placeholder values containing "\\path\\to" are invalid because they are
+        template paths and cannot point to a usable FAST checkout.
     """
 
     # require a configured environment path before calling FAST
@@ -161,13 +162,13 @@ class FastWrapper:
             ) from error
 
         # Start MATLAB once, then add the whole FAST tree so package folders
-        # such as +AircraftSpecsPkg and +MissionProfilesPkg are visible.
+        # and helper functions are visible.
         self.engine = matlab.engine.start_matlab()
         self.engine.addpath(self.engine.genpath(str(self.fast_path)), nargout=0)
         return self
 
     def stop(self):
-        """Stop MATLAB Engine if this wrapper started it."""
+        """Stop the MATLAB Engine session owned by this wrapper."""
 
         # MATLAB Engine owns an external MATLAB process. Explicitly quitting it
         # avoids leaving background MATLAB sessions after scripts or servers end.
