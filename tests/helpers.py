@@ -24,6 +24,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 import main as wrapper_main
+from helper import load_json_data, read_raw_json_file
 from wrapper import FastWrapper, load_env_file, required_env_path
 
 
@@ -263,6 +264,28 @@ def collect_metrics(aircraft, metric_paths):
     return metrics
 
 
+def load_fast_model_json(fast_models_path, case_path, kind, file_name):
+    """Load a vendored FAST-model JSON input fixture.
+
+    Inputs:
+        fast_models_path: Root path for tests/FAST-models.
+        case_path: Case directory name, such as A320.
+        kind: Input fixture group, either Aircraft or Mission.
+        file_name: JSON fixture file name.
+
+    Outputs:
+        Python data accepted by FastWrapper.run().
+
+    Assumptions:
+        These fixture files intentionally mirror historical FAST MATLAB input
+        functions, including marker objects for NaN, MATLAB expressions, and
+        row vectors where MATLAB orientation matters.
+    """
+
+    path = fast_models_path / case_path / "inputs" / kind / file_name
+    return load_json_data(read_raw_json_file(path))
+
+
 def assert_close_numbers(actual, expected, name):
     """Compare numeric FAST metrics with tolerance for MATLAB run noise."""
 
@@ -354,9 +377,9 @@ def assert_fast_model_wrapper_matches_saved_output(
 
     Inputs:
         name: Aircraft case name used in failure output.
-        aircraft: Python dictionary generated from the vendored aircraft `.m`
+        aircraft: Python dictionary generated from the vendored aircraft JSON
             input fixture.
-        mission: Python dictionary generated from the vendored mission `.m`
+        mission: Python dictionary generated from the vendored mission JSON
             input fixture.
         saved: Case-relative path to the saved OutputAircraft.mat baseline.
         fast_path: Local FAST checkout path.
@@ -367,8 +390,8 @@ def assert_fast_model_wrapper_matches_saved_output(
         from the saved MATLAB FAST output field.
 
     Assumptions:
-        The explicit dictionaries in each test file were generated from the
-        vendored aircraft and mission `.m` files. This keeps the tests on the
+        The JSON fixture files mirror the historical FAST aircraft and mission
+        definitions. This keeps the tests on the
         same user-facing path as main.py: Python data goes into the wrapper,
         FAST runs, and the final aircraft is checked recursively.
     """
