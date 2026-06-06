@@ -10,8 +10,11 @@ from wrapper import MatlabExpression, MatlabRow
 # FAST unspecified input marker.
 nan = float("nan")
 
-# JSON file paths. InputAircraft.json and Mission.json are required inputs; the
-# OutputAircraft files are regenerated after each successful FAST run.
+# Default run directories and file names. InputAircraft.json and Mission.json
+# are required inputs; the OutputAircraft files are regenerated after each
+# successful FAST run.
+DEFAULT_INPUT_DIR = Path("inputs")
+DEFAULT_OUTPUT_DIR = Path("outputs")
 AIRCRAFT_JSON_PATH = Path("InputAircraft.json")
 MISSION_JSON_PATH = Path("Mission.json")
 OUTPUT_AIRCRAFT_JSON_PATH = Path("OutputAircraft.json")
@@ -27,7 +30,7 @@ def build_input_json_paths(input_dir=None):
 
     Inputs:
         input_dir: Directory containing InputAircraft.json and Mission.json. A
-            missing value uses the current working directory.
+            missing value uses the default inputs directory.
 
     Outputs:
         A tuple containing the aircraft JSON path and mission JSON path.
@@ -37,7 +40,11 @@ def build_input_json_paths(input_dir=None):
         cases without renaming files in the project root.
     """
 
-    base_path = Path(input_dir or ".")
+    if input_dir is None:
+        base_path = DEFAULT_INPUT_DIR
+    else:
+        base_path = Path(input_dir)
+
     return (
         base_path / AIRCRAFT_JSON_PATH,
         base_path / MISSION_JSON_PATH,
@@ -49,7 +56,7 @@ def build_output_json_paths(output_dir=None):
 
     Inputs:
         output_dir: Directory where OutputAircraft JSON files should be written.
-            A missing value uses the current working directory.
+            A missing value uses the default outputs directory.
 
     Outputs:
         A tuple containing the full aircraft output path and structure output
@@ -59,7 +66,11 @@ def build_output_json_paths(output_dir=None):
         Both generated output files belong in the same run output directory.
     """
 
-    base_path = Path(output_dir or ".")
+    if output_dir is None:
+        base_path = DEFAULT_OUTPUT_DIR
+    else:
+        base_path = Path(output_dir)
+
     return (
         base_path / OUTPUT_AIRCRAFT_JSON_PATH,
         base_path / OUTPUT_AIRCRAFT_STRUCTURE_JSON_PATH,
@@ -528,7 +539,7 @@ def load_input_json_files(input_dir=None):
 
     Inputs:
         input_dir: Directory containing InputAircraft.json and Mission.json. A
-            missing value uses the current working directory.
+            missing value uses the default inputs directory.
 
     Outputs:
         A tuple of aircraft and mission dictionaries ready for FastWrapper.run().
@@ -592,7 +603,7 @@ def save_output_aircraft(value, output_dir=None):
         value: Python dictionary converted from the MATLAB OutputAircraft
             struct returned by FAST.
         output_dir: Directory where OutputAircraft.json should be written. A
-            missing value uses the current working directory.
+            missing value uses the default outputs directory.
 
     Outputs:
         Destination path written.
@@ -616,7 +627,7 @@ def save_output_aircraft_structure(value, output_dir=None):
     Inputs:
         value: Structure map from build_output_aircraft_structure().
         output_dir: Directory where OutputAircraftStructure.json should be
-            written. A missing value uses the current working directory.
+            written. A missing value uses the default outputs directory.
 
     Outputs:
         Destination path written.

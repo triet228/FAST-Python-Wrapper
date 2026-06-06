@@ -5,9 +5,10 @@ Python wrapper for running [Future Aircraft Sizing Tool (FAST)](https://github.c
 ## Files
 
 - `wrapper.py`: core wrapper around MATLAB Engine and FAST.
-- `main.py`: direct local script that reads `InputAircraft.json` and `Mission.json`, runs FAST, and writes `OutputAircraft.json`.
-- `InputAircraft.json`: aircraft input data.
-- `Mission.json`: mission input data.
+- `main.py`: direct local script that reads `inputs/InputAircraft.json` and `inputs/Mission.json`, runs FAST, and writes output files under `outputs/`.
+- `inputs/InputAircraft.json`: aircraft input data.
+- `inputs/Mission.json`: mission input data.
+- `outputs/`: generated FAST output JSON files.
 - `.env.example`: example local path configuration, copy this to `.env` and edit the paths inside.
 - `pyproject.toml`: project metadata and Python dependencies.
 
@@ -52,12 +53,12 @@ If this gives error, you will need to debug this before continue. If this prints
 
 ## How to Run
 
-Edit `InputAircraft.json` and `Mission.json`, then run:
+Edit `inputs/InputAircraft.json` and `inputs/Mission.json`, then run:
 ```
 python main.py
 ```
 
-The script validates both input files, runs FAST through MATLAB Engine, and writes `OutputAircraft.json`.
+The script validates both input files, runs FAST through MATLAB Engine, and writes `outputs/OutputAircraft.json`.
 
 Python callers can also choose separate input and output directories:
 ```python
@@ -66,9 +67,9 @@ import main
 main.main("path/to/inputs", "path/to/outputs")
 ```
 
-FAST input values in `InputAircraft.json` and `Mission.json` are written in SI units
-where applicable, such as kg, m, m/s, N, and kg/m^2. JSON does not support
-comments, so keep unit notes in documentation instead of adding comment fields
-to the input structures passed into FAST.
+FAST input values in `inputs/InputAircraft.json` and `inputs/Mission.json` are
+written in SI units where applicable, such as kg, m, m/s, N, and kg/m^2. JSON
+does not support comments, so keep unit notes in documentation instead of adding
+comment fields to the input structures passed into FAST.
 
 
