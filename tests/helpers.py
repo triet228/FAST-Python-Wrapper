@@ -10,10 +10,8 @@ methods.
 
 import importlib.util
 import json
-import math
 import pytest
 import shutil
-import subprocess
 import sys
 from pathlib import Path
 
@@ -23,23 +21,9 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-import main as wrapper_main
 from helper import load_json_data, read_raw_json_file
 from wrapper import FastWrapper, load_env_file, required_env_path
 
-
-WRAPPER_METRICS = {
-    "mtow_kg": ["Specs", "Weight", "MTOW"],
-    "fuel_kg": ["Specs", "Weight", "Fuel"],
-    "battery_kg": ["Specs", "Weight", "Batt"],
-    "electric_motor_kg": ["Specs", "Weight", "EM"],
-    "electric_generator_kg": ["Specs", "Weight", "EG"],
-}
-
-SAVED_MODEL_METRICS = {
-    "mtow_kg": ["Specs", "Weight", "MTOW"],
-    "fuel_kg": ["Specs", "Weight", "Fuel"],
-}
 
 MATLAB_COMPARE_SCRIPT = r'''
 saved_data = load(saved_path);
@@ -219,51 +203,6 @@ def fast_models_path(monkeypatch):
     return PROJECT_ROOT / "tests" / "FAST-models"
 
 
-def get_nested(data, path):
-    """Read a nested output field using the same path in Python and MATLAB."""
-
-    current = data
-
-    for key in path:
-        current = current[key]
-
-    return current
-
-
-def normalize_number(value):
-    """Convert MATLAB/Python numeric values into comparable floats."""
-
-    if isinstance(value, list):
-        if len(value) == 1:
-            return normalize_number(value[0])
-
-        raise AssertionError(f"Expected scalar output, got list: {value!r}")
-
-    return float(value)
-
-
-def python_metrics(aircraft):
-    """Collect stable scalar metrics from a Python-converted FAST aircraft."""
-
-    metrics = {}
-
-    for name, path in WRAPPER_METRICS.items():
-        metrics[name] = normalize_number(get_nested(aircraft, path))
-
-    return metrics
-
-
-def collect_metrics(aircraft, metric_paths):
-    """Collect selected scalar metrics from a Python FAST aircraft structure."""
-
-    metrics = {}
-
-    for name, path in metric_paths.items():
-        metrics[name] = normalize_number(get_nested(aircraft, path))
-
-    return metrics
-
-
 def load_fast_model_json(fast_models_path, case_path, kind, file_name):
     """Load a vendored FAST-model JSON input fixture.
 
@@ -286,82 +225,10 @@ def load_fast_model_json(fast_models_path, case_path, kind, file_name):
     return load_json_data(read_raw_json_file(path))
 
 
-def assert_close_numbers(actual, expected, name):
-    """Compare numeric FAST metrics with tolerance for MATLAB run noise."""
-
-    if math.isnan(actual) and math.isnan(expected):
-        return
-
-    assert math.isclose(actual, expected, rel_tol=1e-8, abs_tol=1e-6), (
-        f"{name}: Python wrapper {actual!r} != MATLAB {expected!r}"
-    )
-
-
 def write_text(path, text):
     """Write generated MATLAB scripts in one place for easier cleanup."""
 
     path.write_text(text, encoding="utf-8")
-
-
-def matlab_string(value):
-    """Return a MATLAB double-quoted string literal for a local path."""
-
-    return '"' + str(value).replace("\\", "/").replace('"', '""') + '"'
-
-
-def run_matlab_script(script_path):
-    """Run a MATLAB script through batch mode and fail with captured output."""
-
-    command = ["matlab", "-batch", f"run('{script_path.as_posix()}')"]
-    return subprocess.run(
-        command,
-        check=True,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-    )
-
-
-def assert_wrapper_case_matches_matlab(fast_path, tmp_path):
-    """Run main.py's JSON input case and compare it with direct MATLAB FAST."""
-
-    aircraft, mission = wrapper_main.load_input_json_files()
-
-    with FastWrapper(fast_path) as fast:
-        python_result = fast.run(
-            aircraft=aircraft,
-            mission=mission,
-        )
-        python_output = python_metrics(python_result["aircraft"])
-
-        aircraft = fast._prepare_aircraft(aircraft)
-        aircraft_literal = fast._to_matlab_literal(aircraft)
-        mission_literal = fast._to_matlab_literal(mission)
-
-    output_path = tmp_path / "wrapper_case_metrics.json"
-    script_path = tmp_path / "run_wrapper_case.m"
-    script = f"""
-addpath(genpath({matlab_string(fast_path)}));
-aircraft_spec = {aircraft_literal};
-mission_profile = @(Aircraft) setfield(Aircraft, "Mission", "Profile", {mission_literal});
-fast_result = Main(aircraft_spec, mission_profile);
-metrics = struct();
-metrics.mtow_kg = fast_result.Specs.Weight.MTOW;
-metrics.fuel_kg = fast_result.Specs.Weight.Fuel;
-metrics.battery_kg = fast_result.Specs.Weight.Batt;
-metrics.electric_motor_kg = fast_result.Specs.Weight.EM;
-metrics.electric_generator_kg = fast_result.Specs.Weight.EG;
-fid = fopen({matlab_string(output_path)}, "w");
-fprintf(fid, "%s", jsonencode(metrics));
-fclose(fid);
-"""
-    write_text(script_path, script)
-    run_matlab_script(script_path)
-    matlab_output = json.loads(output_path.read_text(encoding="utf-8"))
-
-    for name, actual in python_output.items():
-        expected = normalize_number(matlab_output[name])
-        assert_close_numbers(actual, expected, name)
 
 
 def assert_fast_model_wrapper_matches_saved_output(
