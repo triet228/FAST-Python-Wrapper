@@ -4,55 +4,13 @@
       {
         "_matlab_expression": "Aircraft.Specs.Performance.Range"
       },
-      {
-        "_matlab_expression": "UnitConversionPkg.ConvLength(100, \"naut mi\", \"m\")"
-      },
+      185200,
       45
     ],
-    "Type": [
-      "Dist",
-      "Dist",
-      "Time"
-    ]
+    "Type": ["Dist", "Dist", "Time"]
   },
-  "Segs": [
-    "Takeoff",
-    "Climb",
-    "Climb",
-    "Climb",
-    "Cruise",
-    "Descent",
-    "Descent",
-    "Descent",
-    "Climb",
-    "Climb",
-    "Climb",
-    "Cruise",
-    "Cruise",
-    "Descent",
-    "Descent",
-    "Descent",
-    "Landing"
-  ],
-  "ID": [
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    2,
-    2,
-    2,
-    2,
-    3,
-    3,
-    3,
-    3,
-    3
-  ],
+  "Segs": ["Takeoff", "Climb", "Climb", "Climb", "Cruise", "Descent", "Descent", "Descent", "Climb", "Climb", "Climb", "Cruise", "Cruise", "Descent", "Descent", "Descent", "Landing"],
+  "ID": [1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3],
   "AltBeg": [
     {
       "_matlab_expression": "Aircraft.Specs.Performance.Alts.Tko"
@@ -60,9 +18,7 @@
     {
       "_matlab_expression": "Aircraft.Specs.Performance.Alts.Tko"
     },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvLength(3000, \"ft\", \"m\")"
-    },
+    914.4000000000001,
     {
       "_matlab_expression": "Aircraft.Specs.Performance.Alts.Crs"
     },
@@ -75,33 +31,15 @@
     {
       "_matlab_expression": "Aircraft.Specs.Performance.Alts.Crs"
     },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvLength(3000, \"ft\", \"m\")"
-    },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvLength(1500, \"ft\", \"m\")"
-    },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvLength(3000, \"ft\", \"m\")"
-    },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvLength(9000, \"ft\", \"m\")"
-    },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvLength(10000, \"ft\", \"m\")"
-    },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvLength(10000, \"ft\", \"m\")"
-    },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvLength(10000, \"ft\", \"m\")"
-    },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvLength(9000, \"ft\", \"m\")"
-    },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvLength(3000, \"ft\", \"m\")"
-    },
+    914.4000000000001,
+    457.20000000000005,
+    914.4000000000001,
+    2743.2000000000003,
+    3048,
+    3048,
+    3048,
+    2743.2000000000003,
+    914.4000000000001,
     {
       "_matlab_expression": "Aircraft.Specs.Performance.Alts.Tko"
     }
@@ -110,9 +48,7 @@
     {
       "_matlab_expression": "Aircraft.Specs.Performance.Alts.Tko"
     },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvLength(3000, \"ft\", \"m\")"
-    },
+    914.4000000000001,
     {
       "_matlab_expression": "Aircraft.Specs.Performance.Alts.Crs"
     },
@@ -125,33 +61,15 @@
     {
       "_matlab_expression": "Aircraft.Specs.Performance.Alts.Crs"
     },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvLength(3000, \"ft\", \"m\")"
-    },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvLength(1500, \"ft\", \"m\")"
-    },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvLength(3000, \"ft\", \"m\")"
-    },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvLength(9000, \"ft\", \"m\")"
-    },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvLength(10000, \"ft\", \"m\")"
-    },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvLength(10000, \"ft\", \"m\")"
-    },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvLength(10000, \"ft\", \"m\")"
-    },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvLength(9000, \"ft\", \"m\")"
-    },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvLength(3000, \"ft\", \"m\")"
-    },
+    914.4000000000001,
+    457.20000000000005,
+    914.4000000000001,
+    2743.2000000000003,
+    3048,
+    3048,
+    3048,
+    2743.2000000000003,
+    914.4000000000001,
     {
       "_matlab_expression": "Aircraft.Specs.Performance.Alts.Tko"
     },
@@ -164,48 +82,26 @@
     {
       "_matlab_expression": "Aircraft.Specs.Performance.Vels.Tko"
     },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvVel(200, \"kts\", \"m/s\")"
-    },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvVel(200, \"kts\", \"m/s\")"
-    },
+    102.8888888888889,
+    102.8888888888889,
     {
       "_matlab_expression": "Aircraft.Specs.Performance.Vels.Crs"
     },
     {
       "_matlab_expression": "Aircraft.Specs.Performance.Vels.Crs"
     },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvVel(210, \"kts\", \"m/s\")"
-    },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvVel(210, \"kts\", \"m/s\")"
-    },
+    108.03333333333335,
+    108.03333333333335,
     {
       "_matlab_expression": "1.2 * Aircraft.Specs.Performance.Vels.Tko"
     },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvVel(200, \"kts\", \"m/s\")"
-    },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvVel(200, \"kts\", \"m/s\")"
-    },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvVel(250, \"kts\", \"m/s\")"
-    },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvVel(250, \"kts\", \"m/s\")"
-    },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvVel(250, \"kts\", \"m/s\")"
-    },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvVel(200, \"kts\", \"m/s\")"
-    },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvVel(200, \"kts\", \"m/s\")"
-    },
+    102.8888888888889,
+    102.8888888888889,
+    128.61111111111111,
+    128.61111111111111,
+    128.61111111111111,
+    102.8888888888889,
+    102.8888888888889,
     {
       "_matlab_expression": "1.2 * Aircraft.Specs.Performance.Vels.Tko"
     }
@@ -214,108 +110,32 @@
     {
       "_matlab_expression": "Aircraft.Specs.Performance.Vels.Tko"
     },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvVel(200, \"kts\", \"m/s\")"
-    },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvVel(200, \"kts\", \"m/s\")"
-    },
+    102.8888888888889,
+    102.8888888888889,
     {
       "_matlab_expression": "Aircraft.Specs.Performance.Vels.Crs"
     },
     {
       "_matlab_expression": "Aircraft.Specs.Performance.Vels.Crs"
     },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvVel(210, \"kts\", \"m/s\")"
-    },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvVel(210, \"kts\", \"m/s\")"
-    },
+    108.03333333333335,
+    108.03333333333335,
     {
       "_matlab_expression": "1.2 * Aircraft.Specs.Performance.Vels.Tko"
     },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvVel(200, \"kts\", \"m/s\")"
-    },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvVel(200, \"kts\", \"m/s\")"
-    },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvVel(250, \"kts\", \"m/s\")"
-    },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvVel(250, \"kts\", \"m/s\")"
-    },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvVel(250, \"kts\", \"m/s\")"
-    },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvVel(200, \"kts\", \"m/s\")"
-    },
-    {
-      "_matlab_expression": "UnitConversionPkg.ConvVel(200, \"kts\", \"m/s\")"
-    },
+    102.8888888888889,
+    102.8888888888889,
+    128.61111111111111,
+    128.61111111111111,
+    128.61111111111111,
+    102.8888888888889,
+    102.8888888888889,
     {
       "_matlab_expression": "1.2 * Aircraft.Specs.Performance.Vels.Tko"
     },
     0
   ],
-  "TypeBeg": [
-    "TAS",
-    "TAS",
-    "EAS",
-    "EAS",
-    "Mach",
-    "Mach",
-    "EAS",
-    "EAS",
-    "TAS",
-    "EAS",
-    "EAS",
-    "TAS",
-    "TAS",
-    "TAS",
-    "EAS",
-    "EAS",
-    "TAS"
-  ],
-  "TypeEnd": [
-    "TAS",
-    "EAS",
-    "EAS",
-    "Mach",
-    "Mach",
-    "EAS",
-    "EAS",
-    "TAS",
-    "EAS",
-    "EAS",
-    "TAS",
-    "TAS",
-    "TAS",
-    "EAS",
-    "EAS",
-    "TAS",
-    "TAS"
-  ],
-  "ClbRate": [
-    "NaN",
-    "NaN",
-    "NaN",
-    "NaN",
-    "NaN",
-    "NaN",
-    "NaN",
-    "NaN",
-    "NaN",
-    "NaN",
-    "NaN",
-    "NaN",
-    "NaN",
-    "NaN",
-    "NaN",
-    "NaN",
-    "NaN"
-  ]
+  "TypeBeg": ["TAS", "TAS", "EAS", "EAS", "Mach", "Mach", "EAS", "EAS", "TAS", "EAS", "EAS", "TAS", "TAS", "TAS", "EAS", "EAS", "TAS"],
+  "TypeEnd": ["TAS", "EAS", "EAS", "Mach", "Mach", "EAS", "EAS", "TAS", "EAS", "EAS", "TAS", "TAS", "TAS", "EAS", "EAS", "TAS", "TAS"],
+  "ClbRate": ["NaN", "NaN", "NaN", "NaN", "NaN", "NaN", "NaN", "NaN", "NaN", "NaN", "NaN", "NaN", "NaN", "NaN", "NaN", "NaN", "NaN"]
 }

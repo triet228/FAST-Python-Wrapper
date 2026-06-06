@@ -15,7 +15,7 @@ class MatlabExpression:
     """Store MATLAB code that should be inserted as an expression.
 
     Inputs:
-        value: MATLAB expression text, such as a UnitConversionPkg call.
+        value: MATLAB expression text, such as a FAST package reference.
 
     Outputs:
         A wrapper object consumed by FastWrapper._to_matlab_literal().
@@ -27,8 +27,8 @@ class MatlabExpression:
     """
 
     # Values wrapped in this class are copied into the MATLAB script as code.
-    # Use it for expressions such as UnitConversionPkg.ConvLength(...) or
-    # EngineModelPkg.EngineSpecsPkg.CF34_8E5 that must be evaluated by MATLAB.
+    # Use it for values such as EngineModelPkg.EngineSpecsPkg.CF34_8E5 or
+    # anonymous functions that must be evaluated by MATLAB.
     def __init__(self, value):
         self.value = value
 
