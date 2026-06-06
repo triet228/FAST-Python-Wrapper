@@ -16,10 +16,6 @@ dist/
 
 *.log
 *.out
-OutputAircraft.json
-OutputAircraftStructure.json
-Propulsion.json
-!examples/*/outputs/OutputAircraft.json
 
 .env
 .env.*
