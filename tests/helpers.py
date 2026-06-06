@@ -57,18 +57,18 @@ def fast_path():
 
 
 @pytest.fixture
-def fast_models_path(monkeypatch):
-    """Return the vendored FAST-model fixtures path used by parity tests."""
+def examples_path(monkeypatch):
+    """Return the root examples path used by parity tests."""
 
     monkeypatch.delenv("FAST_MODELS_PATH", raising=False)
-    return PROJECT_ROOT / "tests" / "FAST-models"
+    return PROJECT_ROOT / "examples"
 
 
-def load_fast_model_input(fast_models_path, case_path, file_name):
-    """Load a vendored FAST-model JSON input fixture.
+def load_example_input(examples_path, case_path, file_name):
+    """Load an example JSON input fixture.
 
     Inputs:
-        fast_models_path: Root path for tests/FAST-models.
+        examples_path: Root path for examples.
         case_path: Case directory name, such as A320.
         file_name: InputAircraft.json or Mission.json.
 
@@ -81,7 +81,7 @@ def load_fast_model_input(fast_models_path, case_path, file_name):
         row vectors where MATLAB orientation matters.
     """
 
-    path = fast_models_path / case_path / "inputs" / file_name
+    path = examples_path / case_path / "inputs" / file_name
     return load_json_data(read_raw_json_file(path))
 
 
@@ -188,7 +188,7 @@ def assert_fast_model_wrapper_matches_saved_output(
     mission,
     saved,
     fast_path,
-    fast_models_path,
+    examples_path,
     tmp_path,
 ):
     """Run one JSON fixture case through the wrapper and compare JSON output.
@@ -201,7 +201,7 @@ def assert_fast_model_wrapper_matches_saved_output(
             input fixture.
         saved: Case-relative path to the saved OutputAircraft.json baseline.
         fast_path: Local FAST checkout path.
-        fast_models_path: Vendored test fixture root.
+        examples_path: Example fixture root.
 
     Outputs:
         None. Assertions fail when any comparable wrapper result field differs
@@ -214,14 +214,14 @@ def assert_fast_model_wrapper_matches_saved_output(
         FAST runs, and the final aircraft is checked recursively.
     """
 
-    if not fast_models_path.exists():
-        pytest.skip(f"FAST-models path not found: {fast_models_path}")
+    if not examples_path.exists():
+        pytest.skip(f"examples path not found: {examples_path}")
 
     with FastWrapper(fast_path) as fast:
         result = fast.run(aircraft=aircraft, mission=mission)
 
     actual = build_json_data(result["aircraft"])
-    expected = read_raw_json_file(fast_models_path / saved)
+    expected = read_raw_json_file(examples_path / saved)
     failures, compared = compare_json_value(actual, expected)
 
     assert compared > 0, f"{name} did not compare any output fields"

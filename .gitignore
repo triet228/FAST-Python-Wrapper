@@ -19,7 +19,7 @@ dist/
 OutputAircraft.json
 OutputAircraftStructure.json
 Propulsion.json
-!tests/FAST-models/*/outputs/OutputAircraft.json
+!examples/*/outputs/OutputAircraft.json
 
 .env
 .env.*
