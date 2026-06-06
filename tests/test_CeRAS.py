@@ -6,32 +6,30 @@ from tests.helpers import (
     assert_fast_model_wrapper_matches_saved_output,
     fast_models_path,
     fast_path,
-    load_fast_model_json,
+    load_fast_model_input,
 )
 
 
-def test_CeRAS_wrapper_output_matches_saved_mat_file(
+def test_CeRAS_wrapper_output_matches_saved_json_file(
     fast_path,
     fast_models_path,
     tmp_path,
 ):
-    """Check the full CeRAS aircraft output against saved OutputAircraft.mat."""
+    """Check the full CeRAS aircraft output against saved OutputAircraft.json."""
 
     assert_fast_model_wrapper_matches_saved_output(
         name="CeRAS",
-        aircraft=load_fast_model_json(
+        aircraft=load_fast_model_input(
             fast_models_path,
             "CeRAS",
-            "Aircraft",
-            "CeRAS.json",
+            "InputAircraft.json",
         ),
-        mission=load_fast_model_json(
+        mission=load_fast_model_input(
             fast_models_path,
             "CeRAS",
-            "Mission",
-            "CeRAS_mission.json",
+            "Mission.json",
         ),
-        saved="CeRAS/outputs/OutputAircraft.mat",
+        saved="CeRAS/outputs/OutputAircraft.json",
         fast_path=fast_path,
         fast_models_path=fast_models_path,
         tmp_path=tmp_path,
