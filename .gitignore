@@ -21,7 +21,4 @@ dist/
 .env.*
 !.env.example
 
-matlab-engine-python/
-FAST/
-
 AGENTS.md
