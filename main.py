@@ -1,8 +1,6 @@
 # main.py
 
 from helper import (
-    OUTPUT_AIRCRAFT_JSON_PATH,
-    OUTPUT_AIRCRAFT_STRUCTURE_JSON_PATH,
     build_output_aircraft_structure,
     load_input_json_files,
     print_output_aircraft_structure,
@@ -35,19 +33,21 @@ AIRCRAFT = {}
 MISSION = {}
 
 
-def main():
+def main(INPUT_DIR=".", OUTPUT_DIR="."):
     """Run FAST from JSON inputs and save the converted OutputAircraft result.
 
     Inputs:
-        None. Reads InputAircraft.json, Mission.json, and FAST_PATH from local
-        environment configuration.
+        INPUT_DIR: Directory containing InputAircraft.json and Mission.json.
+        OUTPUT_DIR: Directory where generated OutputAircraft files are written.
+        FAST_PATH is read from local environment configuration.
 
     Outputs:
         The result dictionary returned by FastWrapper.run().
 
     Side effects:
         Starts MATLAB Engine, runs FAST, rewrites generated OutputAircraft JSON
-        files, and prints status, MTOW, output structure, and FAST log text.
+        files in OUTPUT_DIR, and prints status, MTOW, output structure, and FAST
+        log text.
     """
 
     global AIRCRAFT
@@ -58,7 +58,7 @@ def main():
 
     # InputAircraft.json and Mission.json are the user-editable run inputs. They
     # are validated before MATLAB starts so input mistakes fail quickly.
-    AIRCRAFT, MISSION = load_input_json_files()
+    AIRCRAFT, MISSION = load_input_json_files(INPUT_DIR)
 
     # Start MATLAB, run FAST, and shut MATLAB down.
     with FastWrapper(fast_path) as fast:
@@ -71,8 +71,11 @@ def main():
     OUTPUT_AIRCRAFT_STRUCTURE.update(
         build_output_aircraft_structure(OUTPUT_AIRCRAFT)
     )
-    save_output_aircraft(OUTPUT_AIRCRAFT)
-    save_output_aircraft_structure(OUTPUT_AIRCRAFT_STRUCTURE)
+    output_aircraft_path = save_output_aircraft(OUTPUT_AIRCRAFT, OUTPUT_DIR)
+    output_structure_path = save_output_aircraft_structure(
+        OUTPUT_AIRCRAFT_STRUCTURE,
+        OUTPUT_DIR,
+    )
 
     print(f"Status: {result['status']}")
     print(f"MTOW: {result['mtow']:.6f} kg")
@@ -88,8 +91,8 @@ def main():
             max_depth=PRINT_OUTPUT_AIRCRAFT_STRUCTURE_DEPTH,
             max_items=PRINT_OUTPUT_AIRCRAFT_STRUCTURE_ITEMS,
         )
-        print(f"Output saved to {OUTPUT_AIRCRAFT_JSON_PATH}")
-        print(f"Full structure saved to {OUTPUT_AIRCRAFT_STRUCTURE_JSON_PATH}")
+        print(f"Output saved to {output_aircraft_path}")
+        print(f"Full structure saved to {output_structure_path}")
 
     print_result(result)
 

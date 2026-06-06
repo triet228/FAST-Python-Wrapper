@@ -59,6 +59,13 @@ python main.py
 
 The script validates both input files, runs FAST through MATLAB Engine, and writes `OutputAircraft.json`.
 
+Python callers can also choose separate input and output directories:
+```python
+import main
+
+main.main("path/to/inputs", "path/to/outputs")
+```
+
 FAST input values in `InputAircraft.json` and `Mission.json` are written in SI units
 where applicable, such as kg, m, m/s, N, and kg/m^2. JSON does not support
 comments, so keep unit notes in documentation instead of adding comment fields

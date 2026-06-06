@@ -58,7 +58,7 @@ class MatlabRow:
 def matlab_expr(value):
     """Return a MATLAB expression wrapper for values defined in Python specs."""
 
-    # Public helper used by main.py as m("...").
+    # Public helper used by tests and Python-defined specs as m("...").
     return MatlabExpression(value)
 
 
@@ -298,9 +298,9 @@ class FastWrapper:
         arch_type = prop_arch.upper()
 
         if arch_type == "O":
-            # FAST uses "O" for a user-supplied graph architecture. main.py
-            # stores the large graph as PropArchGraph to keep the selector simple;
-            # MATLAB expects the graph fields under PropArch itself.
+            # FAST uses "O" for a user-supplied graph architecture. The input
+            # JSON stores the large graph as PropArchGraph to keep the selector
+            # simple; MATLAB expects the graph fields under PropArch itself.
             graph = propulsion.get("PropArchGraph")
 
             if graph is None:

@@ -22,6 +22,50 @@ class JsonValidationError(ValueError):
     """Report an invalid FAST JSON input or output file."""
 
 
+def build_input_json_paths(input_dir=None):
+    """Return aircraft and mission input paths for a FAST run.
+
+    Inputs:
+        input_dir: Directory containing InputAircraft.json and Mission.json. A
+            missing value uses the current working directory.
+
+    Outputs:
+        A tuple containing the aircraft JSON path and mission JSON path.
+
+    Assumptions:
+        FAST run inputs are grouped in one directory so callers can run several
+        cases without renaming files in the project root.
+    """
+
+    base_path = Path(input_dir or ".")
+    return (
+        base_path / AIRCRAFT_JSON_PATH,
+        base_path / MISSION_JSON_PATH,
+    )
+
+
+def build_output_json_paths(output_dir=None):
+    """Return generated output paths for a FAST run.
+
+    Inputs:
+        output_dir: Directory where OutputAircraft JSON files should be written.
+            A missing value uses the current working directory.
+
+    Outputs:
+        A tuple containing the full aircraft output path and structure output
+        path.
+
+    Assumptions:
+        Both generated output files belong in the same run output directory.
+    """
+
+    base_path = Path(output_dir or ".")
+    return (
+        base_path / OUTPUT_AIRCRAFT_JSON_PATH,
+        base_path / OUTPUT_AIRCRAFT_STRUCTURE_JSON_PATH,
+    )
+
+
 def print_result(result):
     """Print a cleaned FAST command-window log.
 
@@ -479,11 +523,12 @@ def require_input_json_file(path):
         )
 
 
-def load_input_json_files():
+def load_input_json_files(input_dir=None):
     """Load FAST aircraft and mission inputs from JSON files.
 
     Inputs:
-        None. Reads InputAircraft.json and Mission.json.
+        input_dir: Directory containing InputAircraft.json and Mission.json. A
+            missing value uses the current working directory.
 
     Outputs:
         A tuple of aircraft and mission dictionaries ready for FastWrapper.run().
@@ -492,12 +537,14 @@ def load_input_json_files():
         None.
     """
 
-    require_input_json_file(AIRCRAFT_JSON_PATH)
-    require_input_json_file(MISSION_JSON_PATH)
+    aircraft_json_path, mission_json_path = build_input_json_paths(input_dir)
+
+    require_input_json_file(aircraft_json_path)
+    require_input_json_file(mission_json_path)
 
     return (
-        read_json_file(AIRCRAFT_JSON_PATH, validate_aircraft_json),
-        read_json_file(MISSION_JSON_PATH, validate_mission_json),
+        read_json_file(aircraft_json_path, validate_aircraft_json),
+        read_json_file(mission_json_path, validate_mission_json),
     )
 
 
@@ -538,40 +585,54 @@ def build_output_aircraft_structure(value):
     return type(value).__name__
 
 
-def save_output_aircraft(value):
+def save_output_aircraft(value, output_dir=None):
     """Write the FAST OutputAircraft result to JSON.
 
     Inputs:
         value: Python dictionary converted from the MATLAB OutputAircraft
             struct returned by FAST.
+        output_dir: Directory where OutputAircraft.json should be written. A
+            missing value uses the current working directory.
 
     Outputs:
-        None. The destination path is OUTPUT_AIRCRAFT_JSON_PATH.
+        Destination path written.
 
     Side effects:
-        Rewrites OutputAircraft.json after each successful FAST run.
+        Creates the output directory when needed and rewrites
+        OutputAircraft.json after each successful FAST run.
     """
 
-    write_json_file(OUTPUT_AIRCRAFT_JSON_PATH, build_json_data(value))
-    validate_output_aircraft_json(read_raw_json_file(OUTPUT_AIRCRAFT_JSON_PATH))
+    output_aircraft_path, _ = build_output_json_paths(output_dir)
+    output_aircraft_path.parent.mkdir(parents=True, exist_ok=True)
+
+    write_json_file(output_aircraft_path, build_json_data(value))
+    validate_output_aircraft_json(read_raw_json_file(output_aircraft_path))
+    return output_aircraft_path
 
 
-def save_output_aircraft_structure(value):
+def save_output_aircraft_structure(value, output_dir=None):
     """Write the complete OutputAircraft structure map to JSON.
 
     Inputs:
         value: Structure map from build_output_aircraft_structure().
+        output_dir: Directory where OutputAircraftStructure.json should be
+            written. A missing value uses the current working directory.
 
     Outputs:
-        None. The destination path is OUTPUT_AIRCRAFT_STRUCTURE_JSON_PATH.
+        Destination path written.
 
     Side effects:
-        Rewrites the generated JSON structure file in the project root. The
-        file contains schema-like output only, not the full FAST numeric data.
+        Creates the output directory when needed and rewrites the generated JSON
+        structure file. The file contains schema-like output only, not the full
+        FAST numeric data.
     """
 
-    write_json_file(OUTPUT_AIRCRAFT_STRUCTURE_JSON_PATH, value)
-    validate_output_structure_json(read_raw_json_file(OUTPUT_AIRCRAFT_STRUCTURE_JSON_PATH))
+    _, output_structure_path = build_output_json_paths(output_dir)
+    output_structure_path.parent.mkdir(parents=True, exist_ok=True)
+
+    write_json_file(output_structure_path, value)
+    validate_output_structure_json(read_raw_json_file(output_structure_path))
+    return output_structure_path
 
 
 def print_output_aircraft_structure(
