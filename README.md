@@ -5,7 +5,9 @@ Python wrapper for running [Future Aircraft Sizing Tool (FAST)](https://github.c
 ## Files
 
 - `wrapper.py`: core wrapper around MATLAB Engine and FAST.
-- `main.py`: direct local script with editable Python `AIRCRAFT`, `MISSION`, and optional `GRAPH_BASED_PROPULSION` if custom propulsion architecture is needed.
+- `main.py`: direct local script that reads `Aircraft.json` and `Mission.json`, runs FAST, and writes `OutputAircraft.json`.
+- `Aircraft.json`: aircraft input data.
+- `Mission.json`: mission input data.
 - `.env.example`: example local path configuration, copy this to `.env` and edit the paths inside.
 - `pyproject.toml`: project metadata and Python dependencies.
 
@@ -50,9 +52,11 @@ If this gives error, you will need to debug this before continue. If this prints
 
 ## How to Run
 
-Edit  `AIRCRAFT`, `MISSION`, and optional `GRAPH_BASED_PROPULSION` in [`main.py`](https://github.com/triet228/FAST-Python-Wrapper/blob/main/main.py) and run:
+Edit `Aircraft.json` and `Mission.json`, then run:
 ```
 python main.py
 ```
+
+The script validates both input files, runs FAST through MATLAB Engine, and writes `OutputAircraft.json`.
 
 

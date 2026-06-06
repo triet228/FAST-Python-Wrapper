@@ -47,6 +47,7 @@ saved = saved_data.(saved_names{1});
 ignored_paths = [
     "Aircraft.Mission.ProfileFxn"
     "Aircraft.Settings.Dir.Size"
+    "Aircraft.Settings.Plotting"
 ];
 [failures, skipped, compared] = compare_value(fast_result, saved, "Aircraft", ignored_paths);
 report = struct();
@@ -299,18 +300,20 @@ def run_matlab_script(script_path):
 
 
 def assert_wrapper_case_matches_matlab(fast_path, tmp_path):
-    """Run main.py's Python case and compare it with direct MATLAB FAST."""
+    """Run main.py's JSON input case and compare it with direct MATLAB FAST."""
+
+    aircraft, mission = wrapper_main.load_input_json_files()
 
     with FastWrapper(fast_path) as fast:
         python_result = fast.run(
-            aircraft=wrapper_main.AIRCRAFT,
-            mission=wrapper_main.MISSION,
+            aircraft=aircraft,
+            mission=mission,
         )
         python_output = python_metrics(python_result["aircraft"])
 
-        aircraft = fast._prepare_aircraft(wrapper_main.AIRCRAFT)
+        aircraft = fast._prepare_aircraft(aircraft)
         aircraft_literal = fast._to_matlab_literal(aircraft)
-        mission_literal = fast._to_matlab_literal(wrapper_main.MISSION)
+        mission_literal = fast._to_matlab_literal(mission)
 
     output_path = tmp_path / "wrapper_case_metrics.json"
     script_path = tmp_path / "run_wrapper_case.m"

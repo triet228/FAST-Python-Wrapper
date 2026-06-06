@@ -1,0 +1,321 @@
+{
+  "Target": {
+    "Valu": [
+      {
+        "_matlab_expression": "Aircraft.Specs.Performance.Range"
+      },
+      {
+        "_matlab_expression": "UnitConversionPkg.ConvLength(100, \"naut mi\", \"m\")"
+      },
+      45
+    ],
+    "Type": [
+      "Dist",
+      "Dist",
+      "Time"
+    ]
+  },
+  "Segs": [
+    "Takeoff",
+    "Climb",
+    "Climb",
+    "Climb",
+    "Cruise",
+    "Descent",
+    "Descent",
+    "Descent",
+    "Climb",
+    "Climb",
+    "Climb",
+    "Cruise",
+    "Cruise",
+    "Descent",
+    "Descent",
+    "Descent",
+    "Landing"
+  ],
+  "ID": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    2,
+    2,
+    2,
+    2,
+    3,
+    3,
+    3,
+    3,
+    3
+  ],
+  "AltBeg": [
+    {
+      "_matlab_expression": "Aircraft.Specs.Performance.Alts.Tko"
+    },
+    {
+      "_matlab_expression": "Aircraft.Specs.Performance.Alts.Tko"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvLength(3000, \"ft\", \"m\")"
+    },
+    {
+      "_matlab_expression": "Aircraft.Specs.Performance.Alts.Crs"
+    },
+    {
+      "_matlab_expression": "Aircraft.Specs.Performance.Alts.Crs"
+    },
+    {
+      "_matlab_expression": "Aircraft.Specs.Performance.Alts.Crs"
+    },
+    {
+      "_matlab_expression": "Aircraft.Specs.Performance.Alts.Crs"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvLength(3000, \"ft\", \"m\")"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvLength(1500, \"ft\", \"m\")"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvLength(3000, \"ft\", \"m\")"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvLength(9000, \"ft\", \"m\")"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvLength(10000, \"ft\", \"m\")"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvLength(10000, \"ft\", \"m\")"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvLength(10000, \"ft\", \"m\")"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvLength(9000, \"ft\", \"m\")"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvLength(3000, \"ft\", \"m\")"
+    },
+    {
+      "_matlab_expression": "Aircraft.Specs.Performance.Alts.Tko"
+    }
+  ],
+  "AltEnd": [
+    {
+      "_matlab_expression": "Aircraft.Specs.Performance.Alts.Tko"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvLength(3000, \"ft\", \"m\")"
+    },
+    {
+      "_matlab_expression": "Aircraft.Specs.Performance.Alts.Crs"
+    },
+    {
+      "_matlab_expression": "Aircraft.Specs.Performance.Alts.Crs"
+    },
+    {
+      "_matlab_expression": "Aircraft.Specs.Performance.Alts.Crs"
+    },
+    {
+      "_matlab_expression": "Aircraft.Specs.Performance.Alts.Crs"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvLength(3000, \"ft\", \"m\")"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvLength(1500, \"ft\", \"m\")"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvLength(3000, \"ft\", \"m\")"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvLength(9000, \"ft\", \"m\")"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvLength(10000, \"ft\", \"m\")"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvLength(10000, \"ft\", \"m\")"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvLength(10000, \"ft\", \"m\")"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvLength(9000, \"ft\", \"m\")"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvLength(3000, \"ft\", \"m\")"
+    },
+    {
+      "_matlab_expression": "Aircraft.Specs.Performance.Alts.Tko"
+    },
+    {
+      "_matlab_expression": "Aircraft.Specs.Performance.Alts.Tko"
+    }
+  ],
+  "VelBeg": [
+    0,
+    {
+      "_matlab_expression": "Aircraft.Specs.Performance.Vels.Tko"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvVel(200, \"kts\", \"m/s\")"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvVel(200, \"kts\", \"m/s\")"
+    },
+    {
+      "_matlab_expression": "Aircraft.Specs.Performance.Vels.Crs"
+    },
+    {
+      "_matlab_expression": "Aircraft.Specs.Performance.Vels.Crs"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvVel(210, \"kts\", \"m/s\")"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvVel(210, \"kts\", \"m/s\")"
+    },
+    {
+      "_matlab_expression": "1.2 * Aircraft.Specs.Performance.Vels.Tko"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvVel(200, \"kts\", \"m/s\")"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvVel(200, \"kts\", \"m/s\")"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvVel(250, \"kts\", \"m/s\")"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvVel(250, \"kts\", \"m/s\")"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvVel(250, \"kts\", \"m/s\")"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvVel(200, \"kts\", \"m/s\")"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvVel(200, \"kts\", \"m/s\")"
+    },
+    {
+      "_matlab_expression": "1.2 * Aircraft.Specs.Performance.Vels.Tko"
+    }
+  ],
+  "VelEnd": [
+    {
+      "_matlab_expression": "Aircraft.Specs.Performance.Vels.Tko"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvVel(200, \"kts\", \"m/s\")"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvVel(200, \"kts\", \"m/s\")"
+    },
+    {
+      "_matlab_expression": "Aircraft.Specs.Performance.Vels.Crs"
+    },
+    {
+      "_matlab_expression": "Aircraft.Specs.Performance.Vels.Crs"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvVel(210, \"kts\", \"m/s\")"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvVel(210, \"kts\", \"m/s\")"
+    },
+    {
+      "_matlab_expression": "1.2 * Aircraft.Specs.Performance.Vels.Tko"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvVel(200, \"kts\", \"m/s\")"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvVel(200, \"kts\", \"m/s\")"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvVel(250, \"kts\", \"m/s\")"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvVel(250, \"kts\", \"m/s\")"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvVel(250, \"kts\", \"m/s\")"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvVel(200, \"kts\", \"m/s\")"
+    },
+    {
+      "_matlab_expression": "UnitConversionPkg.ConvVel(200, \"kts\", \"m/s\")"
+    },
+    {
+      "_matlab_expression": "1.2 * Aircraft.Specs.Performance.Vels.Tko"
+    },
+    0
+  ],
+  "TypeBeg": [
+    "TAS",
+    "TAS",
+    "EAS",
+    "EAS",
+    "Mach",
+    "Mach",
+    "EAS",
+    "EAS",
+    "TAS",
+    "EAS",
+    "EAS",
+    "TAS",
+    "TAS",
+    "TAS",
+    "EAS",
+    "EAS",
+    "TAS"
+  ],
+  "TypeEnd": [
+    "TAS",
+    "EAS",
+    "EAS",
+    "Mach",
+    "Mach",
+    "EAS",
+    "EAS",
+    "TAS",
+    "EAS",
+    "EAS",
+    "TAS",
+    "TAS",
+    "TAS",
+    "EAS",
+    "EAS",
+    "TAS",
+    "TAS"
+  ],
+  "ClbRate": [
+    "NaN",
+    "NaN",
+    "NaN",
+    "NaN",
+    "NaN",
+    "NaN",
+    "NaN",
+    "NaN",
+    "NaN",
+    "NaN",
+    "NaN",
+    "NaN",
+    "NaN",
+    "NaN",
+    "NaN",
+    "NaN",
+    "NaN"
+  ]
+}

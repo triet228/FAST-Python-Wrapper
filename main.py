@@ -1,8 +1,16 @@
 # main.py
 
+import json
 import re
+from pathlib import Path
 
-from wrapper import FastWrapper, load_env_file, matlab_expr, required_env_path
+from wrapper import (
+    FastWrapper,
+    MatlabExpression,
+    MatlabRow,
+    load_env_file,
+    required_env_path,
+)
 
 
 load_env_file()
@@ -13,561 +21,38 @@ FAST_PATH = required_env_path("FAST_PATH")
 # FAST unspecified input marker
 nan = float("nan")
 
-# MATLAB expression wrapper
-m = matlab_expr
-
-
-# %% INPUT VALUES %%
-# %%%%%%%%%%%%%%%%%%
-
-# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# %                            %
-# % aircraft specifications    %
-# %                            %
-# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-AIRCRAFT = {
-    "Specs": {
-        "TLAR": {
-            # expected entry-into-service year
-            "EIS": 2005,
-
-            # ** REQUIRED ** aircraft class, either:
-            #     (1) "Piston"    = piston aircraft
-            #     (2) "Turboprop" = turboprop
-            #     (3) "Turbofan"  = turbojet or turbofan
-            "Class": "Turbofan",
-
-            # ** REQUIRED **: number of passengers
-            "MaxPax": 78,
-        },
-
-        # ----------------------------------------------------------
-
-        "Aero": {
-            # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            # %                            %
-            # % aerodynamic parameters     %
-            # %                            %
-            # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            "L_D": {
-                # climb lift-drag correction factor
-                "ClbCF": 1.002,
-
-                # cruise lift-drag correction factor
-                "CrsCF": 1.000,
-
-                # lift-drag ratio at climb
-                "Clb": 10.9773 * 1.002,
-
-                # lift-drag ratio at cruise
-                "Crs": 15.2000 * 1.000,
-
-                # lift-drag ratio at descent
-                "Des": 10.9773 * 1.002,
-            },
-            "W_S": {
-                # maximum wing loading (kg/m^2)
-                "SLS": m(
-                    'UnitConversionPkg.ConvMass(109.25, "lbm", "kg") / '
-                    '(UnitConversionPkg.ConvLength(1, "ft", "m")) ^ 2'
-                ),
-            },
-        },
-
-        # ----------------------------------------------------------
-
-        "Battery": {
-            # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            # %                            %
-            # % battery model parameters   %
-            # %                            %
-            # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-            # nominal cell voltage (V)
-            "NomVolCell": 3.6,
-
-            # maximum extrapolated cell voltage (V)
-            "MaxExtVolCell": 4.0880,
-
-            # cell capacity (Ah)
-            "CapCell": 3,
-
-            # internal cell resistance (ohm)
-            "IntResist": 0.0199,
-
-            # exponential-zone voltage parameter (V)
-            "ExpVol": 0.0986,
-
-            # exponential-zone capacity parameter (Ah)
-            "ExpCap": 30,
-
-            # minimum state of charge (%)
-            "MinSOC": 20,
-
-            # beginning state of charge (%)
-            "BegSOC": 100,
-
-            # maximum allowable C-rate
-            "MaxAllowCRate": 5,
-
-            # charging power (W)
-            "Charging": 500 * 1000,
-        },
-
-        # ----------------------------------------------------------
-
-        "Performance": {
-            # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            # %                            %
-            # % performance parameters     %
-            # %                            %
-            # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            "Vels": {
-                # takeoff speed (m/s)
-                "Tko": m('UnitConversionPkg.ConvVel(135, "kts", "m/s")'),
-
-                # cruise speed (mach)
-                "Crs": 0.78,
-            },
-            "Alts": {
-                # takeoff altitude (m)
-                "Tko": 0,
-
-                # cruise altitude (m)
-                "Crs": m('UnitConversionPkg.ConvLength(35000, "ft", "m")'),
-            },
-
-            # ** REQUIRED **: design range (m)
-            "Range": m('UnitConversionPkg.ConvLength(2150, "naut mi", "m")'),
-
-            # maximum rate-of-climb (m/s)
-            "RCMax": m('UnitConversionPkg.ConvVel(2250, "ft/min", "m/s")'),
-        },
-
-        # ----------------------------------------------------------
-
-        "Weight": {
-            # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            # %                            %
-            # % weights                    %
-            # %                            %
-            # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-            # maximum takeoff weight (kg)
-            "MTOW": m('UnitConversionPkg.ConvMass(85517, "lbm", "kg")'),
-
-            # electric generator weight (kg)
-            "EG": nan,
-
-            # electric motor weight (kg)
-            "EM": 0,
-
-            # block fuel (kg)
-            "Fuel": m('UnitConversionPkg.ConvMass(20785, "lbm", "kg")'),
-
-            # battery weight (kg)
-            "Batt": 0,
-
-            # airframe weight correction factor
-            "WairfCF": 1.018,
-        },
-
-        # ----------------------------------------------------------
-
-        "Propulsion": {
-            # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            # %                            %
-            # % propulsion parameters      %
-            # %                            %
-            # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-            # mass-flow correction factor
-            "MDotCF": 1.029,
-
-            # ** REQUIRED ** propulsion system architecture, either:
-            #     (1) "C"   = conventional
-            #     (2) "E"   = fully electric
-            #     (3) "TE"  = fully turboelectric
-            #     (4) "PE"  = partially turboelectric
-            #     (5) "PHE" = parallel hybrid electric
-            #     (6) "SHE" = series hybrid electric
-            #     (7) "O"   = other architecture (specified by the user)
-            "PropArch": "O",
-
-            # engine (defined in EngineModelPkg)
-            "Engine": m("EngineModelPkg.EngineSpecsPkg.CF34_8E5"),
-
-            # number of engines
-            "NumEngines": 2,
-            "T_W": {
-                # aircraft thrust-weight ratio
-                "SLS": 0.3393,
-            },
-            "Thrust": {
-                # total sea-level static thrust (N)
-                "SLS": m('UnitConversionPkg.ConvForce(2 * 14510, "lbf", "N")'),
-            },
-            "Eta": {
-                # engine propulsive efficiency
-                "Prop": 0.8,
-            },
-        },
-
-        # ----------------------------------------------------------
-
-        "Power": {
-            # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            # %                            %
-            # % power specifications       %
-            # %                            %
-            # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            "SpecEnergy": {
-                # gravimetric specific energy of combustible fuel (kWh/kg)
-                "Fuel": 12,
-
-                # gravimetric specific energy of battery (kWh/kg)
-                "Batt": 0.25,
-            },
-            "Eta": {
-                # electric motor efficiency
-                "EM": 0.96,
-
-                # electric generator efficiency
-                "EG": nan,
-            },
-            "P_W": {
-                # aircraft power-weight ratio (kW/kg)
-                "SLS": nan,
-
-                # electric motor power-weight ratio (kW/kg)
-                "EM": 10,
-
-                # electric generator power-weight ratio (kW/kg)
-                "EG": nan,
-            },
-            "LamUps": {
-                # upstream power split by mission phase
-                "SLS": 1,
-                "Tko": 1,
-                "Clb": 1,
-                "Crs": 0,
-                "Des": 0,
-                "Lnd": 0,
-            },
-            "LamDwn": {
-                # downstream power split by mission phase
-                "SLS": 0.1,
-                "Tko": 0.1,
-                "Clb": 0.01,
-                "Crs": 0,
-                "Des": 0,
-                "Lnd": 0,
-            },
-            "Battery": {
-                # battery parallel cell count
-                "ParCells": 100,
-
-                # battery series cell count
-                "SerCells": 62,
-
-                # initial battery state of charge (%)
-                "BegSOC": 100,
-            },
-        },
-    },
-
-    # ----------------------------------------------------------
-
-    "Settings": {
-        # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        # %                            %
-        # % mission analysis           %
-        # % properties                 %
-        # %                            %
-        # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-        # takeoff segment discretization points
-        "TkoPoints": nan,
-
-        # climb segment discretization points
-        "ClbPoints": nan,
-
-        # cruise segment discretization points
-        "CrsPoints": nan,
-
-        # descent segment discretization points
-        "DesPoints": nan,
-        "OEW": {
-            # maximum outer empty-weight iterations
-            "MaxIter": 50,
-
-            # outer empty-weight convergence tolerance
-            "Tol": 0.001,
-        },
-        "Analysis": {
-            # maximum analysis iterations
-            "MaxIter": 30,
-
-            # on design/off design analysis
-            # +1 = on design
-            # -1 = off design
-            "Type": 1,
-        },
-
-        # include degradation analysis
-        "Degradation": 0,
-
-        # optimize power profile
-        "PowerOpt": 0,
-
-        # power strategy setting
-        "PowerStrat": -1,
-
-        # conserve battery state of charge
-        "ConSOC": 1,
-
-        # plot results or not
-        # 0 = no plotting
-        # 1 = plotting
-        "Plotting": 0,
-
-        # print result table or not
-        "Table": 0,
-
-        # print FAST output or not
-        "PrintOut": 1,
-    },
-}
-
-
-# %% DEFINE THE MISSION TARGETS %%
-# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-MISSION = {
-    "Target": {
-        # define the targets (in m or min)
-        "Valu": [
-            m("Aircraft.Specs.Performance.Range"),
-            m('UnitConversionPkg.ConvLength(100, "naut mi", "m")'),
-            45,
-        ],
-
-        # define the target types ("Dist" or "Time")
-        "Type": ["Dist", "Dist", "Time"],
-    },
-
-    # %% DEFINE THE MISSION SEGMENTS %%
-    # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-    "Segs": [
-        # define the segments
-        "Takeoff", "Climb", "Climb", "Climb",
-        "Cruise", "Descent", "Descent", "Descent",
-        "Climb", "Climb", "Climb", "Cruise",
-        "Cruise", "Descent", "Descent", "Descent", "Landing",
-    ],
-    "ID": [
-        # define the mission id (segments in same mission must be consecutive)
-        1, 1, 1, 1,
-        1, 1, 1, 1,
-        2, 2, 2, 2,
-        3, 3, 3, 3, 3,
-    ],
-    "AltBeg": [
-        # define the starting altitudes (in m)
-        m("Aircraft.Specs.Performance.Alts.Tko"),
-        m("Aircraft.Specs.Performance.Alts.Tko"),
-        m('UnitConversionPkg.ConvLength(3000, "ft", "m")'),
-        m("Aircraft.Specs.Performance.Alts.Crs"),
-        m("Aircraft.Specs.Performance.Alts.Crs"),
-        m("Aircraft.Specs.Performance.Alts.Crs"),
-        m("Aircraft.Specs.Performance.Alts.Crs"),
-        m('UnitConversionPkg.ConvLength(3000, "ft", "m")'),
-        m('UnitConversionPkg.ConvLength(1500, "ft", "m")'),
-        m('UnitConversionPkg.ConvLength(3000, "ft", "m")'),
-        m('UnitConversionPkg.ConvLength(9000, "ft", "m")'),
-        m('UnitConversionPkg.ConvLength(10000, "ft", "m")'),
-        m('UnitConversionPkg.ConvLength(10000, "ft", "m")'),
-        m('UnitConversionPkg.ConvLength(10000, "ft", "m")'),
-        m('UnitConversionPkg.ConvLength(9000, "ft", "m")'),
-        m('UnitConversionPkg.ConvLength(3000, "ft", "m")'),
-        m("Aircraft.Specs.Performance.Alts.Tko"),
-    ],
-    "AltEnd": [
-        # define the ending altitudes (in m)
-        m("Aircraft.Specs.Performance.Alts.Tko"),
-        m('UnitConversionPkg.ConvLength(3000, "ft", "m")'),
-        m("Aircraft.Specs.Performance.Alts.Crs"),
-        m("Aircraft.Specs.Performance.Alts.Crs"),
-        m("Aircraft.Specs.Performance.Alts.Crs"),
-        m("Aircraft.Specs.Performance.Alts.Crs"),
-        m('UnitConversionPkg.ConvLength(3000, "ft", "m")'),
-        m('UnitConversionPkg.ConvLength(1500, "ft", "m")'),
-        m('UnitConversionPkg.ConvLength(3000, "ft", "m")'),
-        m('UnitConversionPkg.ConvLength(9000, "ft", "m")'),
-        m('UnitConversionPkg.ConvLength(10000, "ft", "m")'),
-        m('UnitConversionPkg.ConvLength(10000, "ft", "m")'),
-        m('UnitConversionPkg.ConvLength(10000, "ft", "m")'),
-        m('UnitConversionPkg.ConvLength(9000, "ft", "m")'),
-        m('UnitConversionPkg.ConvLength(3000, "ft", "m")'),
-        m("Aircraft.Specs.Performance.Alts.Tko"),
-        m("Aircraft.Specs.Performance.Alts.Tko"),
-    ],
-    "VelBeg": [
-        # define the starting speeds (in m/s or mach)
-        0,
-        m("Aircraft.Specs.Performance.Vels.Tko"),
-        m('UnitConversionPkg.ConvVel(200, "kts", "m/s")'),
-        m('UnitConversionPkg.ConvVel(200, "kts", "m/s")'),
-        m("Aircraft.Specs.Performance.Vels.Crs"),
-        m("Aircraft.Specs.Performance.Vels.Crs"),
-        m('UnitConversionPkg.ConvVel(210, "kts", "m/s")'),
-        m('UnitConversionPkg.ConvVel(210, "kts", "m/s")'),
-        m("1.2 * Aircraft.Specs.Performance.Vels.Tko"),
-        m('UnitConversionPkg.ConvVel(200, "kts", "m/s")'),
-        m('UnitConversionPkg.ConvVel(200, "kts", "m/s")'),
-        m('UnitConversionPkg.ConvVel(250, "kts", "m/s")'),
-        m('UnitConversionPkg.ConvVel(250, "kts", "m/s")'),
-        m('UnitConversionPkg.ConvVel(250, "kts", "m/s")'),
-        m('UnitConversionPkg.ConvVel(200, "kts", "m/s")'),
-        m('UnitConversionPkg.ConvVel(200, "kts", "m/s")'),
-        m("1.2 * Aircraft.Specs.Performance.Vels.Tko"),
-    ],
-    "VelEnd": [
-        # define the ending speeds (in m/s or mach)
-        m("Aircraft.Specs.Performance.Vels.Tko"),
-        m('UnitConversionPkg.ConvVel(200, "kts", "m/s")'),
-        m('UnitConversionPkg.ConvVel(200, "kts", "m/s")'),
-        m("Aircraft.Specs.Performance.Vels.Crs"),
-        m("Aircraft.Specs.Performance.Vels.Crs"),
-        m('UnitConversionPkg.ConvVel(210, "kts", "m/s")'),
-        m('UnitConversionPkg.ConvVel(210, "kts", "m/s")'),
-        m("1.2 * Aircraft.Specs.Performance.Vels.Tko"),
-        m('UnitConversionPkg.ConvVel(200, "kts", "m/s")'),
-        m('UnitConversionPkg.ConvVel(200, "kts", "m/s")'),
-        m('UnitConversionPkg.ConvVel(250, "kts", "m/s")'),
-        m('UnitConversionPkg.ConvVel(250, "kts", "m/s")'),
-        m('UnitConversionPkg.ConvVel(250, "kts", "m/s")'),
-        m('UnitConversionPkg.ConvVel(200, "kts", "m/s")'),
-        m('UnitConversionPkg.ConvVel(200, "kts", "m/s")'),
-        m("1.2 * Aircraft.Specs.Performance.Vels.Tko"),
-        0,
-    ],
-    "TypeBeg": [
-        # define the starting speed types (either "TAS", "EAS", or "Mach")
-        "TAS", "TAS", "EAS", "EAS",
-        "Mach", "Mach", "EAS", "EAS",
-        "TAS", "EAS", "EAS", "TAS",
-        "TAS", "TAS", "EAS", "EAS", "TAS",
-    ],
-    "TypeEnd": [
-        # define the ending speed types (either "TAS", "EAS", or "Mach")
-        "TAS", "EAS", "EAS", "Mach",
-        "Mach", "EAS", "EAS", "TAS",
-        "EAS", "EAS", "TAS", "TAS",
-        "TAS", "EAS", "EAS", "TAS", "TAS",
-    ],
-    "ClbRate": [
-        # define the rate of climb/descent (in m/s)
-        nan, nan, nan, nan,
-        nan, nan, nan, nan,
-        nan, nan, nan, nan,
-        nan, nan, nan, nan, nan,
-    ],
-}
-
-# ----------------------------------------------------------
-
-# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# %                            %
-# % graph-based propulsion     %
-# % architecture               %
-# %                            %
-# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-# fan efficiency
-FAN_EFFICIENCY = 0.99
-
-# electric motor efficiency
-EM_EFFICIENCY = 0.96
-GRAPH_BASED_PROPULSION = {
-    "Arch": [
-        # propulsion architecture adjacency matrix
-        # components: fuel, battery, engines, electric motors, fans, sink
-        [0, 0, 1, 1, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 1, 1, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 1, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 1, 0],
-        [0, 0, 0, 0, 0, 0, 1, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 1, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 1],
-        [0, 0, 0, 0, 0, 0, 0, 0, 1],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    ],
-    "OperUps": m(
-        # upstream operation matrix as a function of lambda
-        "@(lam) ["
-        "0, 0, 1/2, 1/2, 0, 0, 0, 0, 0; "
-        "0, 0, 0, 0, 1/2, 1/2, 0, 0, 0; "
-        "0, 0, 0, 0, 0, 0, 1, 0, 0; "
-        "0, 0, 0, 0, 0, 0, 0, 1, 0; "
-        "0, 0, 0, 0, 0, 0, lam, 0, 0; "
-        "0, 0, 0, 0, 0, 0, 0, lam, 0; "
-        "0, 0, 0, 0, 0, 0, 0, 0, 1; "
-        "0, 0, 0, 0, 0, 0, 0, 0, 1; "
-        "0, 0, 0, 0, 0, 0, 0, 0, 0]"
-    ),
-    "OperDwn": m(
-        # downstream operation matrix as a function of lambda
-        "@(lam) ["
-        "0, 0, 0, 0, 0, 0, 0, 0, 0; "
-        "0, 0, 0, 0, 0, 0, 0, 0, 0; "
-        "1, 0, 0, 0, 0, 0, 0, 0, 0; "
-        "1, 0, 0, 0, 0, 0, 0, 0, 0; "
-        "0, 1, 0, 0, 0, 0, 0, 0, 0; "
-        "0, 1, 0, 0, 0, 0, 0, 0, 0; "
-        "0, 0, 1-lam, 0, lam, 0, 0, 0, 0; "
-        "0, 0, 0, 1-lam, 0, lam, 0, 0, 0; "
-        "0, 0, 0, 0, 0, 0, 1/2, 1/2, 0]"
-    ),
-    "EtaUps": [
-        # upstream efficiency matrix
-        [1, 1, 1, 1, 1, 1, 1, 1, 1],
-        [1, 1, 1, 1, EM_EFFICIENCY, EM_EFFICIENCY, 1, 1, 1],
-        [1, 1, 1, 1, 1, 1, FAN_EFFICIENCY, 1, 1],
-        [1, 1, 1, 1, 1, 1, 1, FAN_EFFICIENCY, 1],
-        [1, 1, 1, 1, 1, 1, FAN_EFFICIENCY, 1, 1],
-        [1, 1, 1, 1, 1, 1, 1, FAN_EFFICIENCY, 1],
-        [1, 1, 1, 1, 1, 1, 1, 1, 1],
-        [1, 1, 1, 1, 1, 1, 1, 1, 1],
-        [1, 1, 1, 1, 1, 1, 1, 1, 1],
-    ],
-    "EtaDwn": [
-        # downstream efficiency matrix
-        [1, 1, 1, 1, 1, 1, 1, 1, 1],
-        [1, 1, 1, 1, 1, 1, 1, 1, 1],
-        [1, 1, 1, 1, 1, 1, 1, 1, 1],
-        [1, 1, 1, 1, 1, 1, 1, 1, 1],
-        [1, EM_EFFICIENCY, 1, 1, 1, 1, 1, 1, 1],
-        [1, EM_EFFICIENCY, 1, 1, 1, 1, 1, 1, 1],
-        [1, 1, FAN_EFFICIENCY, 1, FAN_EFFICIENCY, 1, 1, 1, 1],
-        [1, 1, 1, FAN_EFFICIENCY, 1, FAN_EFFICIENCY, 1, 1, 1],
-        [1, 1, 1, 1, 1, 1, 1, 1, 1],
-    ],
-
-    # source component type vector
-    # 1 = fuel, 0 = battery
-    "SrcType": [1, 0],
-
-    # transmitter component type vector
-    # 1 = engine, 0 = electric motor, 2 = propeller/fan
-    "TrnType": [1, 1, 0, 0, 2, 2],
-}
-
-
-# attach user-specified architecture when PropArch is "O"
-if AIRCRAFT["Specs"]["Propulsion"]["PropArch"].upper() == "O":
-    AIRCRAFT["Specs"]["Propulsion"]["PropArchGraph"] = GRAPH_BASED_PROPULSION
-
+# Python dictionary equivalent of FAST MATLAB OutputAircraft.
+#
+# The wrapper populates this after Main.m returns. It is intentionally mutated
+# in place, so code that imports OUTPUT_AIRCRAFT keeps a live reference to the
+# latest FAST output dictionary instead of a stale pre-run object.
+OUTPUT_AIRCRAFT = {}
+
+# Recursive shape of OUTPUT_AIRCRAFT with field names, list lengths, and scalar
+# types. This is useful when exploring FAST output without printing every value.
+OUTPUT_AIRCRAFT_STRUCTURE = {}
+
+# JSON file paths. Aircraft.json and Mission.json are required inputs; the
+# OutputAircraft files are regenerated after each successful FAST run.
+AIRCRAFT_JSON_PATH = Path("Aircraft.json")
+MISSION_JSON_PATH = Path("Mission.json")
+OUTPUT_AIRCRAFT_JSON_PATH = Path("OutputAircraft.json")
+OUTPUT_AIRCRAFT_STRUCTURE_JSON_PATH = Path("OutputAircraftStructure.json")
+
+# Structure output controls. The complete output tree is saved to JSON, while
+# the console preview is capped because FAST can attach large reference data.
+PRINT_OUTPUT_AIRCRAFT_STRUCTURE = True
+PRINT_OUTPUT_AIRCRAFT_STRUCTURE_DEPTH = 3
+PRINT_OUTPUT_AIRCRAFT_STRUCTURE_ITEMS = 20
+
+
+class JsonValidationError(ValueError):
+    """Report an invalid FAST JSON input or output file."""
+
+
+# Runtime inputs loaded from Aircraft.json and Mission.json.
+AIRCRAFT = {}
+MISSION = {}
 
 # ----------------------------------------------------------
 
@@ -590,10 +75,632 @@ def print_result(result):
         print(log)
 
 
+def build_json_data(value):
+    """Return a JSON-safe copy of FAST data.
+
+    Inputs:
+        value: Python FAST data that may include MATLAB expression wrappers,
+            MATLAB Engine arrays, NaN markers, nested dictionaries, or lists.
+
+    Outputs:
+        A JSON-serializable structure preserving field names and MATLAB source
+        expressions. NaN is written as the string "NaN" because standard JSON
+        has no portable NaN literal.
+
+    Assumptions:
+        Input files can be rehydrated by load_json_data(). Output files are for
+        inspection, so unsupported MATLAB/Python objects are represented by
+        their type and string form instead of being dropped.
+    """
+
+    if isinstance(value, MatlabExpression):
+        return {"_matlab_expression": value.value}
+
+    if isinstance(value, MatlabRow):
+        return {"_matlab_row": build_json_data(value.value)}
+
+    if isinstance(value, dict):
+        return {
+            key: build_json_data(item)
+            for key, item in value.items()
+        }
+
+    if isinstance(value, list) or isinstance(value, tuple):
+        return [build_json_data(item) for item in value]
+
+    if isinstance(value, float) and value != value:
+        return "NaN"
+
+    if type(value).__module__.startswith("matlab.") and hasattr(value, "__iter__"):
+        return [build_json_data(item) for item in value]
+
+    if value is None or isinstance(value, str):
+        return value
+
+    if isinstance(value, bool) or isinstance(value, int) or isinstance(value, float):
+        return value
+
+    return {
+        "_python_type": type(value).__name__,
+        "_repr": str(value),
+    }
+
+
+def load_json_data(value):
+    """Convert JSON FAST input data back into wrapper-ready Python data.
+
+    Inputs:
+        value: Data loaded from Aircraft.json or Mission.json.
+
+    Outputs:
+        Python data accepted by FastWrapper.run(), including restored MATLAB
+        expressions, MATLAB row-vector markers, and NaN values.
+
+    Assumptions:
+        The JSON files use the marker objects generated by build_json_data().
+        Plain string "NaN" is treated as the FAST unspecified input marker.
+    """
+
+    if isinstance(value, dict):
+        if set(value.keys()) == {"_matlab_expression"}:
+            return MatlabExpression(value["_matlab_expression"])
+
+        if set(value.keys()) == {"_matlab_row"}:
+            return MatlabRow(load_json_data(value["_matlab_row"]))
+
+        return {
+            key: load_json_data(item)
+            for key, item in value.items()
+        }
+
+    if isinstance(value, list):
+        return [load_json_data(item) for item in value]
+
+    if value == "NaN":
+        return nan
+
+    return value
+
+
+def write_json_file(path, value):
+    """Write a generated JSON file with stable formatting.
+
+    Inputs:
+        path: Destination path in the project root.
+        value: JSON-serializable data.
+
+    Outputs:
+        None. The destination file is overwritten.
+
+    Side effects:
+        Rewrites generated inspection files after each FAST run so stale
+        structures do not linger beside a newer case.
+    """
+
+    path.write_text(
+        json.dumps(value, indent=2),
+        encoding="utf-8",
+    )
+
+
+def read_raw_json_file(path):
+    """Parse a JSON file and report file-specific syntax errors.
+
+    Inputs:
+        path: JSON file path to read.
+
+    Outputs:
+        Data returned by json.loads().
+
+    Side effects:
+        None.
+    """
+
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as error:
+        raise JsonValidationError(
+            f"{path} is not valid JSON: {error.msg} at line "
+            f"{error.lineno}, column {error.colno}."
+        ) from error
+
+
+def require_json_object(value, path):
+    """Return value when it is a JSON object, otherwise fail.
+
+    Inputs:
+        value: Parsed JSON value.
+        path: Human-readable location used in the error message.
+
+    Outputs:
+        The original value when it is a dictionary.
+
+    Assumptions:
+        FAST aircraft, mission, and OutputAircraft files are object roots.
+    """
+
+    if not isinstance(value, dict):
+        raise JsonValidationError(f"{path} must be a JSON object.")
+
+    return value
+
+
+def get_json_path(data, keys, file_name):
+    """Read a required nested JSON field.
+
+    Inputs:
+        data: Parsed JSON object.
+        keys: List of nested field names.
+        file_name: File label used in validation errors.
+
+    Outputs:
+        The nested value.
+    """
+
+    current = data
+    walked = []
+
+    for key in keys:
+        walked.append(key)
+
+        if not isinstance(current, dict) or key not in current:
+            joined = ".".join(walked)
+            raise JsonValidationError(f"{file_name} is missing required field {joined}.")
+
+        current = current[key]
+
+    return current
+
+
+def is_json_number(value):
+    """Return True for JSON numeric values that are not booleans."""
+
+    return (isinstance(value, int) or isinstance(value, float)) and not isinstance(
+        value,
+        bool,
+    )
+
+
+def require_json_number(data, keys, file_name):
+    """Validate that a required nested field is numeric or FAST NaN marker."""
+
+    value = get_json_path(data, keys, file_name)
+
+    if is_json_number(value) or value == "NaN":
+        return
+
+    if (
+        isinstance(value, dict)
+        and set(value.keys()) == {"_matlab_expression"}
+        and isinstance(value["_matlab_expression"], str)
+    ):
+        return
+
+    joined = ".".join(keys)
+    raise JsonValidationError(
+        f"{file_name}.{joined} must be a number, \"NaN\", "
+        "or a _matlab_expression marker."
+    )
+
+
+def require_json_string(data, keys, file_name):
+    """Validate that a required nested field is a string."""
+
+    value = get_json_path(data, keys, file_name)
+
+    if isinstance(value, str):
+        return
+
+    joined = ".".join(keys)
+    raise JsonValidationError(f"{file_name}.{joined} must be a string.")
+
+
+def require_json_list(data, keys, file_name):
+    """Validate that a required nested field is a list and return it."""
+
+    value = get_json_path(data, keys, file_name)
+
+    if isinstance(value, list):
+        return value
+
+    joined = ".".join(keys)
+    raise JsonValidationError(f"{file_name}.{joined} must be a JSON array.")
+
+
+def validate_json_markers(value, file_name, path="", allow_output_markers=False):
+    """Validate wrapper marker objects used inside JSON files.
+
+    Inputs:
+        value: Parsed JSON subtree.
+        file_name: File label used in validation errors.
+        path: Current dotted JSON path.
+        allow_output_markers: Whether output-only object markers are accepted.
+
+    Outputs:
+        None. Raises JsonValidationError on invalid markers.
+
+    Assumptions:
+        Marker dictionaries reserve keys beginning with "_". User data should
+        not mix marker keys with normal FAST fields.
+    """
+
+    if isinstance(value, dict):
+        keys = set(value.keys())
+        label = path or file_name
+        marker_keys = [key for key in keys if key.startswith("_")]
+
+        if marker_keys:
+            if keys == {"_matlab_expression"}:
+                if not isinstance(value["_matlab_expression"], str):
+                    raise JsonValidationError(
+                        f"{label}._matlab_expression must be a string."
+                    )
+                return
+
+            if keys == {"_matlab_row"}:
+                if not isinstance(value["_matlab_row"], list):
+                    raise JsonValidationError(f"{label}._matlab_row must be an array.")
+                validate_json_markers(
+                    value["_matlab_row"],
+                    file_name,
+                    f"{label}._matlab_row",
+                    allow_output_markers,
+                )
+                return
+
+            if allow_output_markers and keys == {"_python_type", "_repr"}:
+                if not isinstance(value["_python_type"], str):
+                    raise JsonValidationError(f"{label}._python_type must be a string.")
+                if not isinstance(value["_repr"], str):
+                    raise JsonValidationError(f"{label}._repr must be a string.")
+                return
+
+            raise JsonValidationError(f"{label} contains invalid marker keys.")
+
+        for key, item in value.items():
+            child_path = key if not path else f"{path}.{key}"
+            validate_json_markers(item, file_name, child_path, allow_output_markers)
+
+        return
+
+    if isinstance(value, list):
+        for index, item in enumerate(value):
+            child_path = f"{path}[{index}]"
+            validate_json_markers(item, file_name, child_path, allow_output_markers)
+
+
+def validate_aircraft_json(data):
+    """Validate Aircraft.json before converting it into FAST input data."""
+
+    require_json_object(data, "Aircraft.json")
+    validate_json_markers(data, "Aircraft.json")
+
+    require_json_string(data, ["Specs", "TLAR", "Class"], "Aircraft.json")
+    require_json_number(data, ["Specs", "TLAR", "MaxPax"], "Aircraft.json")
+    require_json_number(data, ["Specs", "Performance", "Range"], "Aircraft.json")
+    require_json_number(data, ["Specs", "Weight", "MTOW"], "Aircraft.json")
+
+    get_json_path(data, ["Specs", "Propulsion", "PropArch"], "Aircraft.json")
+    get_json_path(data, ["Settings"], "Aircraft.json")
+
+
+def validate_mission_json(data):
+    """Validate Mission.json before converting it into FAST input data."""
+
+    require_json_object(data, "Mission.json")
+    validate_json_markers(data, "Mission.json")
+
+    targets = require_json_list(data, ["Target", "Valu"], "Mission.json")
+    target_types = require_json_list(data, ["Target", "Type"], "Mission.json")
+
+    if len(targets) != len(target_types):
+        raise JsonValidationError(
+            "Mission.json Target.Valu and Target.Type must have the same length."
+        )
+
+    for index, target_type in enumerate(target_types):
+        if target_type not in ("Dist", "Time"):
+            raise JsonValidationError(
+                f"Mission.json Target.Type[{index}] must be \"Dist\" or \"Time\"."
+            )
+
+    segment_fields = [
+        "Segs",
+        "ID",
+        "AltBeg",
+        "AltEnd",
+        "VelBeg",
+        "VelEnd",
+        "TypeBeg",
+        "TypeEnd",
+        "ClbRate",
+    ]
+    segment_lengths = {}
+
+    for field_name in segment_fields:
+        segment_lengths[field_name] = len(
+            require_json_list(data, [field_name], "Mission.json")
+        )
+
+    expected_length = segment_lengths["Segs"]
+
+    for field_name, length in segment_lengths.items():
+        if length != expected_length:
+            raise JsonValidationError(
+                "Mission.json segment arrays must have the same length: "
+                f"Segs has {expected_length}, {field_name} has {length}."
+            )
+
+    for index, segment_name in enumerate(data["Segs"]):
+        if not isinstance(segment_name, str):
+            raise JsonValidationError(f"Mission.json Segs[{index}] must be a string.")
+
+
+def validate_output_aircraft_json(data):
+    """Validate OutputAircraft.json after writing FAST output data."""
+
+    require_json_object(data, "OutputAircraft.json")
+    validate_json_markers(data, "OutputAircraft.json", allow_output_markers=True)
+
+    require_json_number(data, ["Specs", "Weight", "MTOW"], "OutputAircraft.json")
+    require_json_number(data, ["Specs", "Weight", "Fuel"], "OutputAircraft.json")
+    require_json_number(data, ["Specs", "Aero", "S"], "OutputAircraft.json")
+    require_json_string(data, ["Specs", "TLAR", "Class"], "OutputAircraft.json")
+    get_json_path(data, ["Mission", "Profile"], "OutputAircraft.json")
+
+
+def validate_output_structure_json(data):
+    """Validate OutputAircraftStructure.json after writing structure data."""
+
+    require_json_object(data, "OutputAircraftStructure.json")
+
+    for field_name in ("Specs", "Mission"):
+        if field_name not in data:
+            raise JsonValidationError(
+                f"OutputAircraftStructure.json is missing required field {field_name}."
+            )
+
+
+def read_json_file(path, validator=None):
+    """Read and validate a JSON file, then restore FAST marker values.
+
+    Inputs:
+        path: Aircraft.json or Mission.json path.
+        validator: Optional validator function for the parsed JSON value.
+
+    Outputs:
+        Wrapper-ready Python data.
+
+    Side effects:
+        None.
+    """
+
+    data = read_raw_json_file(path)
+
+    if validator:
+        validator(data)
+
+    return load_json_data(data)
+
+
+def require_input_json_file(path):
+    """Fail when a required FAST JSON input file is missing.
+
+    Inputs:
+        path: Required input JSON path.
+
+    Outputs:
+        None.
+
+    Assumptions:
+        Aircraft.json and Mission.json are committed/template input files that
+        users edit before running main.py.
+    """
+
+    if not path.exists():
+        raise JsonValidationError(
+            f"{path} is required. Edit or restore this input file, then rerun "
+            "python main.py."
+        )
+
+
+def load_input_json_files():
+    """Load FAST aircraft and mission inputs from JSON files.
+
+    Inputs:
+        None. Reads Aircraft.json and Mission.json.
+
+    Outputs:
+        A tuple of aircraft and mission dictionaries ready for FastWrapper.run().
+
+    Side effects:
+        None.
+    """
+
+    require_input_json_file(AIRCRAFT_JSON_PATH)
+    require_input_json_file(MISSION_JSON_PATH)
+
+    return (
+        read_json_file(AIRCRAFT_JSON_PATH, validate_aircraft_json),
+        read_json_file(MISSION_JSON_PATH, validate_mission_json),
+    )
+
+
+def build_output_aircraft_structure(value):
+    """Return a recursive structure map for a FAST output value.
+
+    Inputs:
+        value: Python data converted from the MATLAB OutputAircraft struct.
+
+    Outputs:
+        Nested dictionaries that preserve struct field names. Lists include
+        their length and the shape of the first item; scalar leaves show their
+        Python type.
+
+    Assumptions:
+        FAST arrays are usually homogeneous, so the first list item is enough
+        to show the useful structure without duplicating every mission point.
+    """
+
+    if isinstance(value, dict):
+        return {
+            key: build_output_aircraft_structure(item)
+            for key, item in value.items()
+        }
+
+    if isinstance(value, list):
+        item_structure = None
+
+        if value:
+            item_structure = build_output_aircraft_structure(value[0])
+
+        return {
+            "_type": "list",
+            "_length": len(value),
+            "_items": item_structure,
+        }
+
+    return type(value).__name__
+
+
+def save_output_aircraft(value):
+    """Write the FAST OutputAircraft result to JSON.
+
+    Inputs:
+        value: Python dictionary converted from the MATLAB OutputAircraft
+            struct returned by FAST.
+
+    Outputs:
+        None. The destination path is OUTPUT_AIRCRAFT_JSON_PATH.
+
+    Side effects:
+        Rewrites OutputAircraft.json after each successful FAST run.
+    """
+
+    write_json_file(OUTPUT_AIRCRAFT_JSON_PATH, build_json_data(value))
+    validate_output_aircraft_json(read_raw_json_file(OUTPUT_AIRCRAFT_JSON_PATH))
+
+
+def save_output_aircraft_structure(value):
+    """Write the complete OutputAircraft structure map to JSON.
+
+    Inputs:
+        value: Structure map from build_output_aircraft_structure().
+
+    Outputs:
+        None. The destination path is OUTPUT_AIRCRAFT_STRUCTURE_JSON_PATH.
+
+    Side effects:
+        Rewrites the generated JSON structure file in the project root. The
+        file contains schema-like output only, not the full FAST numeric data.
+    """
+
+    write_json_file(OUTPUT_AIRCRAFT_STRUCTURE_JSON_PATH, value)
+    validate_output_structure_json(read_raw_json_file(OUTPUT_AIRCRAFT_STRUCTURE_JSON_PATH))
+
+
+def print_output_aircraft_structure(
+    value,
+    name="OutputAircraft",
+    indent=0,
+    depth=0,
+    max_depth=None,
+    max_items=None,
+):
+    """Print the recursive OutputAircraft structure tree.
+
+    Inputs:
+        value: Structure map from build_output_aircraft_structure().
+        name: Current field label to print.
+        indent: Number of leading spaces for nested fields.
+        depth: Current recursion depth.
+        max_depth: Optional maximum recursion depth for console output.
+        max_items: Optional maximum fields printed per dictionary.
+
+    Outputs:
+        None. The tree is printed to standard output.
+
+    Side effects:
+        Writes a compact structure view to the console for interactive runs.
+    """
+
+    prefix = " " * indent
+
+    if max_depth is not None and depth >= max_depth:
+        if isinstance(value, dict) and value.get("_type") == "list":
+            print(f"{prefix}{name}: list[{value['_length']}] ...")
+        elif isinstance(value, dict):
+            print(f"{prefix}{name}: dict ...")
+        else:
+            print(f"{prefix}{name}: {value}")
+
+        return
+
+    if isinstance(value, dict) and value.get("_type") == "list":
+        print(f"{prefix}{name}: list[{value['_length']}]")
+
+        if value["_items"] is not None:
+            print_output_aircraft_structure(
+                value["_items"],
+                "[0]",
+                indent + 2,
+                depth + 1,
+                max_depth,
+                max_items,
+            )
+
+        return
+
+    if isinstance(value, dict):
+        print(f"{prefix}{name}: dict")
+
+        items = list(value.items())
+
+        if max_items is None:
+            printed_items = items
+        else:
+            printed_items = items[:max_items]
+
+        for key, item in printed_items:
+            print_output_aircraft_structure(
+                item,
+                key,
+                indent + 2,
+                depth + 1,
+                max_depth,
+                max_items,
+            )
+
+        if max_items is not None and len(items) > max_items:
+            remaining = len(items) - max_items
+            print(f"{prefix}  ... {remaining} more fields in JSON file")
+
+        return
+
+    print(f"{prefix}{name}: {value}")
+
+
 def main():
+    global AIRCRAFT
+    global MISSION
+
+    # Aircraft.json and Mission.json are the user-editable run inputs. They are
+    # validated before MATLAB starts so input mistakes fail quickly.
+    AIRCRAFT, MISSION = load_input_json_files()
+
     # start MATLAB, run FAST, and shut MATLAB down
     with FastWrapper(FAST_PATH) as fast:
         result = fast.run(aircraft=AIRCRAFT, mission=MISSION)
+
+    # populate the Python equivalent of MATLAB's saved OutputAircraft struct
+    OUTPUT_AIRCRAFT.clear()
+    OUTPUT_AIRCRAFT.update(result["aircraft"])
+    OUTPUT_AIRCRAFT_STRUCTURE.clear()
+    OUTPUT_AIRCRAFT_STRUCTURE.update(
+        build_output_aircraft_structure(OUTPUT_AIRCRAFT)
+    )
+    save_output_aircraft(OUTPUT_AIRCRAFT)
+    save_output_aircraft_structure(OUTPUT_AIRCRAFT_STRUCTURE)
 
     # print run status
     print(f"Status: {result['status']}")
@@ -601,8 +708,24 @@ def main():
     # print maximum takeoff weight (kg)
     print(f"MTOW: {result['mtow']:.6f} kg")
 
+    if PRINT_OUTPUT_AIRCRAFT_STRUCTURE:
+        print()
+        print(
+            "OutputAircraft structure "
+            f"(first {PRINT_OUTPUT_AIRCRAFT_STRUCTURE_DEPTH} levels):"
+        )
+        print_output_aircraft_structure(
+            OUTPUT_AIRCRAFT_STRUCTURE,
+            max_depth=PRINT_OUTPUT_AIRCRAFT_STRUCTURE_DEPTH,
+            max_items=PRINT_OUTPUT_AIRCRAFT_STRUCTURE_ITEMS,
+        )
+        print(f"Output saved to {OUTPUT_AIRCRAFT_JSON_PATH}")
+        print(f"Full structure saved to {OUTPUT_AIRCRAFT_STRUCTURE_JSON_PATH}")
+
     # print FAST log
     print_result(result)
+
+    return result
 
 
 if __name__ == "__main__":
