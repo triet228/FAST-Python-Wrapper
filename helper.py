@@ -10,9 +10,9 @@ from wrapper import MatlabExpression, MatlabRow
 # FAST unspecified input marker.
 nan = float("nan")
 
-# JSON file paths. Aircraft.json and Mission.json are required inputs; the
+# JSON file paths. InputAircraft.json and Mission.json are required inputs; the
 # OutputAircraft files are regenerated after each successful FAST run.
-AIRCRAFT_JSON_PATH = Path("Aircraft.json")
+AIRCRAFT_JSON_PATH = Path("InputAircraft.json")
 MISSION_JSON_PATH = Path("Mission.json")
 OUTPUT_AIRCRAFT_JSON_PATH = Path("OutputAircraft.json")
 OUTPUT_AIRCRAFT_STRUCTURE_JSON_PATH = Path("OutputAircraftStructure.json")
@@ -105,7 +105,7 @@ def load_json_data(value):
     """Convert JSON FAST input data back into wrapper-ready Python data.
 
     Inputs:
-        value: Data loaded from Aircraft.json or Mission.json.
+        value: Data loaded from InputAircraft.json or Mission.json.
 
     Outputs:
         Python data accepted by FastWrapper.run(), including restored MATLAB
@@ -345,18 +345,18 @@ def validate_json_markers(value, file_name, path="", allow_output_markers=False)
 
 
 def validate_aircraft_json(data):
-    """Validate Aircraft.json before converting it into FAST input data."""
+    """Validate InputAircraft.json before converting it into FAST input data."""
 
-    require_json_object(data, "Aircraft.json")
-    validate_json_markers(data, "Aircraft.json")
+    require_json_object(data, "InputAircraft.json")
+    validate_json_markers(data, "InputAircraft.json")
 
-    require_json_string(data, ["Specs", "TLAR", "Class"], "Aircraft.json")
-    require_json_number(data, ["Specs", "TLAR", "MaxPax"], "Aircraft.json")
-    require_json_number(data, ["Specs", "Performance", "Range"], "Aircraft.json")
-    require_json_number(data, ["Specs", "Weight", "MTOW"], "Aircraft.json")
+    require_json_string(data, ["Specs", "TLAR", "Class"], "InputAircraft.json")
+    require_json_number(data, ["Specs", "TLAR", "MaxPax"], "InputAircraft.json")
+    require_json_number(data, ["Specs", "Performance", "Range"], "InputAircraft.json")
+    require_json_number(data, ["Specs", "Weight", "MTOW"], "InputAircraft.json")
 
-    get_json_path(data, ["Specs", "Propulsion", "PropArch"], "Aircraft.json")
-    get_json_path(data, ["Settings"], "Aircraft.json")
+    get_json_path(data, ["Specs", "Propulsion", "PropArch"], "InputAircraft.json")
+    get_json_path(data, ["Settings"], "InputAircraft.json")
 
 
 def validate_mission_json(data):
@@ -440,7 +440,7 @@ def read_json_file(path, validator=None):
     """Read and validate a JSON file, then restore FAST marker values.
 
     Inputs:
-        path: Aircraft.json or Mission.json path.
+        path: InputAircraft.json or Mission.json path.
         validator: Optional validator function for the parsed JSON value.
 
     Outputs:
@@ -468,8 +468,8 @@ def require_input_json_file(path):
         None.
 
     Assumptions:
-        Aircraft.json and Mission.json are committed/template input files that
-        users edit before running main.py.
+        InputAircraft.json and Mission.json are committed/template input files
+        that users edit before running main.py.
     """
 
     if not path.exists():
@@ -483,7 +483,7 @@ def load_input_json_files():
     """Load FAST aircraft and mission inputs from JSON files.
 
     Inputs:
-        None. Reads Aircraft.json and Mission.json.
+        None. Reads InputAircraft.json and Mission.json.
 
     Outputs:
         A tuple of aircraft and mission dictionaries ready for FastWrapper.run().

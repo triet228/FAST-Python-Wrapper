@@ -30,7 +30,7 @@ PRINT_OUTPUT_AIRCRAFT_STRUCTURE = True
 PRINT_OUTPUT_AIRCRAFT_STRUCTURE_DEPTH = 3
 PRINT_OUTPUT_AIRCRAFT_STRUCTURE_ITEMS = 20
 
-# Runtime inputs loaded from Aircraft.json and Mission.json.
+# Runtime inputs loaded from InputAircraft.json and Mission.json.
 AIRCRAFT = {}
 MISSION = {}
 
@@ -39,7 +39,7 @@ def main():
     """Run FAST from JSON inputs and save the converted OutputAircraft result.
 
     Inputs:
-        None. Reads Aircraft.json, Mission.json, and FAST_PATH from local
+        None. Reads InputAircraft.json, Mission.json, and FAST_PATH from local
         environment configuration.
 
     Outputs:
@@ -56,8 +56,8 @@ def main():
     load_env_file()
     fast_path = required_env_path("FAST_PATH")
 
-    # Aircraft.json and Mission.json are the user-editable run inputs. They are
-    # validated before MATLAB starts so input mistakes fail quickly.
+    # InputAircraft.json and Mission.json are the user-editable run inputs. They
+    # are validated before MATLAB starts so input mistakes fail quickly.
     AIRCRAFT, MISSION = load_input_json_files()
 
     # Start MATLAB, run FAST, and shut MATLAB down.
