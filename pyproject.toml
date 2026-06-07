@@ -7,7 +7,7 @@ readme = "README.md"
 # Make sure Python version is compatible with MATLAB Engine
 requires-python = "==3.11.*"
 dependencies = [
-    "matlabengine==25.2.2",
+    "matlabengine==26.0.0",
     "pytest>=8",
 ]
 
