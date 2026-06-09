@@ -50,7 +50,7 @@ If this gives error, you will need to debug this before continue. If this prints
 > [!TIP]
 > Inside MATLAB, you can run `which matlab` to know where MATLAB is installed.
 
-5. Keep the local FAST checkout path handy. You pass it directly when running
+5. Keep the local FAST checkout path handy as `FAST_DIR`. You pass it directly when running
    `main.py` or calling `main.main(...)`.
 
 
@@ -64,7 +64,7 @@ python main.py "C:\path\to\FAST"
 The script validates both input files against the committed structure contracts,
 runs FAST through MATLAB Engine, and writes `outputs/OutputAircraft.json`.
 
-Python callers pass input, output, and FAST directories explicitly:
+Python callers pass `INPUT_DIR`, `OUTPUT_DIR`, and `FAST_DIR` explicitly:
 ```python
 import main
 
