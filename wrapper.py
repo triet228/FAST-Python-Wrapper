@@ -1,9 +1,7 @@
 # wrapper.py
 
-import os
 import re
 from copy import deepcopy
-from shutil import copyfile
 from pathlib import Path
 
 
@@ -60,70 +58,6 @@ def matlab_expr(value):
 
     # Public helper used by tests and Python-defined specs as m("...").
     return MatlabExpression(value)
-
-
-def load_env_file():
-    """Load local environment variables from the project .env file.
-
-    Inputs:
-        None. The project root is inferred from this file location.
-
-    Outputs:
-        None. os.environ is updated for keys that are not already set.
-
-    Side effects:
-        Copies .env.example to .env when .env is missing and the example file
-        exists. Existing process environment variables take priority over file
-        values.
-    """
-
-    # Load local machine paths from .env, copying .env.example on first run.
-    env_path = PROJECT_ROOT / ".env"
-    example_env_path = PROJECT_ROOT / ".env.example"
-
-    if not env_path.exists():
-        if example_env_path.exists():
-            copyfile(example_env_path, env_path)
-        else:
-            return
-
-    for raw_line in env_path.read_text().splitlines():
-        line = raw_line.strip()
-
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-
-        key, value = line.split("=", 1)
-        key = key.strip()
-        value = value.strip().strip('"').strip("'")
-
-        if key and key not in os.environ:
-            os.environ[key] = value
-
-
-def required_env_path(name):
-    """Return a required environment path value.
-
-    Inputs:
-        name: Environment variable name to read, such as FAST_PATH.
-
-    Outputs:
-        The configured path string.
-
-    Assumptions:
-        Placeholder values containing "\\path\\to" are invalid because they are
-        template paths and cannot point to a usable FAST checkout.
-    """
-
-    # Require a configured environment path before calling FAST.
-    value = os.environ.get(name, "").strip()
-
-    if not value or r"\path\to\\" in value or r"\path\to" in value:
-        raise RuntimeError(
-            f"{name} is required. Edit .env and set {name} for your machine."
-        )
-
-    return value
 
 
 class FastWrapper:

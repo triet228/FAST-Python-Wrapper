@@ -9,7 +9,9 @@ Python wrapper for running [Future Aircraft Sizing Tool (FAST)](https://github.c
 - `inputs/InputAircraft.json`: aircraft input data.
 - `inputs/Mission.json`: mission input data.
 - `outputs/`: generated FAST output JSON files.
-- `.env.example`: example local path configuration, copy this to `.env` and edit the paths inside.
+- `contracts/InputAircraftStructure.json`: committed structure contract for aircraft input JSON.
+- `contracts/MissionStructure.json`: committed structure contract for mission input JSON.
+- `contracts/OutputAircraftStructure.json`: reference structure for generated FAST output.
 - `pyproject.toml`: project metadata and Python dependencies.
 
 
@@ -48,23 +50,25 @@ If this gives error, you will need to debug this before continue. If this prints
 > [!TIP]
 > Inside MATLAB, you can run `which matlab` to know where MATLAB is installed.
 
-5. Copy [`.env.example`](https://github.com/triet228/FAST-Python-Wrapper/blob/main/.env.example) to `.env` and set `FAST_PATH` to your local FAST directory.
+5. Keep the local FAST checkout path handy. You pass it directly when running
+   `main.py` or calling `main.main(...)`.
 
 
 ## How to Run
 
 Edit `inputs/InputAircraft.json` and `inputs/Mission.json`, then run:
-```
-python main.py
+```powershell
+python main.py "C:\path\to\FAST"
 ```
 
-The script validates both input files, runs FAST through MATLAB Engine, and writes `outputs/OutputAircraft.json`.
+The script validates both input files against the committed structure contracts,
+runs FAST through MATLAB Engine, and writes `outputs/OutputAircraft.json`.
 
-Python callers can also choose separate input and output directories:
+Python callers pass input, output, and FAST directories explicitly:
 ```python
 import main
 
-main.main("path/to/inputs", "path/to/outputs")
+main.main("path/to/inputs", "path/to/outputs", "path/to/FAST")
 ```
 
 FAST input values in `inputs/InputAircraft.json` and `inputs/Mission.json` are

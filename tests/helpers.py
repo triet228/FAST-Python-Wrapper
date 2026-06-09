@@ -12,6 +12,7 @@ import ast
 import importlib.util
 import json
 import math
+import os
 import pytest
 import shutil
 import sys
@@ -24,7 +25,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from helper import build_json_data, load_json_data, read_raw_json_file
-from wrapper import FastWrapper, load_env_file, required_env_path
+from wrapper import FastWrapper
 
 
 IGNORED_OUTPUT_PATHS = {
@@ -55,8 +56,12 @@ def fast_path():
     """Return the configured FAST checkout path for integration tests."""
 
     skip_unless_matlab_available()
-    load_env_file()
-    return Path(required_env_path("FAST_PATH")).resolve()
+    value = os.environ.get("FAST_PATH", "").strip()
+
+    if not value or r"\path\to\\" in value or r"\path\to" in value:
+        pytest.skip("Set FAST_PATH to a local FAST checkout to run integration tests.")
+
+    return Path(value).resolve()
 
 
 @pytest.fixture

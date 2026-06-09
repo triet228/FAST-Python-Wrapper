@@ -8,7 +8,7 @@ from helper import (
     save_output_aircraft,
     save_output_aircraft_structure,
 )
-from wrapper import FastWrapper, load_env_file, required_env_path
+from wrapper import FastWrapper
 
 
 # Python dictionary equivalent of FAST MATLAB OutputAircraft.
@@ -33,15 +33,13 @@ AIRCRAFT = {}
 MISSION = {}
 
 
-def main(INPUT_DIR="inputs", OUTPUT_DIR="outputs"):
+def main(INPUT_DIR, OUTPUT_DIR, FATS_DIR):
     """Run FAST from JSON inputs and save the converted OutputAircraft result.
 
     Inputs:
         INPUT_DIR: Directory containing InputAircraft.json and Mission.json.
-            Defaults to inputs.
         OUTPUT_DIR: Directory where generated OutputAircraft files are written.
-            Defaults to outputs.
-        FAST_PATH is read from local environment configuration.
+        FATS_DIR: Local FAST checkout path containing Main.m.
 
     Outputs:
         The result dictionary returned by FastWrapper.run().
@@ -55,15 +53,12 @@ def main(INPUT_DIR="inputs", OUTPUT_DIR="outputs"):
     global AIRCRAFT
     global MISSION
 
-    load_env_file()
-    fast_path = required_env_path("FAST_PATH")
-
     # The JSON files in INPUT_DIR are user-editable run inputs. They are
     # validated before MATLAB starts so input mistakes fail quickly.
     AIRCRAFT, MISSION = load_input_json_files(INPUT_DIR)
 
     # Start MATLAB, run FAST, and shut MATLAB down.
-    with FastWrapper(fast_path) as fast:
+    with FastWrapper(FATS_DIR) as fast:
         result = fast.run(aircraft=AIRCRAFT, mission=MISSION)
 
     # Populate the Python equivalent of MATLAB's saved OutputAircraft struct.
@@ -102,4 +97,24 @@ def main(INPUT_DIR="inputs", OUTPUT_DIR="outputs"):
 
 
 if __name__ == "__main__":
-    main()
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Run FAST from JSON inputs and write OutputAircraft JSON."
+    )
+    parser.add_argument("FATS_DIR", help="Local FAST checkout path containing Main.m.")
+    parser.add_argument(
+        "INPUT_DIR",
+        nargs="?",
+        default="inputs",
+        help="Directory containing InputAircraft.json and Mission.json.",
+    )
+    parser.add_argument(
+        "OUTPUT_DIR",
+        nargs="?",
+        default="outputs",
+        help="Directory where generated OutputAircraft files are written.",
+    )
+    args = parser.parse_args()
+
+    main(args.INPUT_DIR, args.OUTPUT_DIR, args.FATS_DIR)
