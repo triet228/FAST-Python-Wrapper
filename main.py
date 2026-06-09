@@ -33,13 +33,13 @@ AIRCRAFT = {}
 MISSION = {}
 
 
-def main(INPUT_DIR, OUTPUT_DIR, FATS_DIR):
+def main(INPUT_DIR, OUTPUT_DIR, FAST_DIR):
     """Run FAST from JSON inputs and save the converted OutputAircraft result.
 
     Inputs:
         INPUT_DIR: Directory containing InputAircraft.json and Mission.json.
         OUTPUT_DIR: Directory where generated OutputAircraft files are written.
-        FATS_DIR: Local FAST checkout path containing Main.m.
+        FAST_DIR: Local FAST checkout path containing Main.m.
 
     Outputs:
         The result dictionary returned by FastWrapper.run().
@@ -58,7 +58,7 @@ def main(INPUT_DIR, OUTPUT_DIR, FATS_DIR):
     AIRCRAFT, MISSION = load_input_json_files(INPUT_DIR)
 
     # Start MATLAB, run FAST, and shut MATLAB down.
-    with FastWrapper(FATS_DIR) as fast:
+    with FastWrapper(FAST_DIR) as fast:
         result = fast.run(aircraft=AIRCRAFT, mission=MISSION)
 
     # Populate the Python equivalent of MATLAB's saved OutputAircraft struct.
@@ -102,7 +102,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Run FAST from JSON inputs and write OutputAircraft JSON."
     )
-    parser.add_argument("FATS_DIR", help="Local FAST checkout path containing Main.m.")
+    parser.add_argument("FAST_DIR", help="Local FAST checkout path containing Main.m.")
     parser.add_argument(
         "INPUT_DIR",
         nargs="?",
@@ -117,4 +117,4 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    main(args.INPUT_DIR, args.OUTPUT_DIR, args.FATS_DIR)
+    main(args.INPUT_DIR, args.OUTPUT_DIR, args.FAST_DIR)
