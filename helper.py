@@ -155,8 +155,14 @@ def build_json_data(value):
 
     return {
         "_python_type": type(value).__name__,
-        "_repr": str(value),
+        "_repr": normalize_object_repr(str(value)),
     }
+
+
+def normalize_object_repr(value):
+    """Return object repr text without process-specific memory addresses."""
+
+    return re.sub(r" at 0x[0-9A-Fa-f]+(?=>)", "", value)
 
 
 def load_json_data(value):

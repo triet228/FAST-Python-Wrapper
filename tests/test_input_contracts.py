@@ -8,6 +8,7 @@ import pytest
 
 from helper import (
     JsonValidationError,
+    build_json_data,
     read_raw_json_file,
     validate_aircraft_json,
     validate_mission_json,
@@ -63,6 +64,14 @@ def test_example_output_aircraft_matches_structure_contract(case_name):
     data = read_raw_json_file(EXAMPLES_DIR / case_name / "outputs" / "OutputAircraft.json")
 
     validate_output_aircraft_json(data)
+
+
+def test_output_object_repr_omits_memory_address():
+    """Keep generated opaque object markers stable across Python processes."""
+
+    data = build_json_data(object())
+
+    assert " at 0x" not in data["_repr"]
 
 
 def test_input_aircraft_contract_rejects_unexpected_field():
