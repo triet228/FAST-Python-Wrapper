@@ -7,7 +7,6 @@ from helper import (
     print_output_aircraft_structure,
     print_result,
     save_output_aircraft,
-    save_output_aircraft_structure,
 )
 from wrapper import FastWrapper
 
@@ -23,8 +22,8 @@ OUTPUT_AIRCRAFT = {}
 # types. This is useful when exploring FAST output without printing every value.
 OUTPUT_AIRCRAFT_STRUCTURE = {}
 
-# Structure output controls. The complete output tree is saved to JSON, while
-# the console preview is capped because FAST can attach large reference data.
+# Structure output controls. The console preview is capped because FAST can
+# attach large reference data.
 PRINT_OUTPUT_AIRCRAFT_STRUCTURE = True
 PRINT_OUTPUT_AIRCRAFT_STRUCTURE_DEPTH = 3
 PRINT_OUTPUT_AIRCRAFT_STRUCTURE_ITEMS = 20
@@ -46,9 +45,9 @@ def main(INPUT_DIR, OUTPUT_DIR, FAST_DIR):
         The result dictionary returned by FastWrapper.run().
 
     Side effects:
-        Starts MATLAB Engine, runs FAST, rewrites generated OutputAircraft JSON
-        files in OUTPUT_DIR, and prints status, MTOW, output structure, and FAST
-        log text.
+        Starts MATLAB Engine, runs FAST, rewrites generated OutputAircraft.json
+        in OUTPUT_DIR, and prints status, MTOW, output structure, and FAST log
+        text.
     """
 
     global AIRCRAFT
@@ -70,10 +69,6 @@ def main(INPUT_DIR, OUTPUT_DIR, FAST_DIR):
         build_output_aircraft_structure(OUTPUT_AIRCRAFT)
     )
     output_aircraft_path = save_output_aircraft(OUTPUT_AIRCRAFT, OUTPUT_DIR)
-    output_structure_path = save_output_aircraft_structure(
-        OUTPUT_AIRCRAFT_STRUCTURE,
-        OUTPUT_DIR,
-    )
 
     print(f"Status: {result['status']}")
     print(f"MTOW: {result['mtow']:.6f} kg")
@@ -90,7 +85,6 @@ def main(INPUT_DIR, OUTPUT_DIR, FAST_DIR):
             max_items=PRINT_OUTPUT_AIRCRAFT_STRUCTURE_ITEMS,
         )
         print(f"Output saved to {output_aircraft_path}")
-        print(f"Full structure saved to {output_structure_path}")
 
     print_result(result)
 
