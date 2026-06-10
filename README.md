@@ -5,14 +5,13 @@ Python wrapper for running [Future Aircraft Sizing Tool (FAST)](https://github.c
 ## Files
 
 - `wrapper.py`: core wrapper around MATLAB Engine and FAST.
-- `main.py`: direct local script that reads the default example inputs, runs FAST, and writes output files under the default example outputs directory.
-- `examples/CeRAS/inputs/InputAircraft.json`: default aircraft input data.
-- `examples/CeRAS/inputs/Mission.json`: default mission input data.
-- `examples/CeRAS/outputs/`: generated FAST output JSON files for the default example.
-- `contracts/InputAircraftStructure.json`: committed structure contract for aircraft input JSON.
-- `contracts/MissionStructure.json`: committed structure contract for mission input JSON.
-- `contracts/OutputAircraftStructure.json`: reference structure for generated FAST output.
-- `pyproject.toml`: project metadata and Python dependencies.
+- `main.py`: direct script that runs FAST-Python_Wrapper
+- `examples/<Aircraft>/inputs/InputAircraft.json`: aircraft input data.
+- `examples/<Aircraft>/inputs/Mission.json`: mission input data.
+- `examples/<Aircraft>/outputs/`: aircraft output data.
+- `contracts/InputAircraftStructure.json`: contract for input aircraft JSON.
+- `contracts/MissionStructure.json`: contract for mission JSON.
+- `contracts/OutputAircraftStructure.json`: contract for output aircraft JSON.
 
 
 ## Requirements
@@ -50,31 +49,19 @@ If this gives error, you will need to debug this before continue. If this prints
 > [!TIP]
 > Inside MATLAB, you can run `which matlab` to know where MATLAB is installed.
 
-5. Keep the local FAST checkout path handy as `FAST_DIR`. You pass it directly when running
-   `main.py` or calling `main.main(...)`.
-
 
 ## How to Run
 
-Edit `examples/CeRAS/inputs/InputAircraft.json` and `examples/CeRAS/inputs/Mission.json`, then run:
-```powershell
-python main.py "C:\path\to\FAST"
-```
-
-The script validates both input files against the committed structure contracts,
-runs FAST through MATLAB Engine, and writes `examples/CeRAS/outputs/OutputAircraft.json`.
-
-Python callers pass `INPUT_DIR`, `OUTPUT_DIR`, and `FAST_DIR` explicitly:
+Edit directories at the very end of `main.py`
 ```python
-import main
-
-main.main("path/to/inputs", "path/to/outputs", "path/to/FAST")
+INPUT_DIR = <Your input directory>
+OUTPUT_DIR = <Your output directory>
+FAST_DIR = <Your local FAST directory>
 ```
 
-FAST input values in `examples/CeRAS/inputs/InputAircraft.json` and
-`examples/CeRAS/inputs/Mission.json` are written in SI units where applicable,
-such as kg, m, m/s, N, and kg/m^2. JSON does not support comments, so keep unit
-notes in documentation instead of adding comment fields to the input structures
-passed into FAST.
+Run `main.py`
+```bash
+python main.py
+```
 
 

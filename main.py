@@ -97,24 +97,9 @@ def main(INPUT_DIR, OUTPUT_DIR, FAST_DIR):
 
 
 if __name__ == "__main__":
-    import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Run FAST from JSON inputs and write OutputAircraft JSON."
-    )
-    parser.add_argument("FAST_DIR", help="Local FAST checkout path containing Main.m.")
-    parser.add_argument(
-        "INPUT_DIR",
-        nargs="?",
-        default="examples/CeRAS/inputs",
-        help="Directory containing InputAircraft.json and Mission.json.",
-    )
-    parser.add_argument(
-        "OUTPUT_DIR",
-        nargs="?",
-        default="examples/CeRAS/outputs",
-        help="Directory where generated OutputAircraft files are written.",
-    )
-    args = parser.parse_args()
+    INPUT_DIR = examples/CeRAS/inputs
+    OUTPUT_DIR = examples/outputs/inputs
+    FAST_DIR = parent dir / FAST
 
-    main(args.INPUT_DIR, args.OUTPUT_DIR, args.FAST_DIR)
+    main(INPUT_DIR, OUTPUT_DIR, FAST_DIR)
