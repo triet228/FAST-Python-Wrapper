@@ -1,5 +1,6 @@
 # main.py
 
+from pathlib import Path
 from helper import (
     build_output_aircraft_structure,
     load_input_json_files,
@@ -97,9 +98,9 @@ def main(INPUT_DIR, OUTPUT_DIR, FAST_DIR):
 
 
 if __name__ == "__main__":
-
-    INPUT_DIR = examples/CeRAS/inputs
-    OUTPUT_DIR = examples/outputs/inputs
-    FAST_DIR = parent dir / FAST
+    ROOT_DIR = Path(__file__).resolve().parent
+    INPUT_DIR = ROOT_DIR / "examples" / "CeRAS" / "inputs"
+    OUTPUT_DIR = ROOT_DIR / "examples" / "CeRAS" / "outputs"
+    FAST_DIR = ROOT_DIR.parent / "FAST"
 
     main(INPUT_DIR, OUTPUT_DIR, FAST_DIR)
