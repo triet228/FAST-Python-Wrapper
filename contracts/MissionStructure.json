@@ -1,59 +1,106 @@
 {
-  "Target": {
-    "Valu": {
-      "_type": "list",
-      "_length": 2,
-      "_items": "number"
+  "type": "object",
+  "required": true,
+  "fields": {
+    "AltBeg": {
+      "type": "list",
+      "required": true,
+      "items": {
+        "type": "number",
+        "required": false
+      }
     },
-    "Type": {
-      "_type": "list",
-      "_length": 2,
-      "_items": "string"
+    "AltEnd": {
+      "type": "list",
+      "required": true,
+      "items": {
+        "type": "number",
+        "required": false
+      }
+    },
+    "ClbRate": {
+      "type": "list",
+      "required": true,
+      "items": {
+        "type": "number",
+        "required": false
+      }
+    },
+    "ID": {
+      "type": "list",
+      "required": true,
+      "items": {
+        "type": "number",
+        "required": false
+      }
+    },
+    "Segs": {
+      "type": "list",
+      "required": true,
+      "items": {
+        "type": "string",
+        "required": false
+      }
+    },
+    "Target": {
+      "type": "object",
+      "required": true,
+      "fields": {
+        "Type": {
+          "type": [
+            "list",
+            "string"
+          ],
+          "required": true,
+          "items": {
+            "type": "string",
+            "required": false
+          }
+        },
+        "Valu": {
+          "type": [
+            "list",
+            "number"
+          ],
+          "required": true,
+          "items": {
+            "type": "number",
+            "required": false
+          }
+        }
+      }
+    },
+    "TypeBeg": {
+      "type": "list",
+      "required": true,
+      "items": {
+        "type": "string",
+        "required": false
+      }
+    },
+    "TypeEnd": {
+      "type": "list",
+      "required": true,
+      "items": {
+        "type": "string",
+        "required": false
+      }
+    },
+    "VelBeg": {
+      "type": "list",
+      "required": true,
+      "items": {
+        "type": "number",
+        "required": false
+      }
+    },
+    "VelEnd": {
+      "type": "list",
+      "required": true,
+      "items": {
+        "type": "number",
+        "required": false
+      }
     }
-  },
-  "Segs": {
-    "_type": "list",
-    "_length": 5,
-    "_items": "string"
-  },
-  "ID": {
-    "_type": "list",
-    "_length": 5,
-    "_items": "number"
-  },
-  "AltBeg": {
-    "_type": "list",
-    "_length": 5,
-    "_items": "number"
-  },
-  "AltEnd": {
-    "_type": "list",
-    "_length": 5,
-    "_items": "number"
-  },
-  "VelBeg": {
-    "_type": "list",
-    "_length": 5,
-    "_items": "number"
-  },
-  "VelEnd": {
-    "_type": "list",
-    "_length": 5,
-    "_items": "number"
-  },
-  "TypeBeg": {
-    "_type": "list",
-    "_length": 5,
-    "_items": "string"
-  },
-  "TypeEnd": {
-    "_type": "list",
-    "_length": 5,
-    "_items": "string"
-  },
-  "ClbRate": {
-    "_type": "list",
-    "_length": 5,
-    "_items": "number"
   }
 }

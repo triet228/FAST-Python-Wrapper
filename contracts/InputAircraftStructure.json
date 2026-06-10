@@ -1,153 +1,650 @@
 {
-  "Specs": {
-    "TLAR": {
-      "EIS": "number",
-      "Class": "string",
-      "MaxPax": "number"
-    },
-    "Aero": {
-      "L_D": {
-        "ClbCF": "number",
-        "CrsCF": "number",
-        "Clb": "number",
-        "Crs": "number",
-        "Des": "number"
-      },
-      "W_S": {
-        "SLS": "number"
-      }
-    },
-    "Propulsion": {
-      "MDotCF": "number",
-      "PropArch": {
-        "Type": "string"
-      },
-      "Engine": {
-        "Mach": "number",
-        "Alt": "number",
-        "OPR": "number",
-        "FPR": "number",
-        "BPR": "number",
-        "Tt4Max": "number",
-        "TempLimit": {
-          "Val": "number",
-          "Type": "number"
-        },
-        "DesignThrust": "number",
-        "NoSpools": "number",
-        "RPMs": {
-          "_matlab_row": {
-            "_type": "list",
-            "_length": 2,
-            "_items": "number"
+  "type": "object",
+  "required": true,
+  "fields": {
+    "Settings": {
+      "type": "object",
+      "required": true,
+      "fields": {
+        "Analysis": {
+          "type": "object",
+          "required": false,
+          "fields": {
+            "MaxIter": {
+              "type": "number",
+              "required": false
+            },
+            "Type": {
+              "type": "number",
+              "required": false
+            }
           }
         },
-        "FanGearRatio": "number",
-        "FanBoosters": "bool",
-        "CoreFlow": {
-          "PaxBleed": "number",
-          "Leakage": "number",
-          "Cooling": "number"
+        "ClbPoints": {
+          "type": "number",
+          "required": false
         },
-        "MaxIter": "number",
-        "EtaPoly": {
-          "Inlet": "number",
-          "Diffusers": "number",
-          "Fan": "number",
-          "Compressors": "number",
-          "BypassNozzle": "number",
-          "Combustor": "number",
-          "Turbines": "number",
-          "CoreNozzle": "number",
-          "Nozzles": "number",
-          "Mixing": "number"
+        "CrsPoints": {
+          "type": "number",
+          "required": false
         },
-        "PerElec": "number",
-        "Cff3": "number",
-        "Cff2": "number",
-        "Cff1": "number",
-        "Cffch": "number",
-        "HEcoeff": "number"
-      },
-      "NumEngines": "number",
-      "T_W": {
-        "SLS": "number"
-      },
-      "Eta": {
-        "Prop": "number"
+        "DesPoints": {
+          "type": "number",
+          "required": false
+        },
+        "OEW": {
+          "type": "object",
+          "required": false,
+          "fields": {
+            "MaxIter": {
+              "type": "number",
+              "required": false
+            },
+            "Tol": {
+              "type": "number",
+              "required": false
+            }
+          }
+        },
+        "Offtake": {
+          "type": "number",
+          "required": false
+        },
+        "Plotting": {
+          "type": "number",
+          "required": false
+        },
+        "Table": {
+          "type": "number",
+          "required": false
+        },
+        "TkoPoints": {
+          "type": "number",
+          "required": false
+        },
+        "VisualizeAircraft": {
+          "type": "number",
+          "required": false
+        }
       }
     },
-    "Weight": {
-      "WairfCF": "number",
-      "MTOW": "number",
-      "EG": "number",
-      "EM": "number",
-      "Fuel": "number",
-      "Batt": "number"
-    },
-    "Performance": {
-      "Vels": {
-        "Tko": "number",
-        "Crs": "number"
-      },
-      "Alts": {
-        "Tko": "number",
-        "Crs": "number"
-      },
-      "Range": "number",
-      "RCMax": "number"
-    },
-    "Power": {
-      "SpecEnergy": {
-        "Fuel": "number",
-        "Batt": "number"
-      },
-      "LamDwn": {
-        "SLS": "number",
-        "Tko": "number",
-        "Clb": "number",
-        "Crs": "number",
-        "Des": "number",
-        "Lnd": "number"
-      },
-      "LamUps": {
-        "SLS": "number",
-        "Tko": "number",
-        "Clb": "number",
-        "Crs": "number",
-        "Des": "number",
-        "Lnd": "number"
-      },
-      "Eta": {
-        "EM": "number",
-        "EG": "number"
-      },
-      "P_W": {
-        "SLS": "number",
-        "EM": "number",
-        "EG": "number"
-      },
-      "Battery": {
-        "ParCells": "number",
-        "SerCells": "number",
-        "BegSOC": "number"
+    "Specs": {
+      "type": "object",
+      "required": true,
+      "fields": {
+        "Aero": {
+          "type": "object",
+          "required": false,
+          "fields": {
+            "L_D": {
+              "type": "object",
+              "required": false,
+              "fields": {
+                "Clb": {
+                  "type": "number",
+                  "required": false
+                },
+                "ClbCF": {
+                  "type": "number",
+                  "required": false
+                },
+                "Crs": {
+                  "type": "number",
+                  "required": false
+                },
+                "CrsCF": {
+                  "type": "number",
+                  "required": false
+                },
+                "Des": {
+                  "type": "number",
+                  "required": false
+                }
+              }
+            },
+            "W_S": {
+              "type": "object",
+              "required": false,
+              "fields": {
+                "SLS": {
+                  "type": "number",
+                  "required": false
+                }
+              }
+            }
+          }
+        },
+        "Performance": {
+          "type": "object",
+          "required": true,
+          "fields": {
+            "Alts": {
+              "type": "object",
+              "required": false,
+              "fields": {
+                "Crs": {
+                  "type": "number",
+                  "required": false
+                },
+                "Tko": {
+                  "type": "number",
+                  "required": false
+                }
+              }
+            },
+            "Range": {
+              "type": "number",
+              "required": true
+            },
+            "RCMax": {
+              "type": "number",
+              "required": false
+            },
+            "Vels": {
+              "type": "object",
+              "required": false,
+              "fields": {
+                "Crs": {
+                  "type": "number",
+                  "required": false
+                },
+                "Tko": {
+                  "type": "number",
+                  "required": false
+                },
+                "Type": {
+                  "type": "string",
+                  "required": false
+                }
+              }
+            }
+          }
+        },
+        "Power": {
+          "type": "object",
+          "required": false,
+          "fields": {
+            "Battery": {
+              "type": "object",
+              "required": false,
+              "fields": {
+                "BegSOC": {
+                  "type": "number",
+                  "required": false
+                },
+                "ParCells": {
+                  "type": "number",
+                  "required": false
+                },
+                "SerCells": {
+                  "type": "number",
+                  "required": false
+                }
+              }
+            },
+            "Eta": {
+              "type": "object",
+              "required": false,
+              "fields": {
+                "EG": {
+                  "type": "number",
+                  "required": false
+                },
+                "EM": {
+                  "type": "number",
+                  "required": false
+                }
+              }
+            },
+            "LamDwn": {
+              "type": "object",
+              "required": false,
+              "fields": {
+                "Clb": {
+                  "type": "number",
+                  "required": false
+                },
+                "Crs": {
+                  "type": "number",
+                  "required": false
+                },
+                "Des": {
+                  "type": "number",
+                  "required": false
+                },
+                "Lnd": {
+                  "type": "number",
+                  "required": false
+                },
+                "SLS": {
+                  "type": "number",
+                  "required": false
+                },
+                "Tko": {
+                  "type": "number",
+                  "required": false
+                }
+              }
+            },
+            "LamUps": {
+              "type": "object",
+              "required": false,
+              "fields": {
+                "Clb": {
+                  "type": "number",
+                  "required": false
+                },
+                "Crs": {
+                  "type": "number",
+                  "required": false
+                },
+                "Des": {
+                  "type": "number",
+                  "required": false
+                },
+                "Lnd": {
+                  "type": "number",
+                  "required": false
+                },
+                "SLS": {
+                  "type": "number",
+                  "required": false
+                },
+                "Tko": {
+                  "type": "number",
+                  "required": false
+                }
+              }
+            },
+            "P_W": {
+              "type": "object",
+              "required": false,
+              "fields": {
+                "EG": {
+                  "type": "number",
+                  "required": false
+                },
+                "EM": {
+                  "type": "number",
+                  "required": false
+                },
+                "SLS": {
+                  "type": "number",
+                  "required": false
+                }
+              }
+            },
+            "SLS": {
+              "type": "number",
+              "required": false
+            },
+            "SpecEnergy": {
+              "type": "object",
+              "required": false,
+              "fields": {
+                "Batt": {
+                  "type": "number",
+                  "required": false
+                },
+                "Fuel": {
+                  "type": "number",
+                  "required": false
+                }
+              }
+            }
+          }
+        },
+        "Propulsion": {
+          "type": "object",
+          "required": true,
+          "fields": {
+            "Engine": {
+              "type": [
+                "object",
+                "number"
+              ],
+              "required": false,
+              "fields": {
+                "Alt": {
+                  "type": "number",
+                  "required": false
+                },
+                "BPR": {
+                  "type": "number",
+                  "required": false
+                },
+                "Cff1": {
+                  "type": "number",
+                  "required": false
+                },
+                "Cff2": {
+                  "type": "number",
+                  "required": false
+                },
+                "Cff3": {
+                  "type": "number",
+                  "required": false
+                },
+                "Cffch": {
+                  "type": "number",
+                  "required": false
+                },
+                "CoreFlow": {
+                  "type": "object",
+                  "required": false,
+                  "fields": {
+                    "Cooling": {
+                      "type": "number",
+                      "required": false
+                    },
+                    "Leakage": {
+                      "type": "number",
+                      "required": false
+                    },
+                    "PaxBleed": {
+                      "type": "number",
+                      "required": false
+                    }
+                  }
+                },
+                "DesignThrust": {
+                  "type": "number",
+                  "required": false
+                },
+                "EtaPoly": {
+                  "type": "object",
+                  "required": false,
+                  "fields": {
+                    "BypassNozzle": {
+                      "type": "number",
+                      "required": false
+                    },
+                    "Combustor": {
+                      "type": "number",
+                      "required": false
+                    },
+                    "Compressors": {
+                      "type": "number",
+                      "required": false
+                    },
+                    "CoreNozzle": {
+                      "type": "number",
+                      "required": false
+                    },
+                    "Diffusers": {
+                      "type": "number",
+                      "required": false
+                    },
+                    "Fan": {
+                      "type": "number",
+                      "required": false
+                    },
+                    "Inlet": {
+                      "type": "number",
+                      "required": false
+                    },
+                    "Mixing": {
+                      "type": "number",
+                      "required": false
+                    },
+                    "Nozzles": {
+                      "type": "number",
+                      "required": false
+                    },
+                    "Turbines": {
+                      "type": "number",
+                      "required": false
+                    }
+                  }
+                },
+                "FanBoosters": {
+                  "type": "bool",
+                  "required": false
+                },
+                "FanGearRatio": {
+                  "type": "number",
+                  "required": false
+                },
+                "FPR": {
+                  "type": "number",
+                  "required": false
+                },
+                "HEcoeff": {
+                  "type": "number",
+                  "required": false
+                },
+                "Mach": {
+                  "type": "number",
+                  "required": false
+                },
+                "MaxIter": {
+                  "type": "number",
+                  "required": false
+                },
+                "NoSpools": {
+                  "type": "number",
+                  "required": false
+                },
+                "NPR": {
+                  "type": "number",
+                  "required": false
+                },
+                "OPR": {
+                  "type": "number",
+                  "required": false
+                },
+                "PerElec": {
+                  "type": "number",
+                  "required": false
+                },
+                "ReqPower": {
+                  "type": "number",
+                  "required": false
+                },
+                "RPMs": {
+                  "type": "matlab_row",
+                  "required": false,
+                  "items": {
+                    "type": "list",
+                    "required": false,
+                    "items": {
+                      "type": "number",
+                      "required": false
+                    }
+                  }
+                },
+                "TempLimit": {
+                  "type": "object",
+                  "required": false,
+                  "fields": {
+                    "Type": {
+                      "type": "number",
+                      "required": false
+                    },
+                    "Val": {
+                      "type": "number",
+                      "required": false
+                    }
+                  }
+                },
+                "Tt4Max": {
+                  "type": "number",
+                  "required": false
+                }
+              }
+            },
+            "Eta": {
+              "type": "object",
+              "required": false,
+              "fields": {
+                "Prop": {
+                  "type": "number",
+                  "required": false
+                }
+              }
+            },
+            "MDotCF": {
+              "type": "number",
+              "required": false
+            },
+            "NumEngines": {
+              "type": "number",
+              "required": false
+            },
+            "PropArch": {
+              "type": [
+                "object",
+                "string"
+              ],
+              "required": true,
+              "fields": {
+                "Type": {
+                  "type": "string",
+                  "required": false
+                }
+              }
+            },
+            "PropArchGraph": {
+              "type": "object",
+              "required": false,
+              "fields": {
+                "Arch": {
+                  "type": "list",
+                  "required": false,
+                  "items": {
+                    "type": "list",
+                    "required": false,
+                    "items": {
+                      "type": "number",
+                      "required": false
+                    }
+                  }
+                },
+                "OperUps": {
+                  "type": "matlab_expression",
+                  "required": false
+                },
+                "OperDwn": {
+                  "type": "matlab_expression",
+                  "required": false
+                },
+                "EtaUps": {
+                  "type": "list",
+                  "required": false,
+                  "items": {
+                    "type": "list",
+                    "required": false,
+                    "items": {
+                      "type": "number",
+                      "required": false
+                    }
+                  }
+                },
+                "EtaDwn": {
+                  "type": "list",
+                  "required": false,
+                  "items": {
+                    "type": "list",
+                    "required": false,
+                    "items": {
+                      "type": "number",
+                      "required": false
+                    }
+                  }
+                },
+                "SrcType": {
+                  "type": "number",
+                  "required": false
+                },
+                "TrnType": {
+                  "type": "matlab_row",
+                  "required": false,
+                  "items": {
+                    "type": "list",
+                    "required": false,
+                    "items": {
+                      "type": "number",
+                      "required": false
+                    }
+                  }
+                }
+              }
+            },
+            "T_W": {
+              "type": "object",
+              "required": false,
+              "fields": {
+                "SLS": {
+                  "type": "number",
+                  "required": false
+                }
+              }
+            },
+            "Thrust": {
+              "type": "object",
+              "required": false,
+              "fields": {
+                "SLS": {
+                  "type": "number",
+                  "required": false
+                }
+              }
+            }
+          }
+        },
+        "TLAR": {
+          "type": "object",
+          "required": true,
+          "fields": {
+            "Class": {
+              "type": "string",
+              "required": true
+            },
+            "EIS": {
+              "type": "number",
+              "required": false
+            },
+            "MaxPax": {
+              "type": "number",
+              "required": true
+            }
+          }
+        },
+        "Weight": {
+          "type": "object",
+          "required": true,
+          "fields": {
+            "Batt": {
+              "type": "number",
+              "required": false
+            },
+            "EG": {
+              "type": "number",
+              "required": false
+            },
+            "EM": {
+              "type": "number",
+              "required": false
+            },
+            "Fuel": {
+              "type": "number",
+              "required": false
+            },
+            "MLW": {
+              "type": "number",
+              "required": false
+            },
+            "MTOW": {
+              "type": "number",
+              "required": true
+            },
+            "WairfCF": {
+              "type": "number",
+              "required": false
+            }
+          }
+        }
       }
     }
-  },
-  "Settings": {
-    "TkoPoints": "number",
-    "ClbPoints": "number",
-    "CrsPoints": "number",
-    "DesPoints": "number",
-    "OEW": {
-      "MaxIter": "number",
-      "Tol": "number"
-    },
-    "Analysis": {
-      "MaxIter": "number",
-      "Type": "number"
-    },
-    "Plotting": "number",
-    "Table": "number"
   }
 }
