@@ -2,58 +2,58 @@
   "Target": {
     "Valu": {
       "_type": "list",
-      "_length": 3,
+      "_length": 2,
       "_items": "number"
     },
     "Type": {
       "_type": "list",
-      "_length": 3,
+      "_length": 2,
       "_items": "string"
     }
   },
   "Segs": {
     "_type": "list",
-    "_length": 17,
+    "_length": 5,
     "_items": "string"
   },
   "ID": {
     "_type": "list",
-    "_length": 17,
+    "_length": 5,
     "_items": "number"
   },
   "AltBeg": {
     "_type": "list",
-    "_length": 17,
+    "_length": 5,
     "_items": "number"
   },
   "AltEnd": {
     "_type": "list",
-    "_length": 17,
+    "_length": 5,
     "_items": "number"
   },
   "VelBeg": {
     "_type": "list",
-    "_length": 17,
+    "_length": 5,
     "_items": "number"
   },
   "VelEnd": {
     "_type": "list",
-    "_length": 17,
+    "_length": 5,
     "_items": "number"
   },
   "TypeBeg": {
     "_type": "list",
-    "_length": 17,
+    "_length": 5,
     "_items": "string"
   },
   "TypeEnd": {
     "_type": "list",
-    "_length": 17,
+    "_length": 5,
     "_items": "string"
   },
   "ClbRate": {
     "_type": "list",
-    "_length": 17,
+    "_length": 5,
     "_items": "number"
   }
 }

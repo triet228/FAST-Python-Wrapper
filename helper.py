@@ -10,11 +10,11 @@ from wrapper import MatlabExpression, MatlabRow
 # FAST unspecified input marker.
 nan = float("nan")
 
-# Default run directories and file names. InputAircraft.json and Mission.json
-# are required inputs; the OutputAircraft files are regenerated after each
-# successful FAST run.
-DEFAULT_INPUT_DIR = Path("inputs")
-DEFAULT_OUTPUT_DIR = Path("outputs")
+# Default example run directories and file names. InputAircraft.json and
+# Mission.json are required inputs; the OutputAircraft files are regenerated
+# after each successful FAST run.
+DEFAULT_INPUT_DIR = Path("examples/CeRAS/inputs")
+DEFAULT_OUTPUT_DIR = Path("examples/CeRAS/outputs")
 CONTRACTS_DIR = Path("contracts")
 AIRCRAFT_JSON_PATH = Path("InputAircraft.json")
 MISSION_JSON_PATH = Path("Mission.json")

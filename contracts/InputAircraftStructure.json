@@ -17,17 +17,73 @@
         "SLS": "number"
       }
     },
-    "Battery": {
-      "NomVolCell": "number",
-      "MaxExtVolCell": "number",
-      "CapCell": "number",
-      "IntResist": "number",
-      "ExpVol": "number",
-      "ExpCap": "number",
-      "MinSOC": "number",
-      "BegSOC": "number",
-      "MaxAllowCRate": "number",
-      "Charging": "number"
+    "Propulsion": {
+      "MDotCF": "number",
+      "PropArch": {
+        "Type": "string"
+      },
+      "Engine": {
+        "Mach": "number",
+        "Alt": "number",
+        "OPR": "number",
+        "FPR": "number",
+        "BPR": "number",
+        "Tt4Max": "number",
+        "TempLimit": {
+          "Val": "number",
+          "Type": "number"
+        },
+        "DesignThrust": "number",
+        "NoSpools": "number",
+        "RPMs": {
+          "_matlab_row": {
+            "_type": "list",
+            "_length": 2,
+            "_items": "number"
+          }
+        },
+        "FanGearRatio": "number",
+        "FanBoosters": "bool",
+        "CoreFlow": {
+          "PaxBleed": "number",
+          "Leakage": "number",
+          "Cooling": "number"
+        },
+        "MaxIter": "number",
+        "EtaPoly": {
+          "Inlet": "number",
+          "Diffusers": "number",
+          "Fan": "number",
+          "Compressors": "number",
+          "BypassNozzle": "number",
+          "Combustor": "number",
+          "Turbines": "number",
+          "CoreNozzle": "number",
+          "Nozzles": "number",
+          "Mixing": "number"
+        },
+        "PerElec": "number",
+        "Cff3": "number",
+        "Cff2": "number",
+        "Cff1": "number",
+        "Cffch": "number",
+        "HEcoeff": "number"
+      },
+      "NumEngines": "number",
+      "T_W": {
+        "SLS": "number"
+      },
+      "Eta": {
+        "Prop": "number"
+      }
+    },
+    "Weight": {
+      "WairfCF": "number",
+      "MTOW": "number",
+      "EG": "number",
+      "EM": "number",
+      "Fuel": "number",
+      "Batt": "number"
     },
     "Performance": {
       "Vels": {
@@ -41,89 +97,18 @@
       "Range": "number",
       "RCMax": "number"
     },
-    "Weight": {
-      "MTOW": "number",
-      "EG": "number",
-      "EM": "number",
-      "Fuel": "number",
-      "Batt": "number",
-      "WairfCF": "number"
-    },
-    "Propulsion": {
-      "MDotCF": "number",
-      "PropArch": "string",
-      "Engine": {
-        "_matlab_expression": "string"
-      },
-      "NumEngines": "number",
-      "T_W": {
-        "SLS": "number"
-      },
-      "Thrust": {
-        "SLS": "number"
-      },
-      "Eta": {
-        "Prop": "number"
-      },
-      "PropArchGraph": {
-        "Arch": {
-          "_type": "list",
-          "_length": 9,
-          "_items": {
-            "_type": "list",
-            "_length": 9,
-            "_items": "number"
-          }
-        },
-        "OperUps": {
-          "_matlab_expression": "string"
-        },
-        "OperDwn": {
-          "_matlab_expression": "string"
-        },
-        "EtaUps": {
-          "_type": "list",
-          "_length": 9,
-          "_items": {
-            "_type": "list",
-            "_length": 9,
-            "_items": "number"
-          }
-        },
-        "EtaDwn": {
-          "_type": "list",
-          "_length": 9,
-          "_items": {
-            "_type": "list",
-            "_length": 9,
-            "_items": "number"
-          }
-        },
-        "SrcType": {
-          "_type": "list",
-          "_length": 2,
-          "_items": "number"
-        },
-        "TrnType": {
-          "_type": "list",
-          "_length": 6,
-          "_items": "number"
-        }
-      }
-    },
     "Power": {
       "SpecEnergy": {
         "Fuel": "number",
         "Batt": "number"
       },
-      "Eta": {
-        "EM": "number",
-        "EG": "number"
-      },
-      "P_W": {
+      "LamDwn": {
         "SLS": "number",
-        "EM": "number",
-        "EG": "number"
+        "Tko": "number",
+        "Clb": "number",
+        "Crs": "number",
+        "Des": "number",
+        "Lnd": "number"
       },
       "LamUps": {
         "SLS": "number",
@@ -133,13 +118,14 @@
         "Des": "number",
         "Lnd": "number"
       },
-      "LamDwn": {
+      "Eta": {
+        "EM": "number",
+        "EG": "number"
+      },
+      "P_W": {
         "SLS": "number",
-        "Tko": "number",
-        "Clb": "number",
-        "Crs": "number",
-        "Des": "number",
-        "Lnd": "number"
+        "EM": "number",
+        "EG": "number"
       },
       "Battery": {
         "ParCells": "number",
@@ -161,12 +147,7 @@
       "MaxIter": "number",
       "Type": "number"
     },
-    "Degradation": "number",
-    "PowerOpt": "number",
-    "PowerStrat": "number",
-    "ConSOC": "number",
     "Plotting": "number",
-    "Table": "number",
-    "PrintOut": "number"
+    "Table": "number"
   }
 }

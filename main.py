@@ -28,7 +28,7 @@ PRINT_OUTPUT_AIRCRAFT_STRUCTURE = True
 PRINT_OUTPUT_AIRCRAFT_STRUCTURE_DEPTH = 3
 PRINT_OUTPUT_AIRCRAFT_STRUCTURE_ITEMS = 20
 
-# Runtime inputs loaded from inputs/InputAircraft.json and inputs/Mission.json.
+# Runtime inputs loaded from the default example input JSON files.
 AIRCRAFT = {}
 MISSION = {}
 
@@ -106,13 +106,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "INPUT_DIR",
         nargs="?",
-        default="inputs",
+        default="examples/CeRAS/inputs",
         help="Directory containing InputAircraft.json and Mission.json.",
     )
     parser.add_argument(
         "OUTPUT_DIR",
         nargs="?",
-        default="outputs",
+        default="examples/CeRAS/outputs",
         help="Directory where generated OutputAircraft files are written.",
     )
     args = parser.parse_args()

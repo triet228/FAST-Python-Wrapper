@@ -15,10 +15,13 @@ from helper import (
 from tests.helpers import PROJECT_ROOT
 
 
+DEFAULT_INPUT_DIR = PROJECT_ROOT / "examples" / "CeRAS" / "inputs"
+
+
 def test_input_aircraft_matches_structure_contract():
     """Validate the default aircraft input template contract."""
 
-    data = read_raw_json_file(PROJECT_ROOT / "inputs" / "InputAircraft.json")
+    data = read_raw_json_file(DEFAULT_INPUT_DIR / "InputAircraft.json")
 
     validate_aircraft_json(data)
 
@@ -26,7 +29,7 @@ def test_input_aircraft_matches_structure_contract():
 def test_mission_matches_structure_contract():
     """Validate the default mission input template contract."""
 
-    data = read_raw_json_file(PROJECT_ROOT / "inputs" / "Mission.json")
+    data = read_raw_json_file(DEFAULT_INPUT_DIR / "Mission.json")
 
     validate_mission_json(data)
 
@@ -34,7 +37,7 @@ def test_mission_matches_structure_contract():
 def test_input_aircraft_contract_rejects_unexpected_field():
     """Reject aircraft inputs that drift outside the committed contract."""
 
-    data = read_raw_json_file(PROJECT_ROOT / "inputs" / "InputAircraft.json")
+    data = read_raw_json_file(DEFAULT_INPUT_DIR / "InputAircraft.json")
     changed = deepcopy(data)
     changed["Specs"]["Unexpected"] = {}
 
@@ -45,7 +48,7 @@ def test_input_aircraft_contract_rejects_unexpected_field():
 def test_mission_contract_rejects_missing_field():
     """Reject mission inputs that omit a committed contract field."""
 
-    data = read_raw_json_file(PROJECT_ROOT / "inputs" / "Mission.json")
+    data = read_raw_json_file(DEFAULT_INPUT_DIR / "Mission.json")
     changed = deepcopy(data)
     del changed["VelEnd"]
 
