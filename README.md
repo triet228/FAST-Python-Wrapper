@@ -9,9 +9,9 @@ Python wrapper for running [Future Aircraft Sizing Tool (FAST)](https://github.c
 - `examples/<Aircraft>/inputs/InputAircraft.json`: aircraft input data.
 - `examples/<Aircraft>/inputs/Mission.json`: mission input data.
 - `examples/<Aircraft>/outputs/`: aircraft output data.
-- `contracts/InputAircraftStructure.json`: contract for input aircraft JSON.
-- `contracts/MissionStructure.json`: contract for mission JSON.
-- `contracts/OutputAircraftStructure.json`: contract for output aircraft JSON.
+- `contracts/InputAircraftStructure.json`: JSON Schema for input aircraft JSON.
+- `contracts/MissionStructure.json`: JSON Schema for mission JSON.
+- `contracts/OutputAircraftStructure.json`: JSON Schema for output aircraft JSON.
 
 
 ## Requirements

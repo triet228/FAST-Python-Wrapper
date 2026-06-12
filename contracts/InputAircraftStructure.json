@@ -1,650 +1,871 @@
 {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FAST InputAircraft schema",
+  "$defs": {
+    "matlabExpression": {
+      "type": "object",
+      "properties": {
+        "_matlab_expression": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "_matlab_expression"
+      ],
+      "additionalProperties": false
+    },
+    "pythonMarker": {
+      "type": "object",
+      "properties": {
+        "_python_type": {
+          "type": "string"
+        },
+        "_repr": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "_python_type",
+        "_repr"
+      ],
+      "additionalProperties": false
+    },
+    "numberOrExpression": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "$ref": "#/$defs/matlabExpression"
+        }
+      ]
+    },
+    "optionalNumber": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/numberOrExpression"
+        },
+        {
+          "const": "NaN"
+        }
+      ]
+    },
+    "optionalBoolean": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "const": "NaN"
+        }
+      ]
+    },
+    "optionalMatlabExpression": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/matlabExpression"
+        },
+        {
+          "const": "NaN"
+        }
+      ]
+    },
+    "optionalPythonMarker": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/pythonMarker"
+        },
+        {
+          "const": "NaN"
+        }
+      ]
+    }
+  },
   "type": "object",
-  "required": true,
-  "fields": {
+  "properties": {
     "Settings": {
       "type": "object",
-      "required": true,
-      "fields": {
+      "properties": {
         "Analysis": {
-          "type": "object",
-          "required": false,
-          "fields": {
-            "MaxIter": {
-              "type": "number",
-              "required": false
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "MaxIter": {
+                  "$ref": "#/$defs/optionalNumber"
+                },
+                "Type": {
+                  "$ref": "#/$defs/optionalNumber"
+                }
+              },
+              "additionalProperties": false
             },
-            "Type": {
-              "type": "number",
-              "required": false
+            {
+              "const": "NaN"
             }
-          }
+          ]
         },
         "ClbPoints": {
-          "type": "number",
-          "required": false
+          "$ref": "#/$defs/optionalNumber"
         },
         "CrsPoints": {
-          "type": "number",
-          "required": false
+          "$ref": "#/$defs/optionalNumber"
         },
         "DesPoints": {
-          "type": "number",
-          "required": false
+          "$ref": "#/$defs/optionalNumber"
         },
         "OEW": {
-          "type": "object",
-          "required": false,
-          "fields": {
-            "MaxIter": {
-              "type": "number",
-              "required": false
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "MaxIter": {
+                  "$ref": "#/$defs/optionalNumber"
+                },
+                "Tol": {
+                  "$ref": "#/$defs/optionalNumber"
+                }
+              },
+              "additionalProperties": false
             },
-            "Tol": {
-              "type": "number",
-              "required": false
+            {
+              "const": "NaN"
             }
-          }
+          ]
         },
         "Offtake": {
-          "type": "number",
-          "required": false
+          "$ref": "#/$defs/optionalNumber"
         },
         "Plotting": {
-          "type": "number",
-          "required": false
+          "$ref": "#/$defs/optionalNumber"
         },
         "Table": {
-          "type": "number",
-          "required": false
+          "$ref": "#/$defs/optionalNumber"
         },
         "TkoPoints": {
-          "type": "number",
-          "required": false
+          "$ref": "#/$defs/optionalNumber"
         },
         "VisualizeAircraft": {
-          "type": "number",
-          "required": false
+          "$ref": "#/$defs/optionalNumber"
         }
-      }
+      },
+      "additionalProperties": false
     },
     "Specs": {
       "type": "object",
-      "required": true,
-      "fields": {
+      "properties": {
         "Aero": {
-          "type": "object",
-          "required": false,
-          "fields": {
-            "L_D": {
+          "anyOf": [
+            {
               "type": "object",
-              "required": false,
-              "fields": {
-                "Clb": {
-                  "type": "number",
-                  "required": false
+              "properties": {
+                "L_D": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "Clb": {
+                          "$ref": "#/$defs/optionalNumber"
+                        },
+                        "ClbCF": {
+                          "$ref": "#/$defs/optionalNumber"
+                        },
+                        "Crs": {
+                          "$ref": "#/$defs/optionalNumber"
+                        },
+                        "CrsCF": {
+                          "$ref": "#/$defs/optionalNumber"
+                        },
+                        "Des": {
+                          "$ref": "#/$defs/optionalNumber"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    {
+                      "const": "NaN"
+                    }
+                  ]
                 },
-                "ClbCF": {
-                  "type": "number",
-                  "required": false
-                },
-                "Crs": {
-                  "type": "number",
-                  "required": false
-                },
-                "CrsCF": {
-                  "type": "number",
-                  "required": false
-                },
-                "Des": {
-                  "type": "number",
-                  "required": false
+                "W_S": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "SLS": {
+                          "$ref": "#/$defs/optionalNumber"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    {
+                      "const": "NaN"
+                    }
+                  ]
                 }
-              }
+              },
+              "additionalProperties": false
             },
-            "W_S": {
-              "type": "object",
-              "required": false,
-              "fields": {
-                "SLS": {
-                  "type": "number",
-                  "required": false
-                }
-              }
+            {
+              "const": "NaN"
             }
-          }
+          ]
         },
         "Performance": {
           "type": "object",
-          "required": true,
-          "fields": {
+          "properties": {
             "Alts": {
-              "type": "object",
-              "required": false,
-              "fields": {
-                "Crs": {
-                  "type": "number",
-                  "required": false
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "Crs": {
+                      "$ref": "#/$defs/optionalNumber"
+                    },
+                    "Tko": {
+                      "$ref": "#/$defs/optionalNumber"
+                    }
+                  },
+                  "additionalProperties": false
                 },
-                "Tko": {
-                  "type": "number",
-                  "required": false
+                {
+                  "const": "NaN"
                 }
-              }
+              ]
             },
             "Range": {
-              "type": "number",
-              "required": true
+              "$ref": "#/$defs/numberOrExpression"
             },
             "RCMax": {
-              "type": "number",
-              "required": false
+              "$ref": "#/$defs/optionalNumber"
             },
             "Vels": {
-              "type": "object",
-              "required": false,
-              "fields": {
-                "Crs": {
-                  "type": "number",
-                  "required": false
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "Crs": {
+                      "$ref": "#/$defs/optionalNumber"
+                    },
+                    "Tko": {
+                      "$ref": "#/$defs/optionalNumber"
+                    },
+                    "Type": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
                 },
-                "Tko": {
-                  "type": "number",
-                  "required": false
-                },
-                "Type": {
-                  "type": "string",
-                  "required": false
+                {
+                  "const": "NaN"
                 }
-              }
+              ]
             }
-          }
+          },
+          "additionalProperties": false,
+          "required": [
+            "Range"
+          ]
         },
         "Power": {
-          "type": "object",
-          "required": false,
-          "fields": {
-            "Battery": {
+          "anyOf": [
+            {
               "type": "object",
-              "required": false,
-              "fields": {
-                "BegSOC": {
-                  "type": "number",
-                  "required": false
+              "properties": {
+                "Battery": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "BegSOC": {
+                          "$ref": "#/$defs/optionalNumber"
+                        },
+                        "ParCells": {
+                          "$ref": "#/$defs/optionalNumber"
+                        },
+                        "SerCells": {
+                          "$ref": "#/$defs/optionalNumber"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    {
+                      "const": "NaN"
+                    }
+                  ]
                 },
-                "ParCells": {
-                  "type": "number",
-                  "required": false
+                "Eta": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "EG": {
+                          "$ref": "#/$defs/optionalNumber"
+                        },
+                        "EM": {
+                          "$ref": "#/$defs/optionalNumber"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    {
+                      "const": "NaN"
+                    }
+                  ]
                 },
-                "SerCells": {
-                  "type": "number",
-                  "required": false
-                }
-              }
-            },
-            "Eta": {
-              "type": "object",
-              "required": false,
-              "fields": {
-                "EG": {
-                  "type": "number",
-                  "required": false
+                "LamDwn": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "Clb": {
+                          "$ref": "#/$defs/optionalNumber"
+                        },
+                        "Crs": {
+                          "$ref": "#/$defs/optionalNumber"
+                        },
+                        "Des": {
+                          "$ref": "#/$defs/optionalNumber"
+                        },
+                        "Lnd": {
+                          "$ref": "#/$defs/optionalNumber"
+                        },
+                        "SLS": {
+                          "$ref": "#/$defs/optionalNumber"
+                        },
+                        "Tko": {
+                          "$ref": "#/$defs/optionalNumber"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    {
+                      "const": "NaN"
+                    }
+                  ]
                 },
-                "EM": {
-                  "type": "number",
-                  "required": false
-                }
-              }
-            },
-            "LamDwn": {
-              "type": "object",
-              "required": false,
-              "fields": {
-                "Clb": {
-                  "type": "number",
-                  "required": false
+                "LamUps": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "Clb": {
+                          "$ref": "#/$defs/optionalNumber"
+                        },
+                        "Crs": {
+                          "$ref": "#/$defs/optionalNumber"
+                        },
+                        "Des": {
+                          "$ref": "#/$defs/optionalNumber"
+                        },
+                        "Lnd": {
+                          "$ref": "#/$defs/optionalNumber"
+                        },
+                        "SLS": {
+                          "$ref": "#/$defs/optionalNumber"
+                        },
+                        "Tko": {
+                          "$ref": "#/$defs/optionalNumber"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    {
+                      "const": "NaN"
+                    }
+                  ]
                 },
-                "Crs": {
-                  "type": "number",
-                  "required": false
-                },
-                "Des": {
-                  "type": "number",
-                  "required": false
-                },
-                "Lnd": {
-                  "type": "number",
-                  "required": false
+                "P_W": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "EG": {
+                          "$ref": "#/$defs/optionalNumber"
+                        },
+                        "EM": {
+                          "$ref": "#/$defs/optionalNumber"
+                        },
+                        "SLS": {
+                          "$ref": "#/$defs/optionalNumber"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    {
+                      "const": "NaN"
+                    }
+                  ]
                 },
                 "SLS": {
-                  "type": "number",
-                  "required": false
+                  "$ref": "#/$defs/optionalNumber"
                 },
-                "Tko": {
-                  "type": "number",
-                  "required": false
+                "SpecEnergy": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "Batt": {
+                          "$ref": "#/$defs/optionalNumber"
+                        },
+                        "Fuel": {
+                          "$ref": "#/$defs/optionalNumber"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    {
+                      "const": "NaN"
+                    }
+                  ]
                 }
-              }
+              },
+              "additionalProperties": false
             },
-            "LamUps": {
-              "type": "object",
-              "required": false,
-              "fields": {
-                "Clb": {
-                  "type": "number",
-                  "required": false
-                },
-                "Crs": {
-                  "type": "number",
-                  "required": false
-                },
-                "Des": {
-                  "type": "number",
-                  "required": false
-                },
-                "Lnd": {
-                  "type": "number",
-                  "required": false
-                },
-                "SLS": {
-                  "type": "number",
-                  "required": false
-                },
-                "Tko": {
-                  "type": "number",
-                  "required": false
-                }
-              }
-            },
-            "P_W": {
-              "type": "object",
-              "required": false,
-              "fields": {
-                "EG": {
-                  "type": "number",
-                  "required": false
-                },
-                "EM": {
-                  "type": "number",
-                  "required": false
-                },
-                "SLS": {
-                  "type": "number",
-                  "required": false
-                }
-              }
-            },
-            "SLS": {
-              "type": "number",
-              "required": false
-            },
-            "SpecEnergy": {
-              "type": "object",
-              "required": false,
-              "fields": {
-                "Batt": {
-                  "type": "number",
-                  "required": false
-                },
-                "Fuel": {
-                  "type": "number",
-                  "required": false
-                }
-              }
+            {
+              "const": "NaN"
             }
-          }
+          ]
         },
         "Propulsion": {
           "type": "object",
-          "required": true,
-          "fields": {
+          "properties": {
             "Engine": {
-              "type": [
-                "object",
-                "number"
-              ],
-              "required": false,
-              "fields": {
-                "Alt": {
-                  "type": "number",
-                  "required": false
-                },
-                "BPR": {
-                  "type": "number",
-                  "required": false
-                },
-                "Cff1": {
-                  "type": "number",
-                  "required": false
-                },
-                "Cff2": {
-                  "type": "number",
-                  "required": false
-                },
-                "Cff3": {
-                  "type": "number",
-                  "required": false
-                },
-                "Cffch": {
-                  "type": "number",
-                  "required": false
-                },
-                "CoreFlow": {
+              "anyOf": [
+                {
                   "type": "object",
-                  "required": false,
-                  "fields": {
-                    "Cooling": {
-                      "type": "number",
-                      "required": false
+                  "properties": {
+                    "Alt": {
+                      "$ref": "#/$defs/optionalNumber"
                     },
-                    "Leakage": {
-                      "type": "number",
-                      "required": false
+                    "BPR": {
+                      "$ref": "#/$defs/optionalNumber"
                     },
-                    "PaxBleed": {
-                      "type": "number",
-                      "required": false
+                    "Cff1": {
+                      "$ref": "#/$defs/optionalNumber"
+                    },
+                    "Cff2": {
+                      "$ref": "#/$defs/optionalNumber"
+                    },
+                    "Cff3": {
+                      "$ref": "#/$defs/optionalNumber"
+                    },
+                    "Cffch": {
+                      "$ref": "#/$defs/optionalNumber"
+                    },
+                    "CoreFlow": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "Cooling": {
+                              "$ref": "#/$defs/optionalNumber"
+                            },
+                            "Leakage": {
+                              "$ref": "#/$defs/optionalNumber"
+                            },
+                            "PaxBleed": {
+                              "$ref": "#/$defs/optionalNumber"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        {
+                          "const": "NaN"
+                        }
+                      ]
+                    },
+                    "DesignThrust": {
+                      "$ref": "#/$defs/optionalNumber"
+                    },
+                    "EtaPoly": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "BypassNozzle": {
+                              "$ref": "#/$defs/optionalNumber"
+                            },
+                            "Combustor": {
+                              "$ref": "#/$defs/optionalNumber"
+                            },
+                            "Compressors": {
+                              "$ref": "#/$defs/optionalNumber"
+                            },
+                            "CoreNozzle": {
+                              "$ref": "#/$defs/optionalNumber"
+                            },
+                            "Diffusers": {
+                              "$ref": "#/$defs/optionalNumber"
+                            },
+                            "Fan": {
+                              "$ref": "#/$defs/optionalNumber"
+                            },
+                            "Inlet": {
+                              "$ref": "#/$defs/optionalNumber"
+                            },
+                            "Mixing": {
+                              "$ref": "#/$defs/optionalNumber"
+                            },
+                            "Nozzles": {
+                              "$ref": "#/$defs/optionalNumber"
+                            },
+                            "Turbines": {
+                              "$ref": "#/$defs/optionalNumber"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        {
+                          "const": "NaN"
+                        }
+                      ]
+                    },
+                    "FanBoosters": {
+                      "$ref": "#/$defs/optionalBoolean"
+                    },
+                    "FanGearRatio": {
+                      "$ref": "#/$defs/optionalNumber"
+                    },
+                    "FPR": {
+                      "$ref": "#/$defs/optionalNumber"
+                    },
+                    "HEcoeff": {
+                      "$ref": "#/$defs/optionalNumber"
+                    },
+                    "Mach": {
+                      "$ref": "#/$defs/optionalNumber"
+                    },
+                    "MaxIter": {
+                      "$ref": "#/$defs/optionalNumber"
+                    },
+                    "NoSpools": {
+                      "$ref": "#/$defs/optionalNumber"
+                    },
+                    "NPR": {
+                      "$ref": "#/$defs/optionalNumber"
+                    },
+                    "OPR": {
+                      "$ref": "#/$defs/optionalNumber"
+                    },
+                    "PerElec": {
+                      "$ref": "#/$defs/optionalNumber"
+                    },
+                    "ReqPower": {
+                      "$ref": "#/$defs/optionalNumber"
+                    },
+                    "RPMs": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "_matlab_row": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/$defs/optionalNumber"
+                              }
+                            }
+                          },
+                          "required": [
+                            "_matlab_row"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "const": "NaN"
+                        }
+                      ]
+                    },
+                    "TempLimit": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "Type": {
+                              "$ref": "#/$defs/optionalNumber"
+                            },
+                            "Val": {
+                              "$ref": "#/$defs/optionalNumber"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        {
+                          "const": "NaN"
+                        }
+                      ]
+                    },
+                    "Tt4Max": {
+                      "$ref": "#/$defs/optionalNumber"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 },
-                "DesignThrust": {
-                  "type": "number",
-                  "required": false
+                {
+                  "$ref": "#/$defs/numberOrExpression"
                 },
-                "EtaPoly": {
-                  "type": "object",
-                  "required": false,
-                  "fields": {
-                    "BypassNozzle": {
-                      "type": "number",
-                      "required": false
-                    },
-                    "Combustor": {
-                      "type": "number",
-                      "required": false
-                    },
-                    "Compressors": {
-                      "type": "number",
-                      "required": false
-                    },
-                    "CoreNozzle": {
-                      "type": "number",
-                      "required": false
-                    },
-                    "Diffusers": {
-                      "type": "number",
-                      "required": false
-                    },
-                    "Fan": {
-                      "type": "number",
-                      "required": false
-                    },
-                    "Inlet": {
-                      "type": "number",
-                      "required": false
-                    },
-                    "Mixing": {
-                      "type": "number",
-                      "required": false
-                    },
-                    "Nozzles": {
-                      "type": "number",
-                      "required": false
-                    },
-                    "Turbines": {
-                      "type": "number",
-                      "required": false
-                    }
-                  }
-                },
-                "FanBoosters": {
-                  "type": "bool",
-                  "required": false
-                },
-                "FanGearRatio": {
-                  "type": "number",
-                  "required": false
-                },
-                "FPR": {
-                  "type": "number",
-                  "required": false
-                },
-                "HEcoeff": {
-                  "type": "number",
-                  "required": false
-                },
-                "Mach": {
-                  "type": "number",
-                  "required": false
-                },
-                "MaxIter": {
-                  "type": "number",
-                  "required": false
-                },
-                "NoSpools": {
-                  "type": "number",
-                  "required": false
-                },
-                "NPR": {
-                  "type": "number",
-                  "required": false
-                },
-                "OPR": {
-                  "type": "number",
-                  "required": false
-                },
-                "PerElec": {
-                  "type": "number",
-                  "required": false
-                },
-                "ReqPower": {
-                  "type": "number",
-                  "required": false
-                },
-                "RPMs": {
-                  "type": "matlab_row",
-                  "required": false,
-                  "items": {
-                    "type": "list",
-                    "required": false,
-                    "items": {
-                      "type": "number",
-                      "required": false
-                    }
-                  }
-                },
-                "TempLimit": {
-                  "type": "object",
-                  "required": false,
-                  "fields": {
-                    "Type": {
-                      "type": "number",
-                      "required": false
-                    },
-                    "Val": {
-                      "type": "number",
-                      "required": false
-                    }
-                  }
-                },
-                "Tt4Max": {
-                  "type": "number",
-                  "required": false
+                {
+                  "const": "NaN"
                 }
-              }
+              ]
             },
             "Eta": {
-              "type": "object",
-              "required": false,
-              "fields": {
-                "Prop": {
-                  "type": "number",
-                  "required": false
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "Prop": {
+                      "$ref": "#/$defs/optionalNumber"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "const": "NaN"
                 }
-              }
+              ]
             },
             "MDotCF": {
-              "type": "number",
-              "required": false
+              "$ref": "#/$defs/optionalNumber"
             },
             "NumEngines": {
-              "type": "number",
-              "required": false
+              "$ref": "#/$defs/optionalNumber"
             },
             "PropArch": {
-              "type": [
-                "object",
-                "string"
-              ],
-              "required": true,
-              "fields": {
-                "Type": {
-                  "type": "string",
-                  "required": false
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "Type": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "type": "string"
                 }
+              ],
+              "not": {
+                "const": "NaN"
               }
             },
             "PropArchGraph": {
-              "type": "object",
-              "required": false,
-              "fields": {
-                "Arch": {
-                  "type": "list",
-                  "required": false,
-                  "items": {
-                    "type": "list",
-                    "required": false,
-                    "items": {
-                      "type": "number",
-                      "required": false
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "Arch": {
+                      "anyOf": [
+                        {
+                          "type": "array",
+                          "items": {
+                            "anyOf": [
+                              {
+                                "type": "array",
+                                "items": {
+                                  "$ref": "#/$defs/optionalNumber"
+                                }
+                              },
+                              {
+                                "const": "NaN"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "const": "NaN"
+                        }
+                      ]
+                    },
+                    "OperUps": {
+                      "$ref": "#/$defs/optionalMatlabExpression"
+                    },
+                    "OperDwn": {
+                      "$ref": "#/$defs/optionalMatlabExpression"
+                    },
+                    "EtaUps": {
+                      "anyOf": [
+                        {
+                          "type": "array",
+                          "items": {
+                            "anyOf": [
+                              {
+                                "type": "array",
+                                "items": {
+                                  "$ref": "#/$defs/optionalNumber"
+                                }
+                              },
+                              {
+                                "const": "NaN"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "const": "NaN"
+                        }
+                      ]
+                    },
+                    "EtaDwn": {
+                      "anyOf": [
+                        {
+                          "type": "array",
+                          "items": {
+                            "anyOf": [
+                              {
+                                "type": "array",
+                                "items": {
+                                  "$ref": "#/$defs/optionalNumber"
+                                }
+                              },
+                              {
+                                "const": "NaN"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "const": "NaN"
+                        }
+                      ]
+                    },
+                    "SrcType": {
+                      "$ref": "#/$defs/optionalNumber"
+                    },
+                    "TrnType": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "_matlab_row": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/$defs/optionalNumber"
+                              }
+                            }
+                          },
+                          "required": [
+                            "_matlab_row"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "const": "NaN"
+                        }
+                      ]
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 },
-                "OperUps": {
-                  "type": "matlab_expression",
-                  "required": false
-                },
-                "OperDwn": {
-                  "type": "matlab_expression",
-                  "required": false
-                },
-                "EtaUps": {
-                  "type": "list",
-                  "required": false,
-                  "items": {
-                    "type": "list",
-                    "required": false,
-                    "items": {
-                      "type": "number",
-                      "required": false
-                    }
-                  }
-                },
-                "EtaDwn": {
-                  "type": "list",
-                  "required": false,
-                  "items": {
-                    "type": "list",
-                    "required": false,
-                    "items": {
-                      "type": "number",
-                      "required": false
-                    }
-                  }
-                },
-                "SrcType": {
-                  "type": "number",
-                  "required": false
-                },
-                "TrnType": {
-                  "type": "matlab_row",
-                  "required": false,
-                  "items": {
-                    "type": "list",
-                    "required": false,
-                    "items": {
-                      "type": "number",
-                      "required": false
-                    }
-                  }
+                {
+                  "const": "NaN"
                 }
-              }
+              ]
             },
             "T_W": {
-              "type": "object",
-              "required": false,
-              "fields": {
-                "SLS": {
-                  "type": "number",
-                  "required": false
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "SLS": {
+                      "$ref": "#/$defs/optionalNumber"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "const": "NaN"
                 }
-              }
+              ]
             },
             "Thrust": {
-              "type": "object",
-              "required": false,
-              "fields": {
-                "SLS": {
-                  "type": "number",
-                  "required": false
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "SLS": {
+                      "$ref": "#/$defs/optionalNumber"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "const": "NaN"
                 }
-              }
+              ]
             }
-          }
+          },
+          "additionalProperties": false,
+          "required": [
+            "PropArch"
+          ]
         },
         "TLAR": {
           "type": "object",
-          "required": true,
-          "fields": {
+          "properties": {
             "Class": {
               "type": "string",
-              "required": true
+              "not": {
+                "const": "NaN"
+              }
             },
             "EIS": {
-              "type": "number",
-              "required": false
+              "$ref": "#/$defs/optionalNumber"
             },
             "MaxPax": {
-              "type": "number",
-              "required": true
+              "$ref": "#/$defs/numberOrExpression"
             }
-          }
+          },
+          "additionalProperties": false,
+          "required": [
+            "Class",
+            "MaxPax"
+          ]
         },
         "Weight": {
           "type": "object",
-          "required": true,
-          "fields": {
+          "properties": {
             "Batt": {
-              "type": "number",
-              "required": false
+              "$ref": "#/$defs/optionalNumber"
             },
             "EG": {
-              "type": "number",
-              "required": false
+              "$ref": "#/$defs/optionalNumber"
             },
             "EM": {
-              "type": "number",
-              "required": false
+              "$ref": "#/$defs/optionalNumber"
             },
             "Fuel": {
-              "type": "number",
-              "required": false
+              "$ref": "#/$defs/optionalNumber"
             },
             "MLW": {
-              "type": "number",
-              "required": false
+              "$ref": "#/$defs/optionalNumber"
             },
             "MTOW": {
-              "type": "number",
-              "required": true
+              "$ref": "#/$defs/numberOrExpression"
             },
             "WairfCF": {
-              "type": "number",
-              "required": false
+              "$ref": "#/$defs/optionalNumber"
             }
-          }
+          },
+          "additionalProperties": false,
+          "required": [
+            "MTOW"
+          ]
         }
-      }
+      },
+      "additionalProperties": false,
+      "required": [
+        "Performance",
+        "Propulsion",
+        "TLAR",
+        "Weight"
+      ]
     }
-  }
+  },
+  "additionalProperties": false,
+  "required": [
+    "Settings",
+    "Specs"
+  ]
 }

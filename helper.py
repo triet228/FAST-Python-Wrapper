@@ -22,6 +22,7 @@ INPUT_AIRCRAFT_STRUCTURE_JSON_PATH = Path("InputAircraftStructure.json")
 MISSION_STRUCTURE_JSON_PATH = Path("MissionStructure.json")
 OUTPUT_AIRCRAFT_JSON_PATH = Path("OutputAircraft.json")
 OUTPUT_AIRCRAFT_STRUCTURE_JSON_PATH = Path("OutputAircraftStructure.json")
+JSON_SCHEMA_URI = "https://json-schema.org/draft/2020-12/schema"
 
 
 class JsonValidationError(ValueError):
@@ -300,20 +301,205 @@ def is_json_number(value):
     )
 
 
-def build_input_json_structure(value):
-    """Return a recursive optional contract for FAST input JSON data.
+def build_json_schema_defs():
+    """Return reusable JSON Schema definitions for wrapper marker objects."""
+
+    return {
+        "matlabExpression": {
+            "type": "object",
+            "properties": {
+                "_matlab_expression": {
+                    "type": "string",
+                },
+            },
+            "required": [
+                "_matlab_expression",
+            ],
+            "additionalProperties": False,
+        },
+        "pythonMarker": {
+            "type": "object",
+            "properties": {
+                "_python_type": {
+                    "type": "string",
+                },
+                "_repr": {
+                    "type": "string",
+                },
+            },
+            "required": [
+                "_python_type",
+                "_repr",
+            ],
+            "additionalProperties": False,
+        },
+        "numberOrExpression": {
+            "anyOf": [
+                {
+                    "type": "number",
+                },
+                {
+                    "$ref": "#/$defs/matlabExpression",
+                },
+            ],
+        },
+        "optionalNumber": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/numberOrExpression",
+                },
+                {
+                    "const": "NaN",
+                },
+            ],
+        },
+        "optionalBoolean": {
+            "anyOf": [
+                {
+                    "type": "boolean",
+                },
+                {
+                    "const": "NaN",
+                },
+            ],
+        },
+        "optionalMatlabExpression": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/matlabExpression",
+                },
+                {
+                    "const": "NaN",
+                },
+            ],
+        },
+        "optionalPythonMarker": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/pythonMarker",
+                },
+                {
+                    "const": "NaN",
+                },
+            ],
+        },
+    }
+
+
+def build_json_schema_document(schema, title):
+    """Wrap a JSON Schema subtree as a Draft 2020-12 schema document."""
+
+    document = {
+        "$schema": JSON_SCHEMA_URI,
+        "title": title,
+        "$defs": build_json_schema_defs(),
+    }
+    document.update(schema)
+    return document
+
+
+def json_schema_number():
+    """Return the FAST numeric schema, including MATLAB expressions."""
+
+    return {
+        "$ref": "#/$defs/numberOrExpression",
+    }
+
+
+def json_schema_may_be_nan(schema):
+    """Return a schema that also allows FAST's optional NaN marker."""
+
+    if schema == {"$ref": "#/$defs/numberOrExpression"}:
+        return {
+            "$ref": "#/$defs/optionalNumber",
+        }
+
+    if schema == {"type": "boolean"}:
+        return {
+            "$ref": "#/$defs/optionalBoolean",
+        }
+
+    if schema == {"$ref": "#/$defs/matlabExpression"}:
+        return {
+            "$ref": "#/$defs/optionalMatlabExpression",
+        }
+
+    if schema == {"$ref": "#/$defs/pythonMarker"}:
+        return {
+            "$ref": "#/$defs/optionalPythonMarker",
+        }
+
+    if schema == {"type": "string"}:
+        return schema
+
+    if set(schema.keys()) == {"anyOf"}:
+        return {
+            "anyOf": schema["anyOf"] + [
+                {
+                    "const": "NaN",
+                },
+            ],
+        }
+
+    return {
+        "anyOf": [
+            schema,
+            {
+                "const": "NaN",
+            },
+        ],
+    }
+
+
+def json_schema_required_value(schema):
+    """Return a schema that rejects FAST's NaN marker for required values."""
+
+    if not json_schema_allows_nan_string(schema):
+        return schema
+
+    required_schema = dict(schema)
+    required_schema["not"] = {
+        "const": "NaN",
+    }
+    return required_schema
+
+
+def json_schema_allows_nan_string(schema):
+    """Return True when a required schema could otherwise accept string NaN."""
+
+    if schema.get("type") == "string":
+        return True
+
+    if "anyOf" in schema:
+        return any(json_schema_allows_nan_string(option) for option in schema["anyOf"])
+
+    return False
+
+
+def build_json_schema_from_value(
+    value,
+    require_properties=False,
+    require_lengths=False,
+    allow_output_markers=False,
+):
+    """Infer a JSON Schema subtree from a JSON-safe FAST value.
 
     Inputs:
-        value: Parsed JSON value from InputAircraft.json or Mission.json.
+        value: Parsed or generated JSON value.
+        require_properties: Whether object properties present in value should be
+            listed as required in the schema.
+        require_lengths: Whether observed list lengths should become minItems
+            and maxItems constraints.
+        allow_output_markers: Whether output-only Python marker objects are
+            expected.
 
     Outputs:
-        Contract nodes that preserve field names, broad JSON types, marker
-        shapes, and list item contracts.
+        A JSON Schema subtree using standard Draft 2020-12 keywords.
 
     Assumptions:
-        Generated contract fields are optional by default. Optional "NaN"
-        placeholders are accepted by validation regardless of the declared
-        field type.
+        FAST arrays are homogeneous enough that the first item describes the
+        useful item schema. The string "NaN" is treated as FAST's numeric
+        unspecified marker, matching load_json_data().
     """
 
     if isinstance(value, dict):
@@ -321,65 +507,246 @@ def build_input_json_structure(value):
 
         if keys == {"_matlab_expression"}:
             return {
-                "type": "matlab_expression",
-                "required": False,
+                "$ref": "#/$defs/matlabExpression",
             }
 
         if keys == {"_matlab_row"}:
-            return {
-                "type": "matlab_row",
-                "required": False,
-                "items": build_input_json_structure(value["_matlab_row"]),
+            row_schema = {
+                "type": "array",
             }
 
-        return {
+            if isinstance(value["_matlab_row"], list):
+                row_schema = build_json_schema_from_value(
+                    value["_matlab_row"],
+                    require_properties,
+                    require_lengths,
+                    allow_output_markers,
+                )
+
+            return {
+                "type": "object",
+                "properties": {
+                    "_matlab_row": row_schema,
+                },
+                "required": [
+                    "_matlab_row",
+                ],
+                "additionalProperties": False,
+            }
+
+        if allow_output_markers and keys == {"_python_type", "_repr"}:
+            return {
+                "$ref": "#/$defs/pythonMarker",
+            }
+
+        properties = {
+            key: build_json_schema_from_value(
+                item,
+                require_properties,
+                require_lengths,
+                allow_output_markers,
+            )
+            for key, item in value.items()
+        }
+        schema = {
             "type": "object",
-            "required": False,
-            "fields": {
-                key: build_input_json_structure(item)
-                for key, item in value.items()
-            },
+            "properties": properties,
+            "additionalProperties": False,
         }
 
+        if require_properties and properties:
+            schema["required"] = list(properties)
+
+        return schema
+
     if isinstance(value, list):
-        item_structure = None
+        schema = {
+            "type": "array",
+        }
+
+        if require_lengths:
+            schema["minItems"] = len(value)
+            schema["maxItems"] = len(value)
 
         if value:
-            item_structure = build_input_json_structure(value[0])
+            schema["items"] = build_json_schema_from_value(
+                value[0],
+                require_properties,
+                require_lengths,
+                allow_output_markers,
+            )
 
+        return schema
+
+    if isinstance(value, bool):
         return {
-            "type": "list",
-            "required": False,
-            "items": item_structure,
+            "type": "boolean",
         }
 
     if is_json_number(value) or value == "NaN":
-        return {
-            "type": "number",
-            "required": False,
-        }
+        return json_schema_number()
 
     if isinstance(value, str):
         return {
             "type": "string",
-            "required": False,
-        }
-
-    if isinstance(value, bool):
-        return {
-            "type": "bool",
-            "required": False,
         }
 
     if value is None:
         return {
             "type": "null",
-            "required": False,
         }
 
     return {
-        "type": type(value).__name__,
-        "required": False,
+        "type": "string",
+    }
+
+
+def build_input_json_structure(value):
+    """Return a standard JSON Schema document for FAST input JSON data.
+
+    Inputs:
+        value: Parsed JSON value from InputAircraft.json or Mission.json.
+
+    Outputs:
+        Draft 2020-12 JSON Schema document that preserves field names, broad
+        JSON types, marker shapes, and list item schemas.
+
+    Assumptions:
+        Generated input schema fields are optional by default. Optional "NaN"
+        placeholders are accepted by validation where a committed contract marks
+        the field optional.
+    """
+
+    return build_json_schema_document(
+        build_json_schema_from_value(value),
+        "FAST input JSON schema",
+    )
+
+
+def convert_contract_to_json_schema(contract, title):
+    """Convert the legacy FAST contract format into standard JSON Schema."""
+
+    return build_json_schema_document(
+        convert_contract_node_to_json_schema(contract, force_required=True),
+        title,
+    )
+
+
+def convert_contract_node_to_json_schema(contract, force_required=None):
+    """Convert one legacy type/required/fields node into JSON Schema."""
+
+    node_required = contract.get("required", False)
+
+    if force_required is not None:
+        node_required = force_required
+
+    expected_types = contract.get("type")
+
+    if isinstance(expected_types, list):
+        schema = {
+            "anyOf": [
+                convert_contract_type_to_json_schema(contract, expected_type)
+                for expected_type in expected_types
+            ],
+        }
+    else:
+        schema = convert_contract_type_to_json_schema(contract, expected_types)
+
+    if node_required:
+        return json_schema_required_value(schema)
+
+    return json_schema_may_be_nan(schema)
+
+
+def convert_contract_type_to_json_schema(contract, expected_type):
+    """Convert one legacy FAST contract type into a JSON Schema subtree."""
+
+    if expected_type == "object":
+        fields = contract.get("fields", {})
+        properties = {}
+        required = []
+
+        for key, child_contract in fields.items():
+            properties[key] = convert_contract_node_to_json_schema(child_contract)
+
+            if child_contract.get("required", False):
+                required.append(key)
+
+        schema = {
+            "type": "object",
+            "properties": properties,
+            "additionalProperties": False,
+        }
+
+        if required:
+            schema["required"] = required
+
+        return schema
+
+    if expected_type == "list":
+        schema = {
+            "type": "array",
+        }
+        item_contract = contract.get("items")
+
+        if item_contract is not None:
+            schema["items"] = convert_contract_node_to_json_schema(item_contract)
+
+        return schema
+
+    if expected_type == "matlab_row":
+        row_schema = {
+            "type": "array",
+        }
+        item_contract = contract.get("items")
+
+        if item_contract is not None:
+            row_schema = convert_contract_node_to_json_schema(
+                item_contract,
+                force_required=True,
+            )
+
+        return {
+            "type": "object",
+            "properties": {
+                "_matlab_row": row_schema,
+            },
+            "required": [
+                "_matlab_row",
+            ],
+            "additionalProperties": False,
+        }
+
+    if expected_type == "matlab_expression":
+        return {
+            "$ref": "#/$defs/matlabExpression",
+        }
+
+    if expected_type == "python_marker":
+        return {
+            "$ref": "#/$defs/pythonMarker",
+        }
+
+    if expected_type == "number":
+        return json_schema_number()
+
+    if expected_type == "string":
+        return {
+            "type": "string",
+        }
+
+    if expected_type == "bool":
+        return {
+            "type": "boolean",
+        }
+
+    if expected_type == "null":
+        return {
+            "type": "null",
+        }
+
+    return {
+        "type": "string",
     }
 
 
@@ -405,11 +772,11 @@ def read_contract_structure(file_name):
 
 
 def validate_json_structure_contract(data, contract, file_name, path=""):
-    """Validate parsed JSON against a committed optional field contract.
+    """Validate parsed JSON against a committed structure schema.
 
     Inputs:
         data: Parsed input JSON subtree.
-        contract: Contract subtree generated by build_input_json_structure().
+        contract: JSON Schema document or legacy contract subtree.
         file_name: Input file label used in validation errors.
         path: Current dotted JSON path.
 
@@ -423,7 +790,211 @@ def validate_json_structure_contract(data, contract, file_name, path=""):
         of the declared type.
     """
 
+    if is_json_schema_document(contract):
+        validate_json_schema_value(data, contract, file_name, path or file_name, contract)
+        return
+
     validate_contract_value(data, contract, file_name, path or file_name)
+
+
+def is_json_schema_document(contract):
+    """Return True when a contract is a standard JSON Schema document."""
+
+    return isinstance(contract, dict) and "$schema" in contract
+
+
+def validate_json_schema_value(data, schema, file_name, label, root_schema):
+    """Validate one JSON value against the generated JSON Schema subset."""
+
+    if "$ref" in schema:
+        validate_json_schema_value(
+            data,
+            resolve_json_schema_ref(schema["$ref"], root_schema),
+            file_name,
+            label,
+            root_schema,
+        )
+        schema = {
+            key: value
+            for key, value in schema.items()
+            if key != "$ref"
+        }
+
+        if not schema:
+            return
+
+    if "not" in schema:
+        try:
+            validate_json_schema_value(
+                data,
+                schema["not"],
+                file_name,
+                label,
+                root_schema,
+            )
+        except JsonValidationError:
+            pass
+        else:
+            if schema["not"].get("const") == "NaN":
+                raise JsonValidationError(f"{label} is required and cannot be \"NaN\".")
+
+            raise JsonValidationError(f"{label} must not match excluded schema.")
+
+    if "const" in schema:
+        if data != schema["const"]:
+            raise JsonValidationError(f"{label} must equal {schema['const']!r}.")
+
+    if "anyOf" in schema:
+        errors = []
+
+        for option in schema["anyOf"]:
+            try:
+                validate_json_schema_value(data, option, file_name, label, root_schema)
+                return
+            except JsonValidationError as error:
+                errors.append(str(error))
+
+        if errors:
+            if data == "NaN":
+                raise JsonValidationError(f"{label} is required and cannot be \"NaN\".")
+
+            raise JsonValidationError(f"{label} must match at least one allowed schema.")
+
+        raise JsonValidationError(f"{label} has no allowed schema.")
+
+    if "type" not in schema:
+        return
+
+    expected_types = schema["type"]
+
+    if isinstance(expected_types, str):
+        expected_types = [
+            expected_types,
+        ]
+
+    errors = []
+
+    for expected_type in expected_types:
+        try:
+            validate_json_schema_type(
+                data,
+                schema,
+                expected_type,
+                file_name,
+                label,
+                root_schema,
+            )
+            return
+        except JsonValidationError as error:
+            errors.append(str(error))
+
+    if len(errors) == 1:
+        raise JsonValidationError(errors[0])
+
+    expected = ", ".join(expected_types)
+    raise JsonValidationError(f"{label} must match type {expected}.")
+
+
+def resolve_json_schema_ref(ref, root_schema):
+    """Resolve a local JSON Schema reference from the root document."""
+
+    prefix = "#/$defs/"
+
+    if not ref.startswith(prefix):
+        raise JsonValidationError(f"Unsupported JSON Schema reference {ref}.")
+
+    key = ref[len(prefix):]
+
+    try:
+        return root_schema["$defs"][key]
+    except KeyError as error:
+        raise JsonValidationError(f"Missing JSON Schema definition {key}.") from error
+
+
+def validate_json_schema_type(data, schema, expected_type, file_name, label, root_schema):
+    """Validate data against one standard JSON Schema type."""
+
+    if expected_type == "object":
+        if not isinstance(data, dict):
+            raise JsonValidationError(f"{label} must be a JSON object.")
+
+        properties = schema.get("properties", {})
+        required = schema.get("required", [])
+        actual_keys = set(data)
+        expected_keys = set(properties)
+
+        if schema.get("additionalProperties") is False:
+            for key in sorted(actual_keys - expected_keys):
+                raise JsonValidationError(f"{label} contains unexpected field {key}.")
+
+        for key in required:
+            if key not in data:
+                raise JsonValidationError(f"{label} is missing required field {key}.")
+
+        for key in sorted(actual_keys & expected_keys):
+            validate_json_schema_value(
+                data[key],
+                properties[key],
+                file_name,
+                f"{label}.{key}",
+                root_schema,
+            )
+
+        return
+
+    if expected_type == "array":
+        if not isinstance(data, list):
+            raise JsonValidationError(f"{label} must be a JSON array.")
+
+        if "minItems" in schema and len(data) < schema["minItems"]:
+            raise JsonValidationError(
+                f"{label} must contain at least {schema['minItems']} items."
+            )
+
+        if "maxItems" in schema and len(data) > schema["maxItems"]:
+            raise JsonValidationError(
+                f"{label} must contain at most {schema['maxItems']} items."
+            )
+
+        item_schema = schema.get("items")
+
+        if item_schema is not None:
+            for index, item in enumerate(data):
+                validate_json_schema_value(
+                    item,
+                    item_schema,
+                    file_name,
+                    f"{label}[{index}]",
+                    root_schema,
+                )
+
+        return
+
+    if expected_type == "number":
+        if is_json_number(data):
+            return
+
+        raise JsonValidationError(f"{label} must be a number.")
+
+    if expected_type == "string":
+        if isinstance(data, str):
+            return
+
+        raise JsonValidationError(f"{label} must be a string.")
+
+    if expected_type == "boolean":
+        if isinstance(data, bool):
+            return
+
+        raise JsonValidationError(f"{label} must be true or false.")
+
+    if expected_type == "null":
+        if data is None:
+            return
+
+        raise JsonValidationError(f"{label} must be null.")
+
+    raise JsonValidationError(f"{label} uses unknown JSON Schema type {expected_type}.")
 
 
 def validate_contract_value(data, contract, file_name, label):
@@ -922,6 +1493,18 @@ def validate_output_structure_json(data):
 
     require_json_object(data, "OutputAircraftStructure.json")
 
+    if is_json_schema_document(data):
+        properties = data.get("properties", {})
+
+        for field_name in ("Specs", "Mission"):
+            if field_name not in properties:
+                raise JsonValidationError(
+                    "OutputAircraftStructure.json is missing required property "
+                    f"{field_name}."
+                )
+
+        return
+
     for field_name in ("Specs", "Mission"):
         if field_name not in data:
             raise JsonValidationError(
@@ -998,40 +1581,29 @@ def load_input_json_files(input_dir=None):
 
 
 def build_output_aircraft_structure(value):
-    """Return a recursive structure map for a FAST output value.
+    """Return a JSON Schema document for a FAST output value.
 
     Inputs:
         value: Python data converted from the MATLAB OutputAircraft struct.
 
     Outputs:
-        Nested dictionaries that preserve struct field names. Lists include
-        their length and the shape of the first item; scalar leaves show their
-        Python type.
+        Draft 2020-12 JSON Schema document that preserves struct field names,
+        marker object shapes, and observed list lengths.
 
     Assumptions:
         FAST arrays are usually homogeneous, so the first list item is enough
-        to show the useful structure without duplicating every mission point.
+        to show the useful item schema without duplicating every mission point.
     """
 
-    if isinstance(value, dict):
-        return {
-            key: build_output_aircraft_structure(item)
-            for key, item in value.items()
-        }
-
-    if isinstance(value, list):
-        item_structure = None
-
-        if value:
-            item_structure = build_output_aircraft_structure(value[0])
-
-        return {
-            "_type": "list",
-            "_length": len(value),
-            "_items": item_structure,
-        }
-
-    return type(value).__name__
+    return build_json_schema_document(
+        build_json_schema_from_value(
+            build_json_data(value),
+            require_properties=True,
+            require_lengths=True,
+            allow_output_markers=True,
+        ),
+        "FAST OutputAircraft schema",
+    )
 
 
 def save_output_aircraft(value, output_dir=None):
@@ -1095,7 +1667,7 @@ def print_output_aircraft_structure(
     """Print the recursive OutputAircraft structure tree.
 
     Inputs:
-        value: Structure map from build_output_aircraft_structure().
+        value: JSON Schema document from build_output_aircraft_structure().
         name: Current field label to print.
         indent: Number of leading spaces for nested fields.
         depth: Current recursion depth.
@@ -1109,24 +1681,42 @@ def print_output_aircraft_structure(
         Writes a compact structure view to the console for interactive runs.
     """
 
+    if is_json_schema_document(value):
+        value = {
+            key: item
+            for key, item in value.items()
+            if key not in ("$schema", "$defs", "title")
+        }
+
+    value = unwrap_printable_schema(value)
     prefix = " " * indent
 
     if max_depth is not None and depth >= max_depth:
-        if isinstance(value, dict) and value.get("_type") == "list":
-            print(f"{prefix}{name}: list[{value['_length']}] ...")
+        if is_array_schema(value):
+            length = format_schema_array_length(value)
+
+            if length:
+                print(f"{prefix}{name}: array[{length}] ...")
+            else:
+                print(f"{prefix}{name}: array ...")
         elif isinstance(value, dict):
-            print(f"{prefix}{name}: dict ...")
+            print(f"{prefix}{name}: object ...")
         else:
             print(f"{prefix}{name}: {value}")
 
         return
 
-    if isinstance(value, dict) and value.get("_type") == "list":
-        print(f"{prefix}{name}: list[{value['_length']}]")
+    if is_array_schema(value):
+        length = format_schema_array_length(value)
 
-        if value["_items"] is not None:
+        if length:
+            print(f"{prefix}{name}: array[{length}]")
+        else:
+            print(f"{prefix}{name}: array")
+
+        if "items" in value:
             print_output_aircraft_structure(
-                value["_items"],
+                value["items"],
                 "[0]",
                 indent + 2,
                 depth + 1,
@@ -1136,8 +1726,35 @@ def print_output_aircraft_structure(
 
         return
 
+    if is_object_schema(value):
+        print(f"{prefix}{name}: object")
+
+        properties = value.get("properties", {})
+        items = list(properties.items())
+
+        if max_items is None:
+            printed_items = items
+        else:
+            printed_items = items[:max_items]
+
+        for key, item in printed_items:
+            print_output_aircraft_structure(
+                item,
+                key,
+                indent + 2,
+                depth + 1,
+                max_depth,
+                max_items,
+            )
+
+        if max_items is not None and len(items) > max_items:
+            remaining = len(items) - max_items
+            print(f"{prefix}  ... {remaining} more fields in JSON schema")
+
+        return
+
     if isinstance(value, dict):
-        print(f"{prefix}{name}: dict")
+        print(f"{prefix}{name}: object")
 
         items = list(value.items())
 
@@ -1163,3 +1780,41 @@ def print_output_aircraft_structure(
         return
 
     print(f"{prefix}{name}: {value}")
+
+
+def unwrap_printable_schema(value):
+    """Return the most useful branch of a schema for structure printing."""
+
+    if not isinstance(value, dict):
+        return value
+
+    if "anyOf" in value and value["anyOf"]:
+        for option in value["anyOf"]:
+            if option.get("const") != "NaN":
+                return unwrap_printable_schema(option)
+
+    if "$ref" in value:
+        return value["$ref"].split("/")[-1]
+
+    return value
+
+
+def is_array_schema(value):
+    """Return True when a printable schema describes a JSON array."""
+
+    return isinstance(value, dict) and value.get("type") == "array"
+
+
+def is_object_schema(value):
+    """Return True when a printable schema describes a JSON object."""
+
+    return isinstance(value, dict) and value.get("type") == "object"
+
+
+def format_schema_array_length(value):
+    """Return an exact array length string when the schema has one."""
+
+    if value.get("minItems") == value.get("maxItems") and "minItems" in value:
+        return str(value["minItems"])
+
+    return ""

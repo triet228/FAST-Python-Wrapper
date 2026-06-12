@@ -1,106 +1,193 @@
 {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FAST Mission schema",
+  "$defs": {
+    "matlabExpression": {
+      "type": "object",
+      "properties": {
+        "_matlab_expression": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "_matlab_expression"
+      ],
+      "additionalProperties": false
+    },
+    "pythonMarker": {
+      "type": "object",
+      "properties": {
+        "_python_type": {
+          "type": "string"
+        },
+        "_repr": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "_python_type",
+        "_repr"
+      ],
+      "additionalProperties": false
+    },
+    "numberOrExpression": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "$ref": "#/$defs/matlabExpression"
+        }
+      ]
+    },
+    "optionalNumber": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/numberOrExpression"
+        },
+        {
+          "const": "NaN"
+        }
+      ]
+    },
+    "optionalBoolean": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "const": "NaN"
+        }
+      ]
+    },
+    "optionalMatlabExpression": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/matlabExpression"
+        },
+        {
+          "const": "NaN"
+        }
+      ]
+    },
+    "optionalPythonMarker": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/pythonMarker"
+        },
+        {
+          "const": "NaN"
+        }
+      ]
+    }
+  },
   "type": "object",
-  "required": true,
-  "fields": {
+  "properties": {
     "AltBeg": {
-      "type": "list",
-      "required": true,
+      "type": "array",
       "items": {
-        "type": "number",
-        "required": false
+        "$ref": "#/$defs/optionalNumber"
       }
     },
     "AltEnd": {
-      "type": "list",
-      "required": true,
+      "type": "array",
       "items": {
-        "type": "number",
-        "required": false
+        "$ref": "#/$defs/optionalNumber"
       }
     },
     "ClbRate": {
-      "type": "list",
-      "required": true,
+      "type": "array",
       "items": {
-        "type": "number",
-        "required": false
+        "$ref": "#/$defs/optionalNumber"
       }
     },
     "ID": {
-      "type": "list",
-      "required": true,
+      "type": "array",
       "items": {
-        "type": "number",
-        "required": false
+        "$ref": "#/$defs/optionalNumber"
       }
     },
     "Segs": {
-      "type": "list",
-      "required": true,
+      "type": "array",
       "items": {
-        "type": "string",
-        "required": false
+        "type": "string"
       }
     },
     "Target": {
       "type": "object",
-      "required": true,
-      "fields": {
+      "properties": {
         "Type": {
-          "type": [
-            "list",
-            "string"
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
+              "type": "string"
+            }
           ],
-          "required": true,
-          "items": {
-            "type": "string",
-            "required": false
+          "not": {
+            "const": "NaN"
           }
         },
         "Valu": {
-          "type": [
-            "list",
-            "number"
-          ],
-          "required": true,
-          "items": {
-            "type": "number",
-            "required": false
-          }
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/optionalNumber"
+              }
+            },
+            {
+              "$ref": "#/$defs/numberOrExpression"
+            }
+          ]
         }
-      }
+      },
+      "additionalProperties": false,
+      "required": [
+        "Type",
+        "Valu"
+      ]
     },
     "TypeBeg": {
-      "type": "list",
-      "required": true,
+      "type": "array",
       "items": {
-        "type": "string",
-        "required": false
+        "type": "string"
       }
     },
     "TypeEnd": {
-      "type": "list",
-      "required": true,
+      "type": "array",
       "items": {
-        "type": "string",
-        "required": false
+        "type": "string"
       }
     },
     "VelBeg": {
-      "type": "list",
-      "required": true,
+      "type": "array",
       "items": {
-        "type": "number",
-        "required": false
+        "$ref": "#/$defs/optionalNumber"
       }
     },
     "VelEnd": {
-      "type": "list",
-      "required": true,
+      "type": "array",
       "items": {
-        "type": "number",
-        "required": false
+        "$ref": "#/$defs/optionalNumber"
       }
     }
-  }
+  },
+  "additionalProperties": false,
+  "required": [
+    "AltBeg",
+    "AltEnd",
+    "ClbRate",
+    "ID",
+    "Segs",
+    "Target",
+    "TypeBeg",
+    "TypeEnd",
+    "VelBeg",
+    "VelEnd"
+  ]
 }
