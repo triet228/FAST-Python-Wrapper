@@ -105,14 +105,24 @@ def test_input_aircraft_contract_allows_optional_nan_field():
     validate_aircraft_json(changed)
 
 
-def test_input_aircraft_contract_rejects_required_nan_field():
-    """Reject required fields that use the FAST unspecified marker."""
+def test_input_aircraft_contract_allows_mtow_nan_field():
+    """Allow input MTOW to use the FAST unspecified marker."""
 
     data = read_raw_json_file(DEFAULT_INPUT_DIR / "InputAircraft.json")
     changed = deepcopy(data)
     changed["Specs"]["Weight"]["MTOW"] = "NaN"
 
-    with pytest.raises(JsonValidationError, match="required|must be a number"):
+    validate_aircraft_json(changed)
+
+
+def test_input_aircraft_contract_rejects_missing_mtow_field():
+    """Require the MTOW key even when FAST is allowed to size the value."""
+
+    data = read_raw_json_file(DEFAULT_INPUT_DIR / "InputAircraft.json")
+    changed = deepcopy(data)
+    del changed["Specs"]["Weight"]["MTOW"]
+
+    with pytest.raises(JsonValidationError, match="missing required field MTOW"):
         validate_aircraft_json(changed)
 
 

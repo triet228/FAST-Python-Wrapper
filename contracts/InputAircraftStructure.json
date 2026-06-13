@@ -842,7 +842,7 @@
               "$ref": "#/$defs/optionalNumber"
             },
             "MTOW": {
-              "$ref": "#/$defs/numberOrExpression"
+              "$ref": "#/$defs/optionalNumber"
             },
             "WairfCF": {
               "$ref": "#/$defs/optionalNumber"

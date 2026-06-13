@@ -1288,6 +1288,17 @@ def require_json_number(data, keys, file_name):
     )
 
 
+def require_json_number_or_nan(data, keys, file_name):
+    """Validate that a required numeric field also accepts FAST's NaN marker."""
+
+    value = get_json_path(data, keys, file_name)
+
+    if value == "NaN":
+        return
+
+    require_json_number(data, keys, file_name)
+
+
 def require_json_string(data, keys, file_name):
     """Validate that a required nested field is a string."""
 
@@ -1399,7 +1410,11 @@ def validate_aircraft_json(data):
     require_json_string(data, ["Specs", "TLAR", "Class"], "InputAircraft.json")
     require_json_number(data, ["Specs", "TLAR", "MaxPax"], "InputAircraft.json")
     require_json_number(data, ["Specs", "Performance", "Range"], "InputAircraft.json")
-    require_json_number(data, ["Specs", "Weight", "MTOW"], "InputAircraft.json")
+    require_json_number_or_nan(
+        data,
+        ["Specs", "Weight", "MTOW"],
+        "InputAircraft.json",
+    )
 
     get_json_path(data, ["Specs", "Propulsion", "PropArch"], "InputAircraft.json")
     get_json_path(data, ["Settings"], "InputAircraft.json")
