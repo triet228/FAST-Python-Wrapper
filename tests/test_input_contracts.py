@@ -21,6 +21,65 @@ DEFAULT_INPUT_DIR = PROJECT_ROOT / "examples" / "CeRAS" / "inputs"
 EXAMPLES_DIR = PROJECT_ROOT / "examples"
 
 
+def iter_leaf_paths(value, path=()):
+    """Yield every scalar path in a nested JSON-compatible value."""
+
+    if isinstance(value, dict):
+        for key, item in value.items():
+            yield from iter_leaf_paths(item, path + (key,))
+        return
+
+    if isinstance(value, list):
+        for index, item in enumerate(value):
+            yield from iter_leaf_paths(item, path + (index,))
+        return
+
+    yield path, value
+
+
+def set_nested_path(data, path, value):
+    """Replace a nested value in copied JSON fixture data."""
+
+    item = data
+
+    for key in path[:-1]:
+        item = item[key]
+
+    item[path[-1]] = value
+
+
+def format_leaf_path(path):
+    """Return a stable dotted path for scalar fields and array entries."""
+
+    parts = []
+
+    for item in path:
+        if isinstance(item, int):
+            parts[-1] = parts[-1] + "[]"
+        else:
+            parts.append(item)
+
+    return ".".join(parts)
+
+
+def is_nan_marker_candidate(value):
+    """Return True when a FAST input scalar should allow the NaN marker."""
+
+    if value == "NaN":
+        return True
+
+    if isinstance(value, bool):
+        return True
+
+    if (isinstance(value, int) or isinstance(value, float)) and not isinstance(
+        value,
+        bool,
+    ):
+        return True
+
+    return isinstance(value, dict) and set(value) == {"_matlab_expression"}
+
+
 def test_input_aircraft_matches_structure_contract():
     """Validate the default aircraft input template contract."""
 
@@ -135,3 +194,37 @@ def test_mission_contract_rejects_missing_field():
 
     with pytest.raises(JsonValidationError, match="missing required field"):
         validate_mission_json(changed)
+
+
+@pytest.mark.parametrize(
+    ("file_name", "validator"),
+    [
+        ("InputAircraft.json", validate_aircraft_json),
+        ("Mission.json", validate_mission_json),
+    ],
+)
+def test_fast_input_nan_marker_candidates_accept_nan(file_name, validator):
+    """Guard every numeric-style FAST input field against rejecting NaN."""
+
+    failures = []
+    checked_paths = set()
+
+    for case_dir in sorted(EXAMPLES_DIR.iterdir()):
+        data = read_raw_json_file(case_dir / "inputs" / file_name)
+
+        for leaf_path, value in iter_leaf_paths(data):
+            if not is_nan_marker_candidate(value):
+                continue
+
+            label = format_leaf_path(leaf_path)
+            checked_paths.add(label)
+            changed = deepcopy(data)
+            set_nested_path(changed, leaf_path, "NaN")
+
+            try:
+                validator(changed)
+            except JsonValidationError as error:
+                failures.append(f"{case_dir.name} {label}: {error}")
+
+    assert checked_paths
+    assert not failures
