@@ -110,7 +110,10 @@
     "Segs": {
       "type": "array",
       "items": {
-        "type": "string"
+        "type": "string",
+        "not": {
+          "const": "NaN"
+        }
       }
     },
     "Target": {
@@ -121,7 +124,10 @@
             {
               "type": "array",
               "items": {
-                "type": "string"
+                "type": "string",
+                "not": {
+                  "const": "NaN"
+                }
               }
             },
             {
@@ -137,11 +143,11 @@
             {
               "type": "array",
               "items": {
-                "$ref": "#/$defs/optionalNumber"
+                "$ref": "#/$defs/numberOrExpression"
               }
             },
             {
-              "$ref": "#/$defs/optionalNumber"
+              "$ref": "#/$defs/numberOrExpression"
             }
           ]
         }
@@ -155,13 +161,19 @@
     "TypeBeg": {
       "type": "array",
       "items": {
-        "type": "string"
+        "type": "string",
+        "not": {
+          "const": "NaN"
+        }
       }
     },
     "TypeEnd": {
       "type": "array",
       "items": {
-        "type": "string"
+        "type": "string",
+        "not": {
+          "const": "NaN"
+        }
       }
     },
     "VelBeg": {

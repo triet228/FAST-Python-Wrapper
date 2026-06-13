@@ -234,7 +234,7 @@
               ]
             },
             "Range": {
-              "$ref": "#/$defs/optionalNumber"
+              "$ref": "#/$defs/numberOrExpression"
             },
             "RCMax": {
               "$ref": "#/$defs/optionalNumber"
@@ -251,7 +251,10 @@
                       "$ref": "#/$defs/optionalNumber"
                     },
                     "Type": {
-                      "type": "string"
+                      "type": "string",
+                      "not": {
+                        "const": "NaN"
+                      }
                     }
                   },
                   "additionalProperties": false
@@ -637,9 +640,15 @@
                   "type": "object",
                   "properties": {
                     "Type": {
-                      "type": "string"
+                      "type": "string",
+                      "not": {
+                        "const": "NaN"
+                      }
                     }
                   },
+                  "required": [
+                    "Type"
+                  ],
                   "additionalProperties": false
                 },
                 {
@@ -814,7 +823,7 @@
               "$ref": "#/$defs/optionalNumber"
             },
             "MaxPax": {
-              "$ref": "#/$defs/optionalNumber"
+              "$ref": "#/$defs/numberOrExpression"
             }
           },
           "additionalProperties": false,

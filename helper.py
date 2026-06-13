@@ -1408,16 +1408,8 @@ def validate_aircraft_json(data):
     )
 
     require_json_string(data, ["Specs", "TLAR", "Class"], "InputAircraft.json")
-    require_json_number_or_nan(
-        data,
-        ["Specs", "TLAR", "MaxPax"],
-        "InputAircraft.json",
-    )
-    require_json_number_or_nan(
-        data,
-        ["Specs", "Performance", "Range"],
-        "InputAircraft.json",
-    )
+    require_json_number(data, ["Specs", "TLAR", "MaxPax"], "InputAircraft.json")
+    require_json_number(data, ["Specs", "Performance", "Range"], "InputAircraft.json")
     require_json_number_or_nan(
         data,
         ["Specs", "Weight", "MTOW"],

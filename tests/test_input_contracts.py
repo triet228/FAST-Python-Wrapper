@@ -19,6 +19,25 @@ from tests.helpers import PROJECT_ROOT
 
 DEFAULT_INPUT_DIR = PROJECT_ROOT / "examples" / "CeRAS" / "inputs"
 EXAMPLES_DIR = PROJECT_ROOT / "examples"
+REQUIRED_NAN_REJECT_PATHS = {
+    "InputAircraft.json": {
+        "Specs.Performance.Range",
+        "Specs.Performance.Vels.Type",
+        "Specs.Propulsion.PropArch",
+        "Specs.Propulsion.PropArch.Type",
+        "Specs.TLAR.Class",
+        "Specs.TLAR.MaxPax",
+    },
+    "Mission.json": {
+        "Segs[]",
+        "Target.Type",
+        "Target.Type[]",
+        "Target.Valu",
+        "Target.Valu[]",
+        "TypeBeg[]",
+        "TypeEnd[]",
+    },
+}
 
 
 def iter_leaf_paths(value, path=()):
@@ -63,7 +82,7 @@ def format_leaf_path(path):
 
 
 def is_nan_marker_candidate(value):
-    """Return True when a FAST input scalar should allow the NaN marker."""
+    """Return True when a scalar uses a type that may carry a NaN marker."""
 
     if value == "NaN":
         return True
@@ -204,27 +223,37 @@ def test_mission_contract_rejects_missing_field():
     ],
 )
 def test_fast_input_nan_marker_candidates_accept_nan(file_name, validator):
-    """Guard every numeric-style FAST input field against rejecting NaN."""
+    """Guard required and optional FAST input NaN marker behavior."""
 
-    failures = []
+    unexpected_accepts = []
+    unexpected_rejects = []
     checked_paths = set()
+    required_reject_paths = REQUIRED_NAN_REJECT_PATHS[file_name]
 
     for case_dir in sorted(EXAMPLES_DIR.iterdir()):
         data = read_raw_json_file(case_dir / "inputs" / file_name)
 
         for leaf_path, value in iter_leaf_paths(data):
-            if not is_nan_marker_candidate(value):
+            label = format_leaf_path(leaf_path)
+
+            if label not in required_reject_paths and not is_nan_marker_candidate(value):
                 continue
 
-            label = format_leaf_path(leaf_path)
-            checked_paths.add(label)
             changed = deepcopy(data)
             set_nested_path(changed, leaf_path, "NaN")
 
             try:
                 validator(changed)
             except JsonValidationError as error:
-                failures.append(f"{case_dir.name} {label}: {error}")
+                if label not in required_reject_paths:
+                    unexpected_rejects.append(f"{case_dir.name} {label}: {error}")
+            else:
+                if label in required_reject_paths:
+                    unexpected_accepts.append(f"{case_dir.name} {label}")
+
+            checked_paths.add(label)
 
     assert checked_paths
-    assert not failures
+    assert required_reject_paths <= checked_paths
+    assert not unexpected_accepts
+    assert not unexpected_rejects
