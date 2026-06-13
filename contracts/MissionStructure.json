@@ -141,7 +141,7 @@
               }
             },
             {
-              "$ref": "#/$defs/numberOrExpression"
+              "$ref": "#/$defs/optionalNumber"
             }
           ]
         }
