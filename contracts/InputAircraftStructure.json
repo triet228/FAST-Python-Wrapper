@@ -234,7 +234,7 @@
               ]
             },
             "Range": {
-              "$ref": "#/$defs/numberOrExpression"
+              "$ref": "#/$defs/optionalNumber"
             },
             "RCMax": {
               "$ref": "#/$defs/optionalNumber"
