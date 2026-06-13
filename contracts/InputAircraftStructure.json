@@ -814,7 +814,7 @@
               "$ref": "#/$defs/optionalNumber"
             },
             "MaxPax": {
-              "$ref": "#/$defs/numberOrExpression"
+              "$ref": "#/$defs/optionalNumber"
             }
           },
           "additionalProperties": false,
