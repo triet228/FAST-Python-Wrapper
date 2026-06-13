@@ -134,7 +134,7 @@
           ]
         },
         "Offtake": {
-          "$ref": "#/$defs/optionalNumber"
+          "$ref": "#/$defs/numberOrExpression"
         },
         "Plotting": {
           "$ref": "#/$defs/optionalNumber"
@@ -168,13 +168,13 @@
                           "$ref": "#/$defs/optionalNumber"
                         },
                         "ClbCF": {
-                          "$ref": "#/$defs/optionalNumber"
+                          "$ref": "#/$defs/numberOrExpression"
                         },
                         "Crs": {
                           "$ref": "#/$defs/optionalNumber"
                         },
                         "CrsCF": {
-                          "$ref": "#/$defs/optionalNumber"
+                          "$ref": "#/$defs/numberOrExpression"
                         },
                         "Des": {
                           "$ref": "#/$defs/optionalNumber"
@@ -442,7 +442,7 @@
                       "$ref": "#/$defs/optionalNumber"
                     },
                     "BPR": {
-                      "$ref": "#/$defs/optionalNumber"
+                      "$ref": "#/$defs/numberOrExpression"
                     },
                     "Cff1": {
                       "$ref": "#/$defs/optionalNumber"
@@ -462,13 +462,13 @@
                           "type": "object",
                           "properties": {
                             "Cooling": {
-                              "$ref": "#/$defs/optionalNumber"
+                              "$ref": "#/$defs/numberOrExpression"
                             },
                             "Leakage": {
-                              "$ref": "#/$defs/optionalNumber"
+                              "$ref": "#/$defs/numberOrExpression"
                             },
                             "PaxBleed": {
-                              "$ref": "#/$defs/optionalNumber"
+                              "$ref": "#/$defs/numberOrExpression"
                             }
                           },
                           "additionalProperties": false
@@ -487,25 +487,25 @@
                           "type": "object",
                           "properties": {
                             "BypassNozzle": {
-                              "$ref": "#/$defs/optionalNumber"
+                              "$ref": "#/$defs/numberOrExpression"
                             },
                             "Combustor": {
-                              "$ref": "#/$defs/optionalNumber"
+                              "$ref": "#/$defs/numberOrExpression"
                             },
                             "Compressors": {
-                              "$ref": "#/$defs/optionalNumber"
+                              "$ref": "#/$defs/numberOrExpression"
                             },
                             "CoreNozzle": {
-                              "$ref": "#/$defs/optionalNumber"
+                              "$ref": "#/$defs/numberOrExpression"
                             },
                             "Diffusers": {
-                              "$ref": "#/$defs/optionalNumber"
+                              "$ref": "#/$defs/numberOrExpression"
                             },
                             "Fan": {
-                              "$ref": "#/$defs/optionalNumber"
+                              "$ref": "#/$defs/numberOrExpression"
                             },
                             "Inlet": {
-                              "$ref": "#/$defs/optionalNumber"
+                              "$ref": "#/$defs/numberOrExpression"
                             },
                             "Mixing": {
                               "$ref": "#/$defs/optionalNumber"
@@ -514,7 +514,7 @@
                               "$ref": "#/$defs/optionalNumber"
                             },
                             "Turbines": {
-                              "$ref": "#/$defs/optionalNumber"
+                              "$ref": "#/$defs/numberOrExpression"
                             }
                           },
                           "additionalProperties": false
@@ -525,13 +525,13 @@
                       ]
                     },
                     "FanBoosters": {
-                      "$ref": "#/$defs/optionalBoolean"
+                      "type": "boolean"
                     },
                     "FanGearRatio": {
                       "$ref": "#/$defs/optionalNumber"
                     },
                     "FPR": {
-                      "$ref": "#/$defs/optionalNumber"
+                      "$ref": "#/$defs/numberOrExpression"
                     },
                     "HEcoeff": {
                       "$ref": "#/$defs/optionalNumber"
@@ -543,13 +543,13 @@
                       "$ref": "#/$defs/optionalNumber"
                     },
                     "NoSpools": {
-                      "$ref": "#/$defs/optionalNumber"
+                      "$ref": "#/$defs/numberOrExpression"
                     },
                     "NPR": {
                       "$ref": "#/$defs/optionalNumber"
                     },
                     "OPR": {
-                      "$ref": "#/$defs/optionalNumber"
+                      "$ref": "#/$defs/numberOrExpression"
                     },
                     "PerElec": {
                       "$ref": "#/$defs/optionalNumber"
@@ -565,7 +565,7 @@
                             "_matlab_row": {
                               "type": "array",
                               "items": {
-                                "$ref": "#/$defs/optionalNumber"
+                                "$ref": "#/$defs/numberOrExpression"
                               }
                             }
                           },
@@ -599,7 +599,7 @@
                       ]
                     },
                     "Tt4Max": {
-                      "$ref": "#/$defs/optionalNumber"
+                      "$ref": "#/$defs/numberOrExpression"
                     }
                   },
                   "additionalProperties": false
@@ -673,7 +673,7 @@
                               {
                                 "type": "array",
                                 "items": {
-                                  "$ref": "#/$defs/optionalNumber"
+                                  "$ref": "#/$defs/numberOrExpression"
                                 }
                               },
                               {
@@ -688,10 +688,10 @@
                       ]
                     },
                     "OperUps": {
-                      "$ref": "#/$defs/optionalMatlabExpression"
+                      "$ref": "#/$defs/matlabExpression"
                     },
                     "OperDwn": {
-                      "$ref": "#/$defs/optionalMatlabExpression"
+                      "$ref": "#/$defs/matlabExpression"
                     },
                     "EtaUps": {
                       "anyOf": [
@@ -740,7 +740,7 @@
                       ]
                     },
                     "SrcType": {
-                      "$ref": "#/$defs/optionalNumber"
+                      "$ref": "#/$defs/numberOrExpression"
                     },
                     "TrnType": {
                       "anyOf": [
@@ -750,7 +750,7 @@
                             "_matlab_row": {
                               "type": "array",
                               "items": {
-                                "$ref": "#/$defs/optionalNumber"
+                                "$ref": "#/$defs/numberOrExpression"
                               }
                             }
                           },

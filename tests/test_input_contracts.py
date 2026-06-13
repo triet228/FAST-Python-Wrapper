@@ -21,14 +21,41 @@ DEFAULT_INPUT_DIR = PROJECT_ROOT / "examples" / "CeRAS" / "inputs"
 EXAMPLES_DIR = PROJECT_ROOT / "examples"
 REQUIRED_NAN_REJECT_PATHS = {
     "InputAircraft.json": {
+        "Settings.Offtake",
+        "Specs.Aero.L_D.ClbCF",
+        "Specs.Aero.L_D.CrsCF",
         "Specs.Performance.Range",
         "Specs.Performance.Vels.Type",
+        "Specs.Propulsion.Engine.BPR",
+        "Specs.Propulsion.Engine.CoreFlow.Cooling",
+        "Specs.Propulsion.Engine.CoreFlow.Leakage",
+        "Specs.Propulsion.Engine.CoreFlow.PaxBleed",
+        "Specs.Propulsion.Engine.EtaPoly.BypassNozzle",
+        "Specs.Propulsion.Engine.EtaPoly.Combustor",
+        "Specs.Propulsion.Engine.EtaPoly.Compressors",
+        "Specs.Propulsion.Engine.EtaPoly.CoreNozzle",
+        "Specs.Propulsion.Engine.EtaPoly.Diffusers",
+        "Specs.Propulsion.Engine.EtaPoly.Fan",
+        "Specs.Propulsion.Engine.EtaPoly.Inlet",
+        "Specs.Propulsion.Engine.EtaPoly.Turbines",
+        "Specs.Propulsion.Engine.FPR",
+        "Specs.Propulsion.Engine.FanBoosters",
+        "Specs.Propulsion.Engine.NoSpools",
+        "Specs.Propulsion.Engine.OPR",
+        "Specs.Propulsion.Engine.RPMs._matlab_row[]",
+        "Specs.Propulsion.Engine.Tt4Max",
         "Specs.Propulsion.PropArch",
         "Specs.Propulsion.PropArch.Type",
+        "Specs.Propulsion.PropArchGraph.Arch[][]",
+        "Specs.Propulsion.PropArchGraph.OperDwn",
+        "Specs.Propulsion.PropArchGraph.OperUps",
+        "Specs.Propulsion.PropArchGraph.SrcType",
+        "Specs.Propulsion.PropArchGraph.TrnType._matlab_row[]",
         "Specs.TLAR.Class",
         "Specs.TLAR.MaxPax",
     },
     "Mission.json": {
+        "ID[]",
         "Segs[]",
         "Target.Type",
         "Target.Type[]",
@@ -36,12 +63,17 @@ REQUIRED_NAN_REJECT_PATHS = {
         "Target.Valu[]",
         "TypeBeg[]",
         "TypeEnd[]",
+        "VelEnd[]",
     },
 }
 
 
 def iter_leaf_paths(value, path=()):
     """Yield every scalar path in a nested JSON-compatible value."""
+
+    if isinstance(value, dict) and set(value) == {"_matlab_expression"}:
+        yield path, value
+        return
 
     if isinstance(value, dict):
         for key, item in value.items():
