@@ -338,9 +338,11 @@ def assert_fast_model_wrapper_matches_saved_output(
         pytest.skip(f"examples path not found: {examples_path}")
 
     with FastWrapper(fast_path) as fast:
-        output_aircraft = fast.run(input_aircraft=aircraft)
+        result = fast.run(input_aircraft=aircraft)
 
-    actual = build_json_data(output_aircraft)
+    assert result["status"] == "Yes", f"{name} FAST run failed:\n{result['log']}"
+
+    actual = build_json_data(result["output"])
     expected = read_raw_json_file(examples_path / saved)
     failures, compared = compare_json_value(actual, expected)
 

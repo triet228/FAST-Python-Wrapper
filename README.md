@@ -50,7 +50,7 @@ If this gives error, you will need to debug this before continue. If this prints
 
 ## Python Dict API
 
-Use the wrapper with an in-memory `InputAircraft` dictionary. `FastWrapper.run()` returns the `OutputAircraft` dictionary and does not write JSON files.
+Use the wrapper with an in-memory `InputAircraft` dictionary. `FastWrapper.run()` does not write JSON files; it returns a Python dictionary with `status`, `log`, and `output`.
 
 ```python
 from wrapper import FastWrapper
@@ -67,7 +67,12 @@ input_aircraft = {
 }
 
 with FastWrapper(FAST_DIR) as fast:
-    output_aircraft = fast.run(input_aircraft)
+    result = fast.run(input_aircraft)
+
+if result["status"] == "Yes":
+    output_aircraft = result["output"]
+else:
+    print(result["log"])
 ```
 
 For a one-shot call:
@@ -75,7 +80,7 @@ For a one-shot call:
 ```python
 from wrapper import run_fast
 
-output_aircraft = run_fast(input_aircraft, FAST_DIR)
+result = run_fast(input_aircraft, FAST_DIR)
 ```
 
 ## Example JSON Loader
@@ -87,7 +92,7 @@ from helper import load_input_aircraft_json
 from main import main
 
 input_aircraft = load_input_aircraft_json("examples/CeRAS/inputs")
-output_aircraft = main(input_aircraft, FAST_DIR)
+result = main(input_aircraft, FAST_DIR)
 ```
 
 Or edit the input and FAST paths at the bottom of `main.py`, then run:

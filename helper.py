@@ -79,9 +79,8 @@ def print_result(result):
     """Print a cleaned FAST command-window log.
 
     Inputs:
-        result: Metadata dictionary from FastWrapper.run_with_metadata(),
-            optionally containing a MATLAB command-window log under the "log"
-            key.
+        result: Dictionary returned by FastWrapper.run(), optionally
+            containing a MATLAB command-window log under the "log" key.
 
     Outputs:
         None. The cleaned log is printed only when it is non-empty.

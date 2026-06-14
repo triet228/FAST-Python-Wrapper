@@ -66,14 +66,15 @@ def test_wrapper_extracts_embedded_mission_profile():
     assert "Mission" not in aircraft
 
 
-def test_wrapper_run_returns_output_aircraft_dict():
-    """Keep FastWrapper.run as the direct dict-to-dict API."""
+def test_wrapper_run_returns_status_log_output_dict():
+    """Keep FastWrapper.run as the status/log/output API."""
 
     class FakeEngine:
         def __init__(self):
             self.workspace = {}
 
         def evalc(self, script, nargout=1):
+            self.workspace["fast_status"] = "Yes"
             self.workspace["fast_result"] = {
                 "Specs": {
                     "Weight": {
@@ -101,7 +102,38 @@ def test_wrapper_run_returns_output_aircraft_dict():
         },
     }
 
-    output_aircraft = wrapper.run(input_aircraft)
+    result = wrapper.run(input_aircraft)
 
-    assert output_aircraft["Specs"]["Weight"]["MTOW"] == 123.4567
-    assert "status" not in output_aircraft
+    assert result["status"] == "Yes"
+    assert result["log"] == "fake log"
+    assert result["output"]["Specs"]["Weight"]["MTOW"] == 123.4567
+
+
+def test_wrapper_run_reports_no_when_output_is_missing():
+    """Return a No status instead of assuming FAST produced OutputAircraft."""
+
+    class FakeEngine:
+        def __init__(self):
+            self.workspace = {}
+
+        def evalc(self, script, nargout=1):
+            self.workspace["fast_status"] = "No"
+            self.workspace["fast_result"] = {}
+            return "FAST did not converge"
+
+    wrapper = FastWrapper.__new__(FastWrapper)
+    wrapper.engine = FakeEngine()
+    input_aircraft = {
+        "Specs": {},
+        "Mission": {
+            "Profile": {},
+        },
+    }
+
+    result = wrapper.run(input_aircraft)
+
+    assert result == {
+        "status": "No",
+        "log": "FAST did not converge",
+        "output": {},
+    }

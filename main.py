@@ -39,7 +39,7 @@ def main(INPUT_AIRCRAFT_DICT, FAST_DIR):
         FAST_DIR: Local FAST checkout path containing Main.m.
 
     Outputs:
-        Python dictionary equivalent of FAST MATLAB OutputAircraft.
+        Dictionary containing status, MATLAB stdout log, and OutputAircraft.
 
     Side effects:
         Starts MATLAB Engine, runs FAST, populates module globals for
@@ -53,20 +53,29 @@ def main(INPUT_AIRCRAFT_DICT, FAST_DIR):
 
     # Start MATLAB, run FAST, and shut MATLAB down.
     with FastWrapper(FAST_DIR) as fast:
-        result = fast.run_with_metadata(input_aircraft=INPUT_AIRCRAFT)
+        result = fast.run(input_aircraft=INPUT_AIRCRAFT)
 
     # Populate the Python equivalent of MATLAB's OutputAircraft struct.
     OUTPUT_AIRCRAFT.clear()
-    OUTPUT_AIRCRAFT.update(result["output_aircraft"])
+    OUTPUT_AIRCRAFT.update(result["output"])
     OUTPUT_AIRCRAFT_STRUCTURE.clear()
-    OUTPUT_AIRCRAFT_STRUCTURE.update(
-        build_output_aircraft_structure(OUTPUT_AIRCRAFT)
-    )
+
+    if OUTPUT_AIRCRAFT:
+        OUTPUT_AIRCRAFT_STRUCTURE.update(
+            build_output_aircraft_structure(OUTPUT_AIRCRAFT)
+        )
 
     print(f"Status: {result['status']}")
-    print(f"MTOW: {result['mtow']:.6f} kg")
 
-    if PRINT_OUTPUT_AIRCRAFT_STRUCTURE:
+    if OUTPUT_AIRCRAFT:
+        mtow = OUTPUT_AIRCRAFT.get("Specs", {}).get("Weight", {}).get("MTOW")
+
+        if mtow is not None:
+            print(f"MTOW: {mtow:.6f} kg")
+    else:
+        print("OutputAircraft: not produced")
+
+    if PRINT_OUTPUT_AIRCRAFT_STRUCTURE and OUTPUT_AIRCRAFT_STRUCTURE:
         print()
         print(
             "OutputAircraft structure "
@@ -80,7 +89,7 @@ def main(INPUT_AIRCRAFT_DICT, FAST_DIR):
 
     print_result(result)
 
-    return OUTPUT_AIRCRAFT
+    return result
 
 
 if __name__ == "__main__":

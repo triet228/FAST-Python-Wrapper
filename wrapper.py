@@ -74,7 +74,7 @@ class FastWrapper:
         fast_path: Local FAST checkout path containing Main.m.
 
     Outputs:
-        run() returns the converted FAST OutputAircraft dictionary.
+        run() returns a dictionary with status, MATLAB stdout log, and output.
 
     Side effects:
         start() launches MATLAB, adds FAST to the MATLAB path, and stop() quits
@@ -125,47 +125,76 @@ class FastWrapper:
                 with Mission.Profile holding the mission profile fields.
 
         Outputs:
-            Python dictionary equivalent of FAST MATLAB OutputAircraft.
+            Dictionary containing:
+            - status: "Yes" when FAST returns OutputAircraft, otherwise "No".
+            - log: MATLAB stdout captured during the run.
+            - output: Python dictionary equivalent of FAST OutputAircraft, or
+                an empty dictionary when FAST does not produce one.
         """
-
-        result = self.run_with_metadata(input_aircraft)
-        return result["output_aircraft"]
-
-    def run_with_metadata(self, input_aircraft):
-        """Run FAST and return OutputAircraft plus runtime metadata."""
 
         self._require_engine()
 
-        # Convert Python dictionaries into MATLAB struct(...) literals. This is
-        # slower than passing raw MATLAB objects, but it keeps main.py editable
-        # with ordinary Python data and works without a separate schema layer.
-        aircraft = self._prepare_aircraft(input_aircraft)
-        mission = self._extract_mission_profile(aircraft)
-        aircraft_literal = self._to_matlab_literal(aircraft)
-        mission_literal = self._to_matlab_literal(mission)
+        try:
+            # Convert Python dictionaries into MATLAB struct(...) literals. This is
+            # slower than passing raw MATLAB objects, but it keeps main.py editable
+            # with ordinary Python data and works without a separate schema layer.
+            aircraft = self._prepare_aircraft(input_aircraft)
+            mission = self._extract_mission_profile(aircraft)
+            aircraft_literal = self._to_matlab_literal(aircraft)
+            mission_literal = self._to_matlab_literal(mission)
+        except Exception as error:
+            return self._build_run_result("No", str(error), {})
 
         # FAST wants mission_profile to be a function handle that accepts the
         # Aircraft struct and attaches the mission profile. The anonymous
         # function mirrors the behavior of FAST's package mission functions.
-        log = self.engine.evalc(
-            f"""
-            aircraft_spec = {aircraft_literal};
-            mission_profile = @(Aircraft) setfield(Aircraft, "Mission", "Profile", {mission_literal});
-            fast_result = Main(aircraft_spec, mission_profile);
-            """,
-            nargout=1,
-        )
+        try:
+            log = self.engine.evalc(
+                f"""
+                aircraft_spec = {aircraft_literal};
+                mission_profile = @(Aircraft) setfield(Aircraft, "Mission", "Profile", {mission_literal});
+                fast_result = struct();
+                fast_status = 'No';
+                try
+                    fast_result = Main(aircraft_spec, mission_profile);
+                    fast_status = 'Yes';
+                catch fast_exception
+                    disp(getReport(fast_exception, 'extended', 'hyperlinks', 'off'));
+                end
+                """,
+                nargout=1,
+            )
+        except Exception as error:
+            return self._build_run_result("No", str(error), {})
 
-        fast_result = self.engine.workspace["fast_result"]
-        aircraft = self._to_python_data(fast_result)
-        mtow = self._get_nested(fast_result, ["Specs", "Weight", "MTOW"])
+        fast_status = self._get_workspace_value("fast_status", "No")
+        fast_result = self._get_workspace_value("fast_result", {})
+        output = self._to_python_data(fast_result)
+
+        if not isinstance(output, dict) or not output:
+            return self._build_run_result("No", log, {})
+
+        if str(fast_status) != "Yes":
+            return self._build_run_result("No", log, output)
+
+        return self._build_run_result("Yes", log, output)
+
+    def _build_run_result(self, status, log, output):
+        """Return the public FAST run result dictionary."""
 
         return {
-            "status": "success",
-            "mtow": float(mtow),
-            "output_aircraft": aircraft,
+            "status": status,
             "log": log,
+            "output": output,
         }
+
+    def _get_workspace_value(self, key, default):
+        """Read a MATLAB workspace value, returning a default when absent."""
+
+        try:
+            return self.engine.workspace[key]
+        except Exception:
+            return default
 
     def __enter__(self):
         """Start MATLAB when entering a with-block."""
