@@ -6,7 +6,6 @@ from helper import (
     load_input_aircraft_json,
     print_output_aircraft_structure,
     print_result,
-    save_output_aircraft,
 )
 from wrapper import FastWrapper
 
@@ -28,45 +27,41 @@ PRINT_OUTPUT_AIRCRAFT_STRUCTURE = True
 PRINT_OUTPUT_AIRCRAFT_STRUCTURE_DEPTH = 3
 PRINT_OUTPUT_AIRCRAFT_STRUCTURE_ITEMS = 20
 
-# Runtime input loaded from the default example input JSON file.
-AIRCRAFT = {}
+# Runtime input supplied as a Python dictionary.
+INPUT_AIRCRAFT = {}
 
 
-def main(INPUT_DIR, OUTPUT_DIR, FAST_DIR):
-    """Run FAST from JSON inputs and save the converted OutputAircraft result.
+def main(INPUT_AIRCRAFT_DICT, FAST_DIR):
+    """Run FAST from a Python InputAircraft dictionary.
 
     Inputs:
-        INPUT_DIR: Directory containing InputAircraft.json.
-        OUTPUT_DIR: Directory where generated OutputAircraft files are written.
+        INPUT_AIRCRAFT_DICT: Python dictionary matching InputAircraftSchema.
         FAST_DIR: Local FAST checkout path containing Main.m.
 
     Outputs:
-        The result dictionary returned by FastWrapper.run().
+        Python dictionary equivalent of FAST MATLAB OutputAircraft.
 
     Side effects:
-        Starts MATLAB Engine, runs FAST, rewrites generated OutputAircraft.json
-        in OUTPUT_DIR, and prints status, MTOW, output structure, and FAST log
-        text.
+        Starts MATLAB Engine, runs FAST, populates module globals for
+        interactive inspection, and prints status, MTOW, output structure, and
+        FAST log text.
     """
 
-    global AIRCRAFT
+    global INPUT_AIRCRAFT
 
-    # The JSON file in INPUT_DIR is user-editable run input. It is validated
-    # before MATLAB starts so input mistakes fail quickly.
-    AIRCRAFT = load_input_aircraft_json(INPUT_DIR)
+    INPUT_AIRCRAFT = INPUT_AIRCRAFT_DICT
 
     # Start MATLAB, run FAST, and shut MATLAB down.
     with FastWrapper(FAST_DIR) as fast:
-        result = fast.run(aircraft=AIRCRAFT)
+        result = fast.run_with_metadata(input_aircraft=INPUT_AIRCRAFT)
 
-    # Populate the Python equivalent of MATLAB's saved OutputAircraft struct.
+    # Populate the Python equivalent of MATLAB's OutputAircraft struct.
     OUTPUT_AIRCRAFT.clear()
-    OUTPUT_AIRCRAFT.update(result["aircraft"])
+    OUTPUT_AIRCRAFT.update(result["output_aircraft"])
     OUTPUT_AIRCRAFT_STRUCTURE.clear()
     OUTPUT_AIRCRAFT_STRUCTURE.update(
         build_output_aircraft_structure(OUTPUT_AIRCRAFT)
     )
-    output_aircraft_path = save_output_aircraft(OUTPUT_AIRCRAFT, OUTPUT_DIR)
 
     print(f"Status: {result['status']}")
     print(f"MTOW: {result['mtow']:.6f} kg")
@@ -82,17 +77,16 @@ def main(INPUT_DIR, OUTPUT_DIR, FAST_DIR):
             max_depth=PRINT_OUTPUT_AIRCRAFT_STRUCTURE_DEPTH,
             max_items=PRINT_OUTPUT_AIRCRAFT_STRUCTURE_ITEMS,
         )
-        print(f"Output saved to {output_aircraft_path}")
 
     print_result(result)
 
-    return result
+    return OUTPUT_AIRCRAFT
 
 
 if __name__ == "__main__":
     ROOT_DIR = Path(__file__).resolve().parent
     INPUT_DIR = ROOT_DIR / "examples" / "CeRAS" / "inputs"
-    OUTPUT_DIR = ROOT_DIR / "examples" / "CeRAS" / "outputs"
     FAST_DIR = ROOT_DIR.parent / "FAST"
+    INPUT_AIRCRAFT_DICT = load_input_aircraft_json(INPUT_DIR)
 
-    main(INPUT_DIR, OUTPUT_DIR, FAST_DIR)
+    main(INPUT_AIRCRAFT_DICT, FAST_DIR)

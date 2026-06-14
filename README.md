@@ -5,9 +5,9 @@ Python wrapper for running [Future Aircraft Sizing Tool (FAST)](https://github.c
 ## Files
 
 - `wrapper.py`: core wrapper around MATLAB Engine and FAST.
-- `main.py`: direct script that runs FAST-Python_Wrapper
-- `examples/<Aircraft>/inputs/InputAircraft.json`: merged aircraft and mission input data.
-- `examples/<Aircraft>/outputs/`: aircraft output data.
+- `main.py`: direct script that runs FAST-Python_Wrapper from a Python dictionary.
+- `examples/<Aircraft>/inputs/InputAircraft.json`: optional merged aircraft and mission example input data.
+- `examples/<Aircraft>/outputs/`: optional saved aircraft output fixtures.
 - `contracts/InputAircraftSchema.json`: JSON Schema for merged input aircraft JSON.
 - `contracts/OutputAircraftSchema.json`: JSON Schema for output aircraft JSON.
 
@@ -48,16 +48,50 @@ If this gives error, you will need to debug this before continue. If this prints
 > Inside MATLAB, you can run `which matlab` to know where MATLAB is installed.
 
 
-## How to Run
+## Python Dict API
 
-Edit directories at the very end of `main.py`
+Use the wrapper with an in-memory `InputAircraft` dictionary. `FastWrapper.run()` returns the `OutputAircraft` dictionary and does not write JSON files.
+
 ```python
-INPUT_DIR = <Your input directory>
-OUTPUT_DIR = <Your output directory>
-FAST_DIR = <Your local FAST directory>
+from wrapper import FastWrapper
+
+input_aircraft = {
+    "Specs": {
+        # aircraft fields
+    },
+    "Mission": {
+        "Profile": {
+            # mission fields
+        },
+    },
+}
+
+with FastWrapper(FAST_DIR) as fast:
+    output_aircraft = fast.run(input_aircraft)
 ```
 
-Run `main.py`
+For a one-shot call:
+
+```python
+from wrapper import run_fast
+
+output_aircraft = run_fast(input_aircraft, FAST_DIR)
+```
+
+## Example JSON Loader
+
+The JSON files in `examples/` are fixtures and templates, not required runtime I/O. To run one of them manually:
+
+```python
+from helper import load_input_aircraft_json
+from main import main
+
+input_aircraft = load_input_aircraft_json("examples/CeRAS/inputs")
+output_aircraft = main(input_aircraft, FAST_DIR)
+```
+
+Or edit the input and FAST paths at the bottom of `main.py`, then run:
+
 ```bash
 python main.py
 ```

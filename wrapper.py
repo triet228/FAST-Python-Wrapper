@@ -60,6 +60,13 @@ def matlab_expr(value):
     return MatlabExpression(value)
 
 
+def run_fast(input_aircraft, fast_path):
+    """Run FAST once from a Python InputAircraft dictionary."""
+
+    with FastWrapper(fast_path) as fast:
+        return fast.run(input_aircraft)
+
+
 class FastWrapper:
     """Run FAST through MATLAB Engine using Python-defined inputs.
 
@@ -67,8 +74,7 @@ class FastWrapper:
         fast_path: Local FAST checkout path containing Main.m.
 
     Outputs:
-        run() returns a dictionary with status, mtow, converted aircraft data,
-        and the captured MATLAB command-window log.
+        run() returns the converted FAST OutputAircraft dictionary.
 
     Side effects:
         start() launches MATLAB, adds FAST to the MATLAB path, and stop() quits
@@ -111,27 +117,29 @@ class FastWrapper:
             self.engine.quit()
             self.engine = None
 
-    def run(self, aircraft):
-        """Run FAST with one Python dictionary containing aircraft and mission input.
+    def run(self, input_aircraft):
+        """Run FAST from a Python InputAircraft dictionary.
 
         Inputs:
-            aircraft: Nested dictionary matching the FAST Aircraft structure,
+            input_aircraft: Nested dictionary matching the FAST Aircraft structure,
                 with Mission.Profile holding the mission profile fields.
 
         Outputs:
-            Dictionary containing:
-            - status: "success" when Main.m completes.
-            - mtow: maximum takeoff weight in kg from FAST output.
-            - aircraft: FAST output Aircraft structure converted to Python.
-            - log: MATLAB command-window text captured during the run.
+            Python dictionary equivalent of FAST MATLAB OutputAircraft.
         """
+
+        result = self.run_with_metadata(input_aircraft)
+        return result["output_aircraft"]
+
+    def run_with_metadata(self, input_aircraft):
+        """Run FAST and return OutputAircraft plus runtime metadata."""
 
         self._require_engine()
 
         # Convert Python dictionaries into MATLAB struct(...) literals. This is
         # slower than passing raw MATLAB objects, but it keeps main.py editable
         # with ordinary Python data and works without a separate schema layer.
-        aircraft = self._prepare_aircraft(aircraft)
+        aircraft = self._prepare_aircraft(input_aircraft)
         mission = self._extract_mission_profile(aircraft)
         aircraft_literal = self._to_matlab_literal(aircraft)
         mission_literal = self._to_matlab_literal(mission)
@@ -155,7 +163,7 @@ class FastWrapper:
         return {
             "status": "success",
             "mtow": float(mtow),
-            "aircraft": aircraft,
+            "output_aircraft": aircraft,
             "log": log,
         }
 

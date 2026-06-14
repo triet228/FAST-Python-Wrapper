@@ -64,3 +64,44 @@ def test_wrapper_extracts_embedded_mission_profile():
 
     assert mission == {"Segs": []}
     assert "Mission" not in aircraft
+
+
+def test_wrapper_run_returns_output_aircraft_dict():
+    """Keep FastWrapper.run as the direct dict-to-dict API."""
+
+    class FakeEngine:
+        def __init__(self):
+            self.workspace = {}
+
+        def evalc(self, script, nargout=1):
+            self.workspace["fast_result"] = {
+                "Specs": {
+                    "Weight": {
+                        "MTOW": 123.4567,
+                    },
+                },
+                "Mission": {
+                    "Profile": {},
+                },
+            }
+            return "fake log"
+
+    wrapper = FastWrapper.__new__(FastWrapper)
+    wrapper.engine = FakeEngine()
+    input_aircraft = {
+        "Specs": {
+            "Propulsion": {
+                "PropArch": {
+                    "Type": "C",
+                },
+            },
+        },
+        "Mission": {
+            "Profile": {},
+        },
+    }
+
+    output_aircraft = wrapper.run(input_aircraft)
+
+    assert output_aircraft["Specs"]["Weight"]["MTOW"] == 123.4567
+    assert "status" not in output_aircraft

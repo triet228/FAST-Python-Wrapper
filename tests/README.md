@@ -4,9 +4,9 @@ These tests verify that the FAST Python Wrapper stays aligned with MATLAB FAST. 
 
 ## Test Algorithms
 
-1. Use FAST Python Wrapper to run merged aircraft and mission dictionaries loaded from `examples/*/inputs/InputAircraft.json`.
-2. Load the output aircrafts saved in `examples/*/outputs/OutputAircraft.json`.
-3. Recursively compare the FAST Python Wrapper outputs against the saved `OutputAircraft.json`.
+1. Load merged aircraft and mission dictionaries from `examples/*/inputs/InputAircraft.json`.
+2. Run FAST Python Wrapper with those in-memory dictionaries.
+3. Recursively compare the returned `OutputAircraft` dictionaries against the saved `OutputAircraft.json`.
 
 These tests compare all comparable fields in `OutputAircraft.json`, including
 nested structs, numeric arrays, logical values, strings, cells, and function

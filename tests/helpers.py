@@ -330,18 +330,17 @@ def assert_fast_model_wrapper_matches_saved_output(
         from the saved FAST output JSON field.
 
     Assumptions:
-        The JSON fixture files mirror the user-facing path in main.py: merged
-        aircraft and mission data goes into the wrapper, FAST runs, and the
-        final aircraft is checked recursively.
+        The JSON fixture files provide merged aircraft and mission data for the
+        wrapper, FAST runs, and the final aircraft is checked recursively.
     """
 
     if not examples_path.exists():
         pytest.skip(f"examples path not found: {examples_path}")
 
     with FastWrapper(fast_path) as fast:
-        result = fast.run(aircraft=aircraft)
+        output_aircraft = fast.run(input_aircraft=aircraft)
 
-    actual = build_json_data(result["aircraft"])
+    actual = build_json_data(output_aircraft)
     expected = read_raw_json_file(examples_path / saved)
     failures, compared = compare_json_value(actual, expected)
 
