@@ -50,10 +50,10 @@ If this gives error, you will need to debug this before continue. If this prints
 
 ## Python Dict API
 
-Use the wrapper with an in-memory `InputAircraft` dictionary. `FastWrapper.run()` does not write JSON files; it returns a Python dictionary with `status`, `log`, and `output`.
+Use the wrapper with an in-memory `InputAircraft` dictionary. `wrap()` does not write JSON files; it returns a Python dictionary with `status`, `log`, and `output`.
 
 ```python
-from wrapper import FastWrapper
+from wrapper import wrap
 
 input_aircraft = {
     "Specs": {
@@ -66,21 +66,12 @@ input_aircraft = {
     },
 }
 
-with FastWrapper(FAST_DIR) as fast:
-    result = fast.run(input_aircraft)
+result = wrap(input_aircraft, FAST_DIR)
 
 if result["status"] == "Yes":
     output_aircraft = result["output"]
 else:
     print(result["log"])
-```
-
-For a one-shot call:
-
-```python
-from wrapper import run_fast
-
-result = run_fast(input_aircraft, FAST_DIR)
 ```
 
 ## Example JSON Loader

@@ -24,7 +24,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from helper import build_json_data, load_json_data, read_raw_json_file
-from wrapper import FastWrapper
+from wrapper import wrap
 
 
 IGNORED_OUTPUT_PATHS = {
@@ -76,7 +76,7 @@ def load_example_input(examples_path, case_path):
         case_path: Case directory name, such as A320.
 
     Outputs:
-        Python data accepted by FastWrapper.run().
+        Python data accepted by wrap().
 
     Assumptions:
         These fixture files intentionally mirror historical FAST MATLAB input
@@ -102,7 +102,7 @@ def compare_json_value(actual, expected, path="Aircraft"):
     Assumptions:
         Numeric FAST output can vary slightly between MATLAB runs, so numbers
         are compared with the same tolerance used by the previous MATLAB
-        parity check. Machine-specific and wrapper-specific fields are ignored.
+        parity check. Machine-specific runtime fields are ignored.
     """
 
     if path in IGNORED_OUTPUT_PATHS:
@@ -211,8 +211,7 @@ def assert_fast_model_wrapper_matches_saved_output(
     if not examples_path.exists():
         pytest.skip(f"examples path not found: {examples_path}")
 
-    with FastWrapper(fast_path) as fast:
-        result = fast.run(input_aircraft=aircraft)
+    result = wrap(aircraft, fast_path)
 
     assert result["status"] == "Yes", f"{name} FAST run failed:\n{result['log']}"
 

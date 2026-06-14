@@ -13,7 +13,8 @@ from helper import (
     validate_aircraft_json,
 )
 from tests.helpers import PROJECT_ROOT
-from wrapper import FastWrapper
+import wrapper as wrapper_module
+from wrapper import wrap
 
 
 DEFAULT_INPUT_PATH = PROJECT_ROOT / "examples" / "CeRAS" / "InputAircraft.json"
@@ -47,31 +48,38 @@ def test_schema_rejects_legacy_nan_string_in_mission_profile():
         validate_aircraft_json(data)
 
 
-def test_wrapper_extracts_embedded_mission_profile():
-    """Pass FAST a mission profile sourced from InputAircraft.json."""
-
-    wrapper = FastWrapper.__new__(FastWrapper)
-    aircraft = {
-        "Specs": {},
-        "Mission": {
-            "Profile": {
-                "Segs": [],
-            },
-        },
-    }
-
-    mission = wrapper._extract_mission_profile(aircraft)
-
-    assert mission == {"Segs": []}
-    assert "Mission" not in aircraft
-
-
-def test_wrapper_run_returns_status_log_output_dict():
-    """Keep FastWrapper.run as the status/log/output API."""
+def test_wrap_requires_embedded_mission_profile(monkeypatch, tmp_path):
+    """Require mission data to be embedded in InputAircraft."""
 
     class FakeEngine:
         def __init__(self):
             self.workspace = {}
+
+        def evalc(self, script, nargout=1):
+            raise AssertionError("FAST should not run without Mission.Profile")
+
+        def quit(self):
+            pass
+
+    fast_path = tmp_path / "FAST"
+    fast_path.mkdir()
+    (fast_path / "Main.m").write_text("", encoding="utf-8")
+    monkeypatch.setattr(wrapper_module, "_start_matlab", lambda path: FakeEngine())
+
+    result = wrap({"Specs": {}}, fast_path)
+
+    assert result["status"] == "No"
+    assert "Mission.Profile" in result["log"]
+    assert result["output"] == {}
+
+
+def test_wrap_returns_status_log_output_dict(monkeypatch, tmp_path):
+    """Keep wrap() as the status/log/output API."""
+
+    class FakeEngine:
+        def __init__(self):
+            self.workspace = {}
+            self.quit_called = False
 
         def evalc(self, script, nargout=1):
             self.workspace["fast_status"] = "Yes"
@@ -87,8 +95,14 @@ def test_wrapper_run_returns_status_log_output_dict():
             }
             return "fake log"
 
-    wrapper = FastWrapper.__new__(FastWrapper)
-    wrapper.engine = FakeEngine()
+        def quit(self):
+            self.quit_called = True
+
+    fake_engine = FakeEngine()
+    fast_path = tmp_path / "FAST"
+    fast_path.mkdir()
+    (fast_path / "Main.m").write_text("", encoding="utf-8")
+    monkeypatch.setattr(wrapper_module, "_start_matlab", lambda path: fake_engine)
     input_aircraft = {
         "Specs": {
             "Propulsion": {
@@ -102,14 +116,15 @@ def test_wrapper_run_returns_status_log_output_dict():
         },
     }
 
-    result = wrapper.run(input_aircraft)
+    result = wrap(input_aircraft, fast_path)
 
     assert result["status"] == "Yes"
     assert result["log"] == "fake log"
     assert result["output"]["Specs"]["Weight"]["MTOW"] == 123.4567
+    assert fake_engine.quit_called
 
 
-def test_wrapper_run_reports_no_when_output_is_missing():
+def test_wrap_reports_no_when_output_is_missing(monkeypatch, tmp_path):
     """Return a No status instead of assuming FAST produced OutputAircraft."""
 
     class FakeEngine:
@@ -121,8 +136,13 @@ def test_wrapper_run_reports_no_when_output_is_missing():
             self.workspace["fast_result"] = {}
             return "FAST did not converge"
 
-    wrapper = FastWrapper.__new__(FastWrapper)
-    wrapper.engine = FakeEngine()
+        def quit(self):
+            pass
+
+    fast_path = tmp_path / "FAST"
+    fast_path.mkdir()
+    (fast_path / "Main.m").write_text("", encoding="utf-8")
+    monkeypatch.setattr(wrapper_module, "_start_matlab", lambda path: FakeEngine())
     input_aircraft = {
         "Specs": {},
         "Mission": {
@@ -130,7 +150,7 @@ def test_wrapper_run_reports_no_when_output_is_missing():
         },
     }
 
-    result = wrapper.run(input_aircraft)
+    result = wrap(input_aircraft, fast_path)
 
     assert result == {
         "status": "No",
@@ -139,8 +159,8 @@ def test_wrapper_run_reports_no_when_output_is_missing():
     }
 
 
-def test_wrapper_run_removes_matlab_specific_output_fields():
-    """Keep wrapper output focused on reusable aircraft data."""
+def test_wrap_removes_matlab_specific_output_fields(monkeypatch, tmp_path):
+    """Keep output focused on reusable aircraft data."""
 
     class FakeEngine:
         def __init__(self):
@@ -175,8 +195,13 @@ def test_wrapper_run_removes_matlab_specific_output_fields():
             }
             return "fake log"
 
-    wrapper = FastWrapper.__new__(FastWrapper)
-    wrapper.engine = FakeEngine()
+        def quit(self):
+            pass
+
+    fast_path = tmp_path / "FAST"
+    fast_path.mkdir()
+    (fast_path / "Main.m").write_text("", encoding="utf-8")
+    monkeypatch.setattr(wrapper_module, "_start_matlab", lambda path: FakeEngine())
     input_aircraft = {
         "Specs": {},
         "Mission": {
@@ -184,7 +209,7 @@ def test_wrapper_run_removes_matlab_specific_output_fields():
         },
     }
 
-    result = wrapper.run(input_aircraft)
+    result = wrap(input_aircraft, fast_path)
     output = result["output"]
 
     assert "Preset" not in output["Geometry"]

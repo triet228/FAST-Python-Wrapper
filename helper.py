@@ -29,7 +29,7 @@ def print_result(result):
     """Print a cleaned FAST command-window log.
 
     Inputs:
-        result: Dictionary returned by FastWrapper.run(), optionally
+        result: Dictionary returned by wrap(), optionally
             containing a MATLAB command-window log under the "log" key.
 
     Outputs:
@@ -68,7 +68,7 @@ def build_json_data(value):
     Assumptions:
         Input files can be rehydrated by load_json_data(). Unsupported
         MATLAB/Python objects fall back to a stable string representation so
-        output JSON does not contain wrapper-specific marker objects.
+        output JSON does not contain runtime-specific marker objects.
     """
 
     if isinstance(value, MatlabExpression):
@@ -141,13 +141,13 @@ def round_json_numbers(value):
 
 
 def load_json_data(value):
-    """Convert JSON FAST input data back into wrapper-ready Python data.
+    """Convert JSON FAST input data back into FAST-ready Python data.
 
     Inputs:
         value: Data loaded from InputAircraft.json.
 
     Outputs:
-        Python data accepted by FastWrapper.run(), including restored MATLAB
+        Python data accepted by wrap(), including restored MATLAB
         expressions, MATLAB row-vector markers, and NaN values.
 
     Assumptions:
@@ -1095,7 +1095,7 @@ def read_json_file(path, validator=None):
         validator: Optional validator function for the parsed JSON value.
 
     Outputs:
-        Wrapper-ready Python data.
+        FAST-ready Python data.
 
     Side effects:
         None.
@@ -1117,7 +1117,7 @@ def load_input_aircraft_json(input_dir=None):
             the default example directory.
 
     Outputs:
-        Aircraft dictionary ready for FastWrapper.run().
+        Aircraft dictionary ready for wrap().
 
     Assumptions:
         InputAircraft.json is a committed/template input file that users edit

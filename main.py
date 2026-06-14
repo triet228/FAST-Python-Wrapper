@@ -7,7 +7,7 @@ from helper import (
     print_output_aircraft_structure,
     print_result,
 )
-from wrapper import FastWrapper
+from wrapper import wrap
 
 
 # Python dictionary equivalent of FAST MATLAB OutputAircraft.
@@ -51,9 +51,7 @@ def main(INPUT_AIRCRAFT_DICT, FAST_DIR):
 
     INPUT_AIRCRAFT = INPUT_AIRCRAFT_DICT
 
-    # Start MATLAB, run FAST, and shut MATLAB down.
-    with FastWrapper(FAST_DIR) as fast:
-        result = fast.run(input_aircraft=INPUT_AIRCRAFT)
+    result = wrap(INPUT_AIRCRAFT, FAST_DIR)
 
     # Populate the Python equivalent of MATLAB's OutputAircraft struct.
     OUTPUT_AIRCRAFT.clear()
