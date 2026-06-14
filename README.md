@@ -6,6 +6,10 @@ Python wrapper for running [Future Aircraft Sizing Tool (FAST)](https://github.c
 
 - `wrapper.py`: core wrapper around MATLAB Engine and FAST.
 - `main.py`: direct script that runs FAST-Python_Wrapper from a Python dictionary.
+- `helper.py`: compatibility imports and example input loader.
+- `json_io.py`: JSON serialization, parsing, marker conversion, and log printing helpers.
+- `schema_contract.py`: JSON Schema inference and validation helpers.
+- `output_structure.py`: OutputAircraft structure generation and console preview helpers.
 - `examples/<Aircraft>/InputAircraft.json`: optional merged aircraft and mission example input data.
 - `examples/<Aircraft>/OutputAircraft.json`: optional saved aircraft output fixture.
 - `schema/InputAircraftSchema.json`: JSON Schema for merged input aircraft JSON.
