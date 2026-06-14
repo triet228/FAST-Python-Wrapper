@@ -23,7 +23,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from core.helper import build_json_data, is_json_number, load_json_data, read_raw_json_file
-from core.wrapper import wrap
+from main import FAST_Python_Wrapper
 
 
 IGNORED_OUTPUT_PATHS = {
@@ -92,7 +92,7 @@ def load_example_input(examples_path, case_path):
         case_path: Case directory name, such as A320.
 
     Outputs:
-        Python data accepted by wrap().
+        Python data accepted by FAST_Python_Wrapper().
 
     Assumptions:
         These fixture files intentionally mirror historical FAST MATLAB input
@@ -108,7 +108,7 @@ def compare_json_value(actual, expected, path="Aircraft"):
     """Return recursive JSON comparison failures.
 
     Inputs:
-        actual: JSON-safe output from wrap().
+        actual: JSON-safe output from FAST_Python_Wrapper().
         expected: Saved JSON fixture output.
         path: Dotted path used in failure messages.
 
@@ -195,7 +195,7 @@ def assert_fast_model_wrapper_matches_saved_output(
     fast_path,
     examples_path,
 ):
-    """Run one JSON fixture case through wrap() and compare JSON output.
+    """Run one JSON fixture case through FAST_Python_Wrapper() and compare JSON output.
 
     Inputs:
         name: Aircraft case name used in failure output.
@@ -218,7 +218,7 @@ def assert_fast_model_wrapper_matches_saved_output(
     if not examples_path.exists():
         pytest.skip(f"examples path not found: {examples_path}")
 
-    result = wrap(aircraft, fast_path)
+    result = FAST_Python_Wrapper(aircraft, fast_path)
 
     assert result["status"] == "Yes", f"{name} FAST run failed:\n{result['log']}"
 

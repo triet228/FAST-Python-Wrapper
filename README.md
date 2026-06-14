@@ -4,8 +4,7 @@ Python wrapper for running [Future Aircraft Sizing Tool (FAST)](https://github.c
 
 ## Files
 
-- `core/wrapper.py`: core wrapper around MATLAB Engine and FAST.
-- `main.py`: direct script that runs FAST-Python_Wrapper from a Python dictionary.
+- `main.py`: public `FAST_Python_Wrapper()` API around MATLAB Engine and FAST.
 - `core/helper.py`: compatibility imports and example input loader.
 - `core/json_io.py`: JSON serialization, parsing, marker conversion, and log printing helpers.
 - `core/schema_contract.py`: JSON Schema inference and validation helpers.
@@ -54,10 +53,10 @@ If this gives error, you will need to debug this before continue. If this prints
 
 ## Python Dict API
 
-Use the wrapper with an in-memory `InputAircraft` dictionary. `wrap()` does not write JSON files; it returns a Python dictionary with `status`, `log`, and `output`.
+Use the wrapper with an in-memory `InputAircraft` dictionary. `FAST_Python_Wrapper()` does not write JSON files; it returns a Python dictionary with `status`, `log`, and `output`.
 
 ```python
-from core.wrapper import wrap
+from main import FAST_Python_Wrapper
 
 input_aircraft = {
     "Specs": {
@@ -70,7 +69,7 @@ input_aircraft = {
     },
 }
 
-result = wrap(input_aircraft, FAST_DIR)
+result = FAST_Python_Wrapper(input_aircraft, FAST_DIR)
 
 if result["status"] == "Yes":
     output_aircraft = result["output"]
@@ -84,16 +83,10 @@ The JSON files in `examples/` are fixtures and templates, not required runtime I
 
 ```python
 from core.helper import load_input_aircraft_json
-from main import main
+from main import FAST_Python_Wrapper
 
 input_aircraft = load_input_aircraft_json("examples/CeRAS")
-result = main(input_aircraft, FAST_DIR)
-```
-
-Or edit the input and FAST paths at the bottom of `main.py`, then run:
-
-```bash
-python main.py
+result = FAST_Python_Wrapper(input_aircraft, FAST_DIR)
 ```
 
 

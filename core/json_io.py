@@ -24,7 +24,7 @@ def print_result(result):
     """Print a cleaned FAST command-window log.
 
     Inputs:
-        result: Dictionary returned by wrap(), optionally
+        result: Dictionary returned by FAST_Python_Wrapper(), optionally
             containing a MATLAB command-window log under the "log" key.
 
     Outputs:
@@ -119,7 +119,7 @@ def load_json_data(value):
         value: Data loaded from InputAircraft.json.
 
     Outputs:
-        Python data accepted by wrap(), including restored MATLAB marker
+        Python data accepted by FAST_Python_Wrapper(), including restored MATLAB marker
         dictionaries and NaN values.
 
     Assumptions:

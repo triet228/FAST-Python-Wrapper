@@ -13,15 +13,15 @@ from core.helper import (
     validate_aircraft_json,
 )
 from tests.helpers import PROJECT_ROOT
-import core.wrapper as wrapper_module
-from core.wrapper import wrap
+import main as wrapper_module
+from main import FAST_Python_Wrapper
 
 
 DEFAULT_INPUT_PATH = PROJECT_ROOT / "examples" / "CeRAS" / "InputAircraft.json"
 
 
 def fake_engine(evalc, workspace=None, quit=None):
-    """Return the small MATLAB Engine surface wrap() needs for unit tests."""
+    """Return the small MATLAB Engine surface the wrapper needs for unit tests."""
 
     def engine():
         pass
@@ -60,7 +60,7 @@ def test_schema_rejects_legacy_nan_string_in_mission_profile():
         validate_aircraft_json(data)
 
 
-def test_wrap_requires_embedded_mission_profile(monkeypatch, tmp_path):
+def test_wrapper_requires_embedded_mission_profile(monkeypatch, tmp_path):
     """Require Mission.Profile before generating MATLAB FAST source."""
 
     def fail_evalc(script, nargout=1):
@@ -75,15 +75,15 @@ def test_wrap_requires_embedded_mission_profile(monkeypatch, tmp_path):
         lambda path: fake_engine(fail_evalc),
     )
 
-    result = wrap({"Specs": {}}, fast_path)
+    result = FAST_Python_Wrapper({"Specs": {}}, fast_path)
 
     assert result["status"] == "No"
     assert "Mission.Profile" in result["log"]
     assert result["output"] == {}
 
 
-def test_wrap_returns_status_log_output_dict(monkeypatch, tmp_path):
-    """Keep wrap() as the in-memory status/log/output API."""
+def test_wrapper_returns_status_log_output_dict(monkeypatch, tmp_path):
+    """Keep FAST_Python_Wrapper() as the in-memory status/log/output API."""
 
     workspace = {}
     quit_calls = []
@@ -120,7 +120,7 @@ def test_wrap_returns_status_log_output_dict(monkeypatch, tmp_path):
         },
     }
 
-    result = wrap(input_aircraft, fast_path)
+    result = FAST_Python_Wrapper(input_aircraft, fast_path)
 
     assert result["status"] == "Yes"
     assert result["log"] == "fake log"
@@ -128,7 +128,7 @@ def test_wrap_returns_status_log_output_dict(monkeypatch, tmp_path):
     assert quit_calls
 
 
-def test_wrap_reports_no_when_output_is_missing(monkeypatch, tmp_path):
+def test_wrapper_reports_no_when_output_is_missing(monkeypatch, tmp_path):
     """Return a No status instead of assuming FAST produced OutputAircraft."""
 
     workspace = {}
@@ -153,7 +153,7 @@ def test_wrap_reports_no_when_output_is_missing(monkeypatch, tmp_path):
         },
     }
 
-    result = wrap(input_aircraft, fast_path)
+    result = FAST_Python_Wrapper(input_aircraft, fast_path)
 
     assert result == {
         "status": "No",
@@ -162,7 +162,7 @@ def test_wrap_reports_no_when_output_is_missing(monkeypatch, tmp_path):
     }
 
 
-def test_wrap_keeps_only_supported_prop_arch_output(monkeypatch, tmp_path):
+def test_wrapper_keeps_only_supported_prop_arch_output(monkeypatch, tmp_path):
     """Collapse FAST internal PropArch output back to C, E, or TE."""
 
     workspace = {}
@@ -216,7 +216,7 @@ def test_wrap_keeps_only_supported_prop_arch_output(monkeypatch, tmp_path):
         },
     }
 
-    result = wrap(input_aircraft, fast_path)
+    result = FAST_Python_Wrapper(input_aircraft, fast_path)
     output = result["output"]
 
     assert "Preset" not in output["Geometry"]

@@ -58,7 +58,7 @@ def load_input_aircraft_json(input_dir=None):
             the default example directory.
 
     Outputs:
-        Aircraft dictionary ready for wrap().
+        Aircraft dictionary ready for FAST_Python_Wrapper().
 
     Assumptions:
         InputAircraft.json is a committed/template input file that users edit
@@ -75,7 +75,7 @@ def load_input_aircraft_json(input_dir=None):
     if not aircraft_json_path.exists():
         raise JsonValidationError(
             f"{aircraft_json_path} is required. Edit or restore this input file, "
-            "then rerun python main.py."
+            "then call FAST_Python_Wrapper()."
         )
 
     data = read_raw_json_file(aircraft_json_path)

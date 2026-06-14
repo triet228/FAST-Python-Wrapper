@@ -12,7 +12,7 @@ from .json_io import (
     read_raw_json_file,
     require_json_object,
 )
-from .wrapper import PROP_ARCH_TYPES
+from main import PROP_ARCH_TYPES
 
 
 def json_schema_matlab_expression():
