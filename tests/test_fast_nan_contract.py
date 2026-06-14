@@ -149,6 +149,10 @@ def test_wrapper_run_removes_matlab_specific_output_fields():
         def evalc(self, script, nargout=1):
             self.workspace["fast_status"] = "Yes"
             self.workspace["fast_result"] = {
+                "Geometry": {
+                    "Preset": "drop",
+                    "LengthSet": 1,
+                },
                 "Specs": {
                     "Propulsion": {
                         "PropArch": {
@@ -183,6 +187,8 @@ def test_wrapper_run_removes_matlab_specific_output_fields():
     result = wrapper.run(input_aircraft)
     output = result["output"]
 
+    assert "Preset" not in output["Geometry"]
+    assert output["Geometry"]["LengthSet"] == 1
     assert "OperUps" not in output["Specs"]["Propulsion"]["PropArch"]
     assert "OperDwn" not in output["Specs"]["Propulsion"]["PropArch"]
     assert "ProfileFxn" not in output["Mission"]

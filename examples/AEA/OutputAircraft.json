@@ -243,11 +243,7 @@
     "Converged": 1
   },
   "Geometry": {
-    "LengthSet": 40.7638,
-    "Preset": {
-      "_python_type": "object",
-      "_repr": "<matlab.object object>"
-    }
+    "LengthSet": 40.7638
   },
   "HistData": {
     "AC": {

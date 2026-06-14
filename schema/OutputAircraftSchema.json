@@ -8,28 +8,11 @@
       "properties": {
         "LengthSet": {
           "type": "number"
-        },
-        "Preset": {
-          "type": "object",
-          "properties": {
-            "_python_type": {
-              "type": "string"
-            },
-            "_repr": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "_python_type",
-            "_repr"
-          ],
-          "additionalProperties": false
         }
       },
       "additionalProperties": false,
       "required": [
-        "LengthSet",
-        "Preset"
+        "LengthSet"
       ]
     },
     "HistData": {

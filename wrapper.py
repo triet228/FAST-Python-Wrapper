@@ -8,6 +8,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent
 VALID_STRUCT_FIELD = re.compile(r"^[A-Za-z]\w*$")
 OUTPUT_FIELDS_TO_REMOVE = (
+    ("Geometry", "Preset"),
     ("Specs", "Propulsion", "PropArch", "OperUps"),
     ("Specs", "Propulsion", "PropArch", "OperDwn"),
     ("Mission", "ProfileFxn"),
