@@ -10,10 +10,9 @@ These tests verify that the FAST Python Wrapper stays aligned with MATLAB FAST. 
 
 These tests compare all comparable fields in `OutputAircraft.json`, including
 nested structs, numeric arrays, logical values, strings, cells, and function
-handle text. Two fields are intentionally excluded:
+handle text. One field is intentionally excluded:
 
-- `Aircraft.Mission.ProfileFxn`: a MATLAB specific component that is unrelated to whether  FAST Python Wrapper produced the same aircraft/mission result.
-- `Aircraft.Settings.Dir.Size`: FAST stores the local run directory, which is machine and repo location specific.
+- `Aircraft.Settings.Plotting`: FAST can mutate plotting state independently of the aircraft and mission result.
 
 ## How To Run Tests
 

@@ -1658,29 +1658,12 @@
             "VelBeg",
             "VelEnd"
           ]
-        },
-        "ProfileFxn": {
-          "type": "object",
-          "properties": {
-            "_python_type": {
-              "type": "string"
-            },
-            "_repr": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "_python_type",
-            "_repr"
-          ],
-          "additionalProperties": false
         }
       },
       "additionalProperties": false,
       "required": [
         "History",
-        "Profile",
-        "ProfileFxn"
+        "Profile"
       ]
     },
     "RegressionParams": {
@@ -1847,16 +1830,12 @@
         "Dir": {
           "type": "object",
           "properties": {
-            "Size": {
-              "type": "string"
-            },
             "Oper": {
               "type": "string"
             }
           },
           "additionalProperties": false,
           "required": [
-            "Size",
             "Oper"
           ]
         },
@@ -2497,38 +2476,6 @@
                   ],
                   "additionalProperties": false
                 },
-                "OperUps": {
-                  "type": "object",
-                  "properties": {
-                    "_python_type": {
-                      "type": "string"
-                    },
-                    "_repr": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "_python_type",
-                    "_repr"
-                  ],
-                  "additionalProperties": false
-                },
-                "OperDwn": {
-                  "type": "object",
-                  "properties": {
-                    "_python_type": {
-                      "type": "string"
-                    },
-                    "_repr": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "_python_type",
-                    "_repr"
-                  ],
-                  "additionalProperties": false
-                },
                 "EtaUps": {
                   "type": "object",
                   "properties": {
@@ -2604,8 +2551,6 @@
               "required": [
                 "Type",
                 "Arch",
-                "OperUps",
-                "OperDwn",
                 "EtaUps",
                 "EtaDwn",
                 "SrcType",

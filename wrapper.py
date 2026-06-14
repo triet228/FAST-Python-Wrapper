@@ -7,6 +7,12 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 VALID_STRUCT_FIELD = re.compile(r"^[A-Za-z]\w*$")
+OUTPUT_FIELDS_TO_REMOVE = (
+    ("Specs", "Propulsion", "PropArch", "OperUps"),
+    ("Specs", "Propulsion", "PropArch", "OperDwn"),
+    ("Mission", "ProfileFxn"),
+    ("Settings", "Dir", "Size"),
+)
 
 
 class MatlabExpression:
@@ -170,6 +176,20 @@ class FastWrapper:
         fast_status = self._get_workspace_value("fast_status", "No")
         fast_result = self._get_workspace_value("fast_result", {})
         output = self._to_python_data(fast_result)
+
+        if isinstance(output, dict):
+            for path in OUTPUT_FIELDS_TO_REMOVE:
+                current = output
+
+                for key in path[:-1]:
+                    if not isinstance(current, dict):
+                        current = None
+                        break
+
+                    current = current.get(key)
+
+                if isinstance(current, dict):
+                    current.pop(path[-1], None)
 
         if not isinstance(output, dict) or not output:
             return self._build_run_result("No", log, {})

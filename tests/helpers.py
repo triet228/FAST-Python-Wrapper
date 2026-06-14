@@ -29,8 +29,6 @@ from wrapper import FastWrapper
 
 
 IGNORED_OUTPUT_PATHS = {
-    "Aircraft.Mission.ProfileFxn",
-    "Aircraft.Settings.Dir.Size",
     "Aircraft.Settings.Plotting",
 }
 UNPARSED_REPR = object()

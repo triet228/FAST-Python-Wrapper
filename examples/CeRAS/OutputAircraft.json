@@ -26,14 +26,6 @@
           "_python_type": "double",
           "_repr": "[[0.0,1.0,1.0,0.0,0.0,0.0],[0.0,0.0,0.0,1.0,0.0,0.0],[0.0,0.0,0.0,0.0,1.0,0.0],[0.0,0.0,0.0,0.0,0.0,1.0],[0.0,0.0,0.0,0.0,0.0,1.0],[0.0,0.0,0.0,0.0,0.0,0.0]]"
         },
-        "OperUps": {
-          "_python_type": "object",
-          "_repr": "<matlab.object object>"
-        },
-        "OperDwn": {
-          "_python_type": "object",
-          "_repr": "<matlab.object object>"
-        },
         "EtaUps": {
           "_python_type": "double",
           "_repr": "[[1.0,1.0,1.0,1.0,1.0,1.0],[1.0,1.0,1.0,0.99,1.0,1.0],[1.0,1.0,1.0,1.0,0.99,1.0],[1.0,1.0,1.0,1.0,1.0,1.0],[1.0,1.0,1.0,1.0,1.0,1.0],[1.0,1.0,1.0,1.0,1.0,1.0]]"
@@ -981,7 +973,6 @@
     "Table": 0,
     "VisualizeAircraft": 0,
     "Dir": {
-      "Size": "C:\\Users\\homin\\Projects\\FAST-Python-Wrapper",
       "Oper": "C:\\Users\\homin\\Projects\\EAP-CNAP"
     },
     "Degradation": 0,
@@ -90454,10 +90445,6 @@
           "_repr": "[[0.0],[0.0]]"
         }
       }
-    },
-    "ProfileFxn": {
-      "_python_type": "object",
-      "_repr": "<matlab.object object>"
     }
   }
 }

@@ -137,3 +137,54 @@ def test_wrapper_run_reports_no_when_output_is_missing():
         "log": "FAST did not converge",
         "output": {},
     }
+
+
+def test_wrapper_run_removes_matlab_specific_output_fields():
+    """Keep wrapper output focused on reusable aircraft data."""
+
+    class FakeEngine:
+        def __init__(self):
+            self.workspace = {}
+
+        def evalc(self, script, nargout=1):
+            self.workspace["fast_status"] = "Yes"
+            self.workspace["fast_result"] = {
+                "Specs": {
+                    "Propulsion": {
+                        "PropArch": {
+                            "Type": "C",
+                            "OperUps": "drop",
+                            "OperDwn": "drop",
+                        },
+                    },
+                },
+                "Mission": {
+                    "Profile": {},
+                    "ProfileFxn": "drop",
+                },
+                "Settings": {
+                    "Dir": {
+                        "Size": "drop",
+                        "Oper": "keep",
+                    },
+                },
+            }
+            return "fake log"
+
+    wrapper = FastWrapper.__new__(FastWrapper)
+    wrapper.engine = FakeEngine()
+    input_aircraft = {
+        "Specs": {},
+        "Mission": {
+            "Profile": {},
+        },
+    }
+
+    result = wrapper.run(input_aircraft)
+    output = result["output"]
+
+    assert "OperUps" not in output["Specs"]["Propulsion"]["PropArch"]
+    assert "OperDwn" not in output["Specs"]["Propulsion"]["PropArch"]
+    assert "ProfileFxn" not in output["Mission"]
+    assert "Size" not in output["Settings"]["Dir"]
+    assert output["Settings"]["Dir"]["Oper"] == "keep"
