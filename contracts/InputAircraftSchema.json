@@ -1,6 +1,6 @@
 {
   "title": "FAST Input Aircraft Schema",
-  "description": "Schema for Future Aircraft Sizing Tool (FAST) aircraft input structures. Units describe values before FAST internal unit conversion.",
+  "description": "Schema for FAST input aircraft.",
   "type": "object",
   "required": [
     "Specs"
@@ -651,8 +651,7 @@
       "additionalProperties": true,
       "properties": {
         "Profile": {
-          "title": "FAST Mission Profile Schema",
-          "description": "Schema for Future Aircraft Sizing Tool (FAST) mission profile input structures. Arrays should be column-vector-equivalent and have compatible lengths.",
+          "description": "Schema for FAST input mission profile.",
           "type": "object",
           "required": [
             "Target",
