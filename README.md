@@ -10,7 +10,6 @@ Python wrapper for running [Future Aircraft Sizing Tool (FAST)](https://github.c
 - `examples/<Aircraft>/OutputAircraft.json`: optional saved aircraft output fixture.
 - `schema/InputAircraftSchema.json`: JSON Schema for merged input aircraft JSON.
 - `schema/OutputAircraftSchema.json`: JSON Schema for output aircraft JSON.
-- `schema/WrapperOutputSchema.json`: JSON Schema for `FastWrapper.run()` results.
 
 
 ## Requirements
