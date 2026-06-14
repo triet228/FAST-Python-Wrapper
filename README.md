@@ -2,20 +2,6 @@
 
 Python wrapper for running [Future Aircraft Sizing Tool (FAST)](https://github.com/ideas-um/FAST) through MATLAB Engine.
 
-## Files
-
-- `main.py`: public `FAST_Python_Wrapper()` API around MATLAB Engine and FAST.
-- `core/aircraft_contract.py`: aircraft input normalization and OutputAircraft cleanup.
-- `core/matlab_bridge.py`: MATLAB Engine startup and MATLAB/Python data conversion.
-- `core/helper.py`: compatibility imports and example input loader.
-- `core/json_io.py`: JSON serialization, parsing, marker conversion, and log printing helpers.
-- `core/schema_contract.py`: JSON Schema inference and validation helpers.
-- `core/output_structure.py`: OutputAircraft structure generation and console preview helpers.
-- `examples/<Aircraft>/InputAircraft.json`: optional merged aircraft and mission example input data.
-- `examples/<Aircraft>/OutputAircraft.json`: optional saved aircraft output fixture.
-- `schema/InputAircraftSchema.json`: JSON Schema for merged input aircraft JSON.
-- `schema/OutputAircraftSchema.json`: JSON Schema for output aircraft JSON.
-
 
 ## Requirements
 
@@ -55,40 +41,216 @@ If this gives error, you will need to debug this before continue. If this prints
 
 ## Python Dict API
 
-Use the wrapper with an in-memory `InputAircraft` dictionary. `FAST_Python_Wrapper()` does not write JSON files; it returns a Python dictionary with `status`, `log`, and `output`.
-
 ```python
-from main import FAST_Python_Wrapper
 
-input_aircraft = {
-    "Specs": {
-        # aircraft fields
-    },
-    "Mission": {
-        "Profile": {
-            # mission fields
+    project_dir = Path(__file__).resolve().parent
+    fast_dir = project_dir.parent / "FAST"
+
+    input_aircraft = {
+        "Specs": {
+            "TLAR": {
+                "EIS": 2005,
+                "Class": "Turbofan",
+                "MaxPax": 218.8828,
+            },
+            "Aero": {
+                "L_D": {
+                    "ClbCF": 1,
+                    "CrsCF": 1,
+                    "Clb": 13,
+                    "Crs": 17,
+                    "Des": 13,
+                },
+                "W_S": {
+                    "SLS": 739.8499,
+                },
+            },
+            "Propulsion": {
+                "MDotCF": 1.2,
+                "PropArch": {
+                    "Type": "C",
+                },
+                "Engine": {
+                    "Mach": 0.05,
+                    "Alt": 0,
+                    "OPR": 24.5,
+                    "FPR": 1.6,
+                    "BPR": 4,
+                    "Tt4Max": 1711,
+                    "TempLimit": {
+                        "Val": nan,
+                        "Type": nan,
+                    },
+                    "DesignThrust": 64543.6956,
+                    "NoSpools": 2,
+                    "RPMs": {
+                        "_matlab_row": [
+                            7400,
+                            17820,
+                        ],
+                    },
+                    "FanGearRatio": nan,
+                    "FanBoosters": False,
+                    "CoreFlow": {
+                        "PaxBleed": 0.03,
+                        "Leakage": 0.01,
+                        "Cooling": 0,
+                    },
+                    "MaxIter": 300,
+                    "EtaPoly": {
+                        "Inlet": 0.99,
+                        "Diffusers": 0.99,
+                        "Fan": 0.99,
+                        "Compressors": 0.94,
+                        "BypassNozzle": 0.99,
+                        "Combustor": 0.995,
+                        "Turbines": 0.94,
+                        "CoreNozzle": 0.99,
+                        "Nozzles": 0.99,
+                        "Mixing": 0,
+                    },
+                    "PerElec": 0,
+                    "Cff3": 0.299,
+                    "Cff2": -0.346,
+                    "Cff1": 0.701,
+                    "Cffch": 0,
+                    "HEcoeff": 1,
+                },
+                "NumEngines": 2,
+                "T_W": {
+                    "SLS": 0.3,
+                },
+                "Eta": {
+                    "Prop": 0.8,
+                },
+            },
+            "Weight": {
+                "WairfCF": 1,
+                "MTOW": 86182.5503,
+                "EM": 0,
+                "Fuel": 9427.9174,
+                "Batt": 0,
+            },
+            "Performance": {
+                "Vels": {
+                    "Tko": 69.45,
+                    "Crs": 0.78,
+                },
+                "Alts": {
+                    "Tko": 0,
+                    "Crs": 10668,
+                },
+                "Range": 4630000,
+                "RCMax": 11.43,
+            },
+            "Power": {
+                "SpecEnergy": {
+                    "Fuel": 12,
+                    "Batt": 0.25,
+                },
+                "Eta": {
+                    "EM": 0.96,
+                    "EG": 0.96,
+                },
+                "P_W": {
+                    "EM": 10,
+                },
+            },
         },
-    },
-}
+        "Settings": {
+            "OEW": {
+                "MaxIter": 50,
+                "Tol": 0.001,
+            },
+            "Analysis": {
+                "MaxIter": 50,
+                "Type": 1,
+            },
+            "Plotting": 0,
+            "Table": 0,
+        },
+        "Mission": {
+            "Profile": {
+                "Target": {
+                    "Valu": [
+                        1620500,
+                        3009500,
+                    ],
+                    "Type": [
+                        "Dist",
+                        "Dist",
+                    ],
+                },
+                "Segs": [
+                    "Climb",
+                    "Cruise",
+                    "Climb",
+                    "Cruise",
+                    "Descent",
+                ],
+                "ID": [
+                    1,
+                    1,
+                    2,
+                    2,
+                    2,
+                ],
+                "AltBeg": [
+                    0,
+                    10058.4,
+                    10058.4,
+                    10668,
+                    10668,
+                ],
+                "AltEnd": [
+                    10058.4,
+                    10058.4,
+                    10668,
+                    10668,
+                    0,
+                ],
+                "VelBeg": [
+                    0.2,
+                    0.78,
+                    0.78,
+                    0.78,
+                    0.78,
+                ],
+                "VelEnd": [
+                    0.78,
+                    0.78,
+                    0.78,
+                    0.78,
+                    0.2,
+                ],
+                "TypeBeg": [
+                    "Mach",
+                    "Mach",
+                    "Mach",
+                    "Mach",
+                    "Mach",
+                ],
+                "TypeEnd": [
+                    "Mach",
+                    "Mach",
+                    "Mach",
+                    "Mach",
+                    "Mach",
+                ],
+                "ClbRate": [
+                    nan,
+                    nan,
+                    nan,
+                    nan,
+                    nan,
+                ],
+            },
+        },
+    }
 
-result = FAST_Python_Wrapper(input_aircraft, FAST_DIR)
+    result = FAST_Python_Wrapper(input_aircraft, fast_dir)
 
-if result["status"] == "Yes":
-    output_aircraft = result["output"]
-else:
+    print("Run success:" + str(result["status"]))
     print(result["log"])
+    print("MTOW:" + str(result["output"]["Specs"]["Weight"]["MTOW"]))
 ```
-
-## Example JSON Loader
-
-The JSON files in `examples/` are fixtures and templates, not required runtime I/O. To run one of them manually:
-
-```python
-from core.helper import load_input_aircraft_json
-from main import FAST_Python_Wrapper
-
-input_aircraft = load_input_aircraft_json("examples/CeRAS")
-result = FAST_Python_Wrapper(input_aircraft, FAST_DIR)
-```
-
-
