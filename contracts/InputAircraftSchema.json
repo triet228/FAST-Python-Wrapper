@@ -684,9 +684,16 @@
                   }
                 },
                 "Type": {
-                  "$ref": "#/properties/Mission/properties/Profile/$defs/targetTypeVector",
+                  "type": "array",
                   "description": "Mission target type.",
-                  "units": "unitless"
+                  "units": "unitless",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "Dist",
+                      "Time"
+                    ]
+                  }
                 }
               }
             },
@@ -832,27 +839,6 @@
                       "Cruise",
                       "Descent",
                       "Landing"
-                    ]
-                  }
-                }
-              ]
-            },
-            "targetTypeVector": {
-              "oneOf": [
-                {
-                  "type": "string",
-                  "enum": [
-                    "Dist",
-                    "Time"
-                  ]
-                },
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "enum": [
-                      "Dist",
-                      "Time"
                     ]
                   }
                 }
