@@ -83,36 +83,28 @@ def FAST_Python_Wrapper(input_aircraft, fast_path):
         try:
             # Extract OutputAircraft
             fast_result = engine.workspace["fast_result"]
+            # Convert MATLAB struct to Python dictionary
+            output = matlab_to_python(fast_result)
         except Exception:
-            fast_result = {}
-
-        # Convert MATLAB struct to Python dictionary
-        output = matlab_to_python(fast_result)
+            output = {}
 
         # Clean OutputAircraft fields that are too specific (like local file paths)
         if isinstance(output, dict):
             clean_output_fields(output)
 
-        if not isinstance(output, dict) or not output:
+        # FAST ran successfully and produced an output
+        if str(fast_status) == "Yes":
             return {
-                "status": "No",
+                "status": "Yes",
                 "log": log,
-                "output": {},
+                "output": output,
             }
-
-        if str(fast_status) != "Yes":
+        else:
             return {
                 "status": "No",
                 "log": log,
                 "output": output,
             }
-
-        # FAST ran successfully and produced an output
-        return {
-            "status": "Yes",
-            "log": log,
-            "output": output,
-        }
     finally:
         # Quit MATLAB Engine
         engine.quit()
