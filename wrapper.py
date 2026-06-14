@@ -6,10 +6,9 @@ from pathlib import Path
 
 
 VALID_STRUCT_FIELD = re.compile(r"^[A-Za-z]\w*$")
+PROP_ARCH_TYPES = ("C", "E", "TE")
 OUTPUT_FIELDS_TO_REMOVE = (
     ("Geometry", "Preset"),
-    ("Specs", "Propulsion", "PropArch", "OperUps"),
-    ("Specs", "Propulsion", "PropArch", "OperDwn"),
     ("Mission", "ProfileFxn"),
     ("Settings", "Dir", "Size"),
 )
@@ -60,6 +59,7 @@ def wrap(input_aircraft, fast_path):
     try:
         try:
             aircraft = _prepare_aircraft(input_aircraft)
+            prop_arch_type = _prop_arch_type(aircraft)
             mission = _extract_mission_profile(aircraft)
             aircraft_literal = _to_matlab_literal(aircraft)
             mission_literal = _to_matlab_literal(mission)
@@ -106,7 +106,7 @@ def wrap(input_aircraft, fast_path):
         output = _to_python_data(fast_result)
 
         if isinstance(output, dict):
-            _drop_output_fields(output)
+            _clean_output_fields(output, prop_arch_type)
 
         if not isinstance(output, dict) or not output:
             return {
@@ -196,32 +196,36 @@ def _prepare_aircraft(aircraft):
 
     arch_type = arch_type.upper()
 
-    if arch_type == "O":
-        graph = propulsion.get("PropArchGraph")
-
-        if graph is None:
-            raise ValueError('PropArchGraph is required when "PropArch" is "O".')
-
-        prop_arch = deepcopy(graph)
-        prop_arch["Type"] = "O"
-
-        for field_name in ("SrcType", "TrnType"):
-            if field_name in prop_arch:
-                value = prop_arch[field_name]
-
-                if (
-                    not isinstance(value, MatlabRow)
-                    and (isinstance(value, list) or isinstance(value, tuple))
-                ):
-                    prop_arch[field_name] = MatlabRow(prop_arch[field_name])
-
-        propulsion["PropArch"] = prop_arch
-        del propulsion["PropArchGraph"]
-        return aircraft
+    if arch_type not in PROP_ARCH_TYPES:
+        joined_types = ", ".join(PROP_ARCH_TYPES)
+        raise ValueError(f"PropArch.Type must be one of: {joined_types}.")
 
     propulsion["PropArch"] = {"Type": arch_type}
-    propulsion.pop("PropArchGraph", None)
+
+    for field_name in list(propulsion):
+        if field_name.startswith("PropArch") and field_name != "PropArch":
+            del propulsion[field_name]
+
     return aircraft
+
+
+def _prop_arch_type(aircraft):
+    """Return the normalized propulsion architecture type when present."""
+
+    try:
+        arch_type = aircraft["Specs"]["Propulsion"]["PropArch"]["Type"]
+    except (KeyError, TypeError):
+        return None
+
+    if not isinstance(arch_type, str):
+        return None
+
+    arch_type = arch_type.upper()
+
+    if arch_type in PROP_ARCH_TYPES:
+        return arch_type
+
+    return None
 
 
 def _extract_mission_profile(aircraft):
@@ -413,7 +417,7 @@ def _convert_sequence(value):
     return items
 
 
-def _drop_output_fields(output):
+def _clean_output_fields(output, prop_arch_type=None):
     """Remove FAST fields that are not part of reusable OutputAircraft data."""
 
     for path in OUTPUT_FIELDS_TO_REMOVE:
@@ -428,3 +432,46 @@ def _drop_output_fields(output):
 
         if isinstance(current, dict):
             current.pop(path[-1], None)
+
+    settings = output.get("Settings")
+
+    if isinstance(settings, dict):
+        for key in list(settings):
+            key_text = key.lower()
+
+            if key_text.startswith("narg") and "oper" in key_text:
+                del settings[key]
+
+    _clean_prop_arch_fields(output, prop_arch_type)
+
+
+def _clean_prop_arch_fields(value, fallback_type=None):
+    """Keep PropArch objects limited to Type for supported architectures."""
+
+    if isinstance(value, dict):
+        for key, item in list(value.items()):
+            if key == "PropArch" and isinstance(item, dict):
+                arch_type = item.get("Type")
+
+                if isinstance(arch_type, str):
+                    arch_type = arch_type.upper()
+
+                if arch_type not in PROP_ARCH_TYPES:
+                    arch_type = fallback_type
+
+                if arch_type in PROP_ARCH_TYPES:
+                    value[key] = {
+                        "Type": arch_type,
+                    }
+                else:
+                    value[key] = {}
+
+                continue
+
+            _clean_prop_arch_fields(item, fallback_type)
+
+        return
+
+    if isinstance(value, list):
+        for item in value:
+            _clean_prop_arch_fields(item, fallback_type)

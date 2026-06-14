@@ -4,7 +4,7 @@ import json
 import re
 from pathlib import Path
 
-from wrapper import MatlabExpression, MatlabRow
+from wrapper import MatlabExpression, MatlabRow, PROP_ARCH_TYPES
 
 
 # FAST unspecified input marker.
@@ -327,6 +327,51 @@ def json_schema_number():
             json_schema_matlab_expression(),
         ],
     }
+
+
+def json_schema_prop_arch():
+    """Return the supported propulsion architecture schema."""
+
+    return {
+        "type": "object",
+        "properties": {
+            "Type": {
+                "type": "string",
+                "enum": list(PROP_ARCH_TYPES),
+            },
+        },
+        "required": [
+            "Type",
+        ],
+        "additionalProperties": False,
+    }
+
+
+def apply_prop_arch_schema_contract(schema):
+    """Limit every PropArch schema branch to the supported Type field."""
+
+    if isinstance(schema, dict):
+        properties = schema.get("properties")
+
+        if isinstance(properties, dict):
+            for key, item in list(properties.items()):
+                if key == "PropArch":
+                    properties[key] = json_schema_prop_arch()
+                else:
+                    apply_prop_arch_schema_contract(item)
+
+        if "items" in schema:
+            apply_prop_arch_schema_contract(schema["items"])
+
+        if "anyOf" in schema:
+            for item in schema["anyOf"]:
+                apply_prop_arch_schema_contract(item)
+
+    if isinstance(schema, list):
+        for item in schema:
+            apply_prop_arch_schema_contract(item)
+
+    return schema
 
 
 def build_json_schema_from_value(
@@ -1155,7 +1200,7 @@ def build_output_aircraft_structure(value):
         validates item shape without locking one example's exact lengths.
     """
 
-    return build_json_schema_document(
+    schema = build_json_schema_document(
         build_json_schema_from_value(
             build_json_data(value),
             require_properties=True,
@@ -1164,6 +1209,7 @@ def build_output_aircraft_structure(value):
         "FAST Output Aircraft Schema",
         "Schema for FAST output aircraft.",
     )
+    return apply_prop_arch_schema_contract(schema)
 
 
 def save_output_aircraft(value, output_dir=None):

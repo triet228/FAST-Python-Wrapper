@@ -159,7 +159,7 @@ def test_wrap_reports_no_when_output_is_missing(monkeypatch, tmp_path):
     }
 
 
-def test_wrap_removes_matlab_specific_output_fields(monkeypatch, tmp_path):
+def test_wrap_keeps_only_supported_prop_arch_output(monkeypatch, tmp_path):
     """Keep output focused on reusable aircraft data."""
 
     class FakeEngine:
@@ -176,9 +176,8 @@ def test_wrap_removes_matlab_specific_output_fields(monkeypatch, tmp_path):
                 "Specs": {
                     "Propulsion": {
                         "PropArch": {
-                            "Type": "C",
-                            "OperUps": "drop",
-                            "OperDwn": "drop",
+                            "Type": "FAST internal",
+                            "Unexpected": "drop",
                         },
                     },
                 },
@@ -203,7 +202,13 @@ def test_wrap_removes_matlab_specific_output_fields(monkeypatch, tmp_path):
     (fast_path / "Main.m").write_text("", encoding="utf-8")
     monkeypatch.setattr(wrapper_module, "_start_matlab", lambda path: FakeEngine())
     input_aircraft = {
-        "Specs": {},
+        "Specs": {
+            "Propulsion": {
+                "PropArch": {
+                    "Type": "TE",
+                },
+            },
+        },
         "Mission": {
             "Profile": {},
         },
@@ -214,8 +219,7 @@ def test_wrap_removes_matlab_specific_output_fields(monkeypatch, tmp_path):
 
     assert "Preset" not in output["Geometry"]
     assert output["Geometry"]["LengthSet"] == 1
-    assert "OperUps" not in output["Specs"]["Propulsion"]["PropArch"]
-    assert "OperDwn" not in output["Specs"]["Propulsion"]["PropArch"]
+    assert output["Specs"]["Propulsion"]["PropArch"] == {"Type": "TE"}
     assert "ProfileFxn" not in output["Mission"]
     assert "Size" not in output["Settings"]["Dir"]
     assert output["Settings"]["Dir"]["Oper"] == "keep"

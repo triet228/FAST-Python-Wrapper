@@ -248,144 +248,18 @@
               "type": "object",
               "properties": {
                 "Type": {
-                  "type": "string"
-                },
-                "Arch": {
-                  "type": "array",
-                  "items": {
-                    "type": "array",
-                    "items": {
-                      "anyOf": [
-                        {
-                          "type": "number"
-                        },
-                        {
-                          "type": "object",
-                          "properties": {
-                            "_matlab_expression": {
-                              "type": "string"
-                            }
-                          },
-                          "required": [
-                            "_matlab_expression"
-                          ],
-                          "additionalProperties": false
-                        }
-                      ]
-                    }
-                  }
-                },
-                "EtaUps": {
-                  "type": "array",
-                  "items": {
-                    "type": "array",
-                    "items": {
-                      "anyOf": [
-                        {
-                          "type": "number"
-                        },
-                        {
-                          "type": "object",
-                          "properties": {
-                            "_matlab_expression": {
-                              "type": "string"
-                            }
-                          },
-                          "required": [
-                            "_matlab_expression"
-                          ],
-                          "additionalProperties": false
-                        }
-                      ]
-                    }
-                  }
-                },
-                "EtaDwn": {
-                  "type": "array",
-                  "items": {
-                    "type": "array",
-                    "items": {
-                      "anyOf": [
-                        {
-                          "type": "number"
-                        },
-                        {
-                          "type": "object",
-                          "properties": {
-                            "_matlab_expression": {
-                              "type": "string"
-                            }
-                          },
-                          "required": [
-                            "_matlab_expression"
-                          ],
-                          "additionalProperties": false
-                        }
-                      ]
-                    }
-                  }
-                },
-                "SrcType": {
-                  "anyOf": [
-                    {
-                      "type": "number"
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "_matlab_expression": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "_matlab_expression"
-                      ],
-                      "additionalProperties": false
-                    }
+                  "type": "string",
+                  "enum": [
+                    "C",
+                    "E",
+                    "TE"
                   ]
-                },
-                "TrnType": {
-                  "type": "array",
-                  "items": {
-                    "type": "array",
-                    "items": {
-                      "anyOf": [
-                        {
-                          "type": "number"
-                        },
-                        {
-                          "type": "object",
-                          "properties": {
-                            "_matlab_expression": {
-                              "type": "string"
-                            }
-                          },
-                          "required": [
-                            "_matlab_expression"
-                          ],
-                          "additionalProperties": false
-                        }
-                      ]
-                    }
-                  }
-                },
-                "ParConns": {
-                  "type": "array",
-                  "items": {
-                    "type": "array"
-                  }
                 }
               },
-              "additionalProperties": false,
               "required": [
-                "Type",
-                "Arch",
-                "EtaUps",
-                "EtaDwn",
-                "SrcType",
-                "TrnType",
-                "ParConns"
-              ]
+                "Type"
+              ],
+              "additionalProperties": false
             },
             "NumEngines": {
               "anyOf": [
@@ -19499,44 +19373,6 @@
             }
           ]
         },
-        "nargOperUps": {
-          "anyOf": [
-            {
-              "type": "number"
-            },
-            {
-              "type": "object",
-              "properties": {
-                "_matlab_expression": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "_matlab_expression"
-              ],
-              "additionalProperties": false
-            }
-          ]
-        },
-        "nargOperDwn": {
-          "anyOf": [
-            {
-              "type": "number"
-            },
-            {
-              "type": "object",
-              "properties": {
-                "_matlab_expression": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "_matlab_expression"
-              ],
-              "additionalProperties": false
-            }
-          ]
-        },
         "DetailedBatt": {
           "anyOf": [
             {
@@ -19609,8 +19445,6 @@
         "Dir",
         "Degradation",
         "PrintOut",
-        "nargOperUps",
-        "nargOperDwn",
         "DetailedBatt",
         "Converged"
       ]
