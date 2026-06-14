@@ -13,7 +13,6 @@ from tests.helpers import (
 def test_CeRAS_wrapper_output_matches_saved_json_file(
     fast_path,
     examples_path,
-    tmp_path,
 ):
     """Check the full CeRAS aircraft output against saved OutputAircraft.json."""
 
@@ -23,5 +22,4 @@ def test_CeRAS_wrapper_output_matches_saved_json_file(
         saved="CeRAS/OutputAircraft.json",
         fast_path=fast_path,
         examples_path=examples_path,
-        tmp_path=tmp_path,
     )

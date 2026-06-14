@@ -13,7 +13,6 @@ from tests.helpers import (
 def test_ATR42_wrapper_output_matches_saved_json_file(
     fast_path,
     examples_path,
-    tmp_path,
 ):
     """Check the full ATR42 aircraft output against saved OutputAircraft.json."""
 
@@ -23,5 +22,4 @@ def test_ATR42_wrapper_output_matches_saved_json_file(
         saved="ATR42/OutputAircraft.json",
         fast_path=fast_path,
         examples_path=examples_path,
-        tmp_path=tmp_path,
     )

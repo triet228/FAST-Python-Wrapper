@@ -9,7 +9,6 @@ methods.
 """
 
 import importlib.util
-import json
 import math
 import os
 import pytest
@@ -23,7 +22,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from helper import build_json_data, load_json_data, read_raw_json_file
+from helper import build_json_data, is_json_number, load_json_data, read_raw_json_file
 from wrapper import wrap
 
 
@@ -189,22 +188,12 @@ def compare_json_value(actual, expected, path="Aircraft"):
     return [f"{path} value mismatch: {actual!r} != {expected!r}"], 1
 
 
-def is_json_number(value):
-    """Return True for JSON numeric values that are not booleans."""
-
-    return (isinstance(value, int) or isinstance(value, float)) and not isinstance(
-        value,
-        bool,
-    )
-
-
 def assert_fast_model_wrapper_matches_saved_output(
     name,
     aircraft,
     saved,
     fast_path,
     examples_path,
-    tmp_path,
 ):
     """Run one JSON fixture case through wrap() and compare JSON output.
 

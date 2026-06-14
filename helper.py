@@ -1,4 +1,4 @@
-# helpers.py
+# helper.py
 
 import json
 import re
@@ -10,14 +10,12 @@ from wrapper import MatlabExpression, MatlabRow, PROP_ARCH_TYPES
 # FAST unspecified input marker.
 nan = float("nan")
 
-# Default example case directories and file names. InputAircraft.json is the
-# single required run input; OutputAircraft.json is an optional saved fixture.
+# Default example case directory and schema file names. InputAircraft.json is
+# the single required run input.
 DEFAULT_INPUT_DIR = Path("examples/CeRAS")
-DEFAULT_OUTPUT_DIR = Path("examples/CeRAS")
 SCHEMA_DIR = Path("schema")
 AIRCRAFT_JSON_PATH = Path("InputAircraft.json")
 INPUT_AIRCRAFT_SCHEMA_JSON_PATH = Path("InputAircraftSchema.json")
-OUTPUT_AIRCRAFT_JSON_PATH = Path("OutputAircraft.json")
 OUTPUT_AIRCRAFT_SCHEMA_JSON_PATH = Path("OutputAircraftSchema.json")
 
 
@@ -110,39 +108,7 @@ def build_json_data(value):
     if isinstance(value, bool) or isinstance(value, int) or isinstance(value, float):
         return value
 
-    return normalize_object_text(str(value))
-
-
-def normalize_object_text(value):
-    """Return object text without process-specific memory addresses."""
-
-    return re.sub(r" at 0x[0-9A-Fa-f]+(?=>)", "", value)
-
-
-def round_json_numbers(value):
-    """Return JSON-compatible data with floats rounded to 4 decimal places.
-
-    Assumptions:
-        Four decimal places are enough for committed FAST fixtures while
-        avoiding noisy machine-precision churn in large OutputAircraft files.
-    """
-
-    if isinstance(value, dict):
-        return {
-            key: round_json_numbers(item)
-            for key, item in value.items()
-        }
-
-    if isinstance(value, list):
-        return [round_json_numbers(item) for item in value]
-
-    if isinstance(value, bool) or isinstance(value, int):
-        return value
-
-    if isinstance(value, float):
-        return round(value, 4)
-
-    return value
+    return re.sub(r" at 0x[0-9A-Fa-f]+(?=>)", "", str(value))
 
 
 def load_json_data(value):
@@ -189,27 +155,6 @@ def load_json_data(value):
         return nan
 
     return value
-
-
-def write_json_file(path, value):
-    """Write a generated JSON file with stable formatting.
-
-    Inputs:
-        path: Destination path in the project root.
-        value: JSON-serializable data.
-
-    Outputs:
-        None. The destination file is overwritten.
-
-    Side effects:
-        Rewrites generated inspection files after each FAST run so stale
-        structures do not linger beside a newer case.
-    """
-
-    path.write_text(
-        json.dumps(round_json_numbers(value), indent=2) + "\n",
-        encoding="utf-8",
-    )
 
 
 def read_raw_json_file(path):
@@ -305,20 +250,6 @@ def json_schema_matlab_expression():
         ],
         "additionalProperties": False,
     }
-
-
-def build_json_schema_document(schema, title, description=None):
-    """Wrap a JSON Schema subtree in the project schema file format."""
-
-    document = {
-        "title": title,
-    }
-
-    if description is not None:
-        document["description"] = description
-
-    document.update(schema)
-    return document
 
 
 def json_schema_number():
@@ -1000,17 +931,6 @@ def require_json_list(data, keys, file_name):
     raise JsonValidationError(f"{file_name}.{joined} must be a JSON array.")
 
 
-def require_json_list_or_scalar_list(data, keys, file_name):
-    """Return a list view of a required field that may be scalar or list."""
-
-    value = get_json_path(data, keys, file_name)
-
-    if isinstance(value, list):
-        return value
-
-    return [value]
-
-
 def validate_json_markers(value, file_name, path=""):
     """Validate MATLAB marker objects used inside JSON files.
 
@@ -1088,16 +1008,22 @@ def validate_mission_profile_json(data):
 
     require_json_object(data, "InputAircraft.json.Mission.Profile")
 
-    targets = require_json_list_or_scalar_list(
+    targets = get_json_path(
         data,
         ["Target", "Valu"],
         "InputAircraft.json.Mission.Profile",
     )
-    target_types = require_json_list_or_scalar_list(
+    target_types = get_json_path(
         data,
         ["Target", "Type"],
         "InputAircraft.json.Mission.Profile",
     )
+
+    if not isinstance(targets, list):
+        targets = [targets]
+
+    if not isinstance(target_types, list):
+        target_types = [target_types]
 
     if len(targets) != len(target_types):
         raise JsonValidationError(
@@ -1170,52 +1096,6 @@ def validate_output_aircraft_json(data):
     get_json_path(data, ["Mission", "Profile"], "OutputAircraft.json")
 
 
-def validate_output_schema_json(data):
-    """Validate OutputAircraftSchema.json after writing structure data."""
-
-    require_json_object(data, "OutputAircraftSchema.json")
-
-    if is_json_schema_document(data):
-        properties = data.get("properties", {})
-
-        for field_name in ("Specs", "Mission"):
-            if field_name not in properties:
-                raise JsonValidationError(
-                    "OutputAircraftSchema.json is missing required property "
-                    f"{field_name}."
-                )
-
-        return
-
-    for field_name in ("Specs", "Mission"):
-        if field_name not in data:
-            raise JsonValidationError(
-                f"OutputAircraftSchema.json is missing required field {field_name}."
-            )
-
-
-def read_json_file(path, validator=None):
-    """Read and validate a JSON file, then restore FAST marker values.
-
-    Inputs:
-        path: JSON path.
-        validator: Optional validator function for the parsed JSON value.
-
-    Outputs:
-        FAST-ready Python data.
-
-    Side effects:
-        None.
-    """
-
-    data = read_raw_json_file(path)
-
-    if validator:
-        validator(data)
-
-    return load_json_data(data)
-
-
 def load_input_aircraft_json(input_dir=None):
     """Load the merged FAST aircraft input from InputAircraft.json.
 
@@ -1244,7 +1124,9 @@ def load_input_aircraft_json(input_dir=None):
             "then rerun python main.py."
         )
 
-    return read_json_file(aircraft_json_path, validate_aircraft_json)
+    data = read_raw_json_file(aircraft_json_path)
+    validate_aircraft_json(data)
+    return load_json_data(data)
 
 
 def build_output_aircraft_structure(value):
@@ -1264,76 +1146,18 @@ def build_output_aircraft_structure(value):
         returns internal architecture expansion fields.
     """
 
-    schema = build_json_schema_document(
+    schema = {
+        "title": "FAST Output Aircraft Schema",
+        "description": "Schema for FAST output aircraft.",
+    }
+    schema.update(
         build_json_schema_from_value(
             build_json_data(value),
             require_properties=True,
             require_lengths=False,
-        ),
-        "FAST Output Aircraft Schema",
-        "Schema for FAST output aircraft.",
+        )
     )
     return apply_prop_arch_schema_contract(schema)
-
-
-def save_output_aircraft(value, output_dir=None):
-    """Write the FAST OutputAircraft result to JSON.
-
-    Inputs:
-        value: Python dictionary converted from the MATLAB OutputAircraft
-            struct returned by FAST.
-        output_dir: Directory where OutputAircraft.json should be written. A
-            missing value uses the default example directory.
-
-    Outputs:
-        Destination path written.
-
-    Side effects:
-        Creates the output directory when needed and rewrites
-        OutputAircraft.json after each successful FAST run.
-    """
-
-    if output_dir is None:
-        base_path = DEFAULT_OUTPUT_DIR
-    else:
-        base_path = Path(output_dir)
-
-    output_aircraft_path = base_path / OUTPUT_AIRCRAFT_JSON_PATH
-    output_aircraft_path.parent.mkdir(parents=True, exist_ok=True)
-
-    write_json_file(output_aircraft_path, build_json_data(value))
-    validate_output_aircraft_json(read_raw_json_file(output_aircraft_path))
-    return output_aircraft_path
-
-
-def save_output_aircraft_structure(value, output_dir=None):
-    """Write the complete OutputAircraft schema to JSON.
-
-    Inputs:
-        value: Structure map from build_output_aircraft_structure().
-        output_dir: Directory where OutputAircraftSchema.json should be
-            written. A missing value uses the default example directory.
-
-    Outputs:
-        Destination path written.
-
-    Side effects:
-        Creates the output directory when needed and rewrites the generated JSON
-        schema file. The file contains schema-like output only, not the full
-        FAST numeric data.
-    """
-
-    if output_dir is None:
-        base_path = DEFAULT_OUTPUT_DIR
-    else:
-        base_path = Path(output_dir)
-
-    output_structure_path = base_path / OUTPUT_AIRCRAFT_SCHEMA_JSON_PATH
-    output_structure_path.parent.mkdir(parents=True, exist_ok=True)
-
-    write_json_file(output_structure_path, value)
-    validate_output_schema_json(read_raw_json_file(output_structure_path))
-    return output_structure_path
 
 
 def print_output_aircraft_structure(
