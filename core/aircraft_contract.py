@@ -117,7 +117,7 @@ def clean_output_fields(output, prop_arch_type_value=None):
 
     Side effects:
         Mutates output in place. The result is the public OutputAircraft dict
-        returned by run_fast() and used by the JSON fixtures.
+        returned by FAST_Python_Wrapper() and used by the JSON fixtures.
     """
 
     for path in OUTPUT_FIELDS_TO_REMOVE:

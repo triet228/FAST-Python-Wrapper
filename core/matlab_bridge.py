@@ -25,8 +25,8 @@ def start_matlab(fast_path):
         A running MATLAB Engine object ready to evaluate FAST scripts.
 
     Side effects:
-        Launches an external MATLAB process. run_fast() is responsible for
-        quitting it after the run finishes or fails.
+        Launches an external MATLAB process. FAST_Python_Wrapper() is
+        responsible for quitting it after the run finishes or fails.
     """
 
     try:
