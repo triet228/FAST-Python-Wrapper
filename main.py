@@ -1,7 +1,6 @@
 # main.py
 
 from pathlib import Path
-import json
 
 from core.aircraft_contract import (
     clean_output_fields,
@@ -121,10 +120,9 @@ if __name__ == "__main__":
     project_dir = Path(__file__).resolve().parent
     input_aircraft_path = project_dir / "examples" / "CeRAS" / "InputAircraft.json"
     fast_dir = project_dir.parent / "FAST"
-    
-    with open(input_aircraft_path, 'r') as file:
-        input_aircraft = json.load(file)
+
+    input_aircraft = load_input_aircraft_json(input_aircraft_path.parent)
 
     result = FAST_Python_Wrapper(input_aircraft, fast_dir)
 
-    print(result)
+    print(result["log"])
