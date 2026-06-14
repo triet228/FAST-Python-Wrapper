@@ -1,0 +1,603 @@
+{
+  "title": "FAST Input Aircraft Schema",
+  "description": "Schema for Future Aircraft Sizing Tool (FAST) aircraft input structures. Units describe values before FAST internal unit conversion.",
+  "type": "object",
+  "required": ["Specs"],
+  "additionalProperties": false,
+  "properties": {
+    "Specs": {
+      "type": "object",
+      "required": ["TLAR", "Performance", "Propulsion"],
+      "additionalProperties": false,
+      "properties": {
+        "TLAR": {
+          "type": "object",
+          "required": ["Class", "MaxPax"],
+          "additionalProperties": false,
+          "properties": {
+            "EIS": {
+              "type": "number",
+              "description": "Entry into service year.",
+              "units": "year",
+              "default": 2021
+            },
+            "Class": {
+              "type": "string",
+              "description": "Aircraft class.",
+              "enum": ["Turbofan", "Turboprop", "Propfan", "Piston"]
+            },
+            "MaxPax": {
+              "type": "number",
+              "description": "Maximum number of passengers.",
+              "units": "count"
+            }
+          }
+        },
+        "Performance": {
+          "type": "object",
+          "required": ["Range"],
+          "additionalProperties": false,
+          "properties": {
+            "Vels": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "Tko": {
+                  "type": "number",
+                  "description": "Takeoff velocity.",
+                  "units": "m/s"
+                },
+                "Crs": {
+                  "type": "number",
+                  "description": "Cruise velocity.",
+                  "units": "Mach"
+                },
+                "Type": {
+                  "type": "string",
+                  "description": "Optional velocity type used by some legacy inputs.",
+                  "enum": ["TAS", "EAS", "Mach", null]
+                }
+              }
+            },
+            "Alts": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "Tko": {
+                  "type": "number",
+                  "description": "Takeoff altitude.",
+                  "units": "m"
+                },
+                "Crs": {
+                  "type": "number",
+                  "description": "Cruise altitude.",
+                  "units": "m"
+                }
+              }
+            },
+            "RCMax": {
+              "type": "number",
+              "description": "Maximum rate of climb.",
+              "units": "m/s"
+            },
+            "Range": {
+              "type": "number",
+              "description": "Design mission range.",
+              "units": "m"
+            }
+          }
+        },
+        "Aero": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "L_D": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "Clb": {
+                  "type": "number",
+                  "description": "Lift-to-drag ratio during climb.",
+                  "units": "unitless"
+                },
+                "Crs": {
+                  "type": "number",
+                  "description": "Lift-to-drag ratio during cruise.",
+                  "units": "unitless"
+                },
+                "Des": {
+                  "type": "number",
+                  "description": "Lift-to-drag ratio during descent.",
+                  "units": "unitless"
+                },
+                "ClbCF": {
+                  "type": "number",
+                  "description": "Climb lift-to-drag calibration factor.",
+                  "units": "unitless"
+                },
+                "CrsCF": {
+                  "type": "number",
+                  "description": "Cruise lift-to-drag calibration factor.",
+                  "units": "unitless"
+                }
+              }
+            },
+            "W_S": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "SLS": {
+                  "type": "number",
+                  "description": "Static sea-level wing loading.",
+                  "units": "kg/m^2"
+                }
+              }
+            }
+          }
+        },
+        "Weight": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "MTOW": {
+              "type": "number",
+              "description": "Maximum takeoff mass.",
+              "units": "kg"
+            },
+            "MLW": {
+              "type": "number",
+              "description": "Maximum landing mass.",
+              "units": "kg"
+            },
+            "Fuel": {
+              "type": "number",
+              "description": "Fuel mass.",
+              "units": "kg"
+            },
+            "Batt": {
+              "type": "number",
+              "description": "Battery mass.",
+              "units": "kg"
+            },
+            "EM": {
+              "type": "number",
+              "description": "Electric motor mass.",
+              "units": "kg"
+            },
+            "EG": {
+              "type": "number",
+              "description": "Electric generator mass.",
+              "units": "kg"
+            },
+            "EAP": {
+              "type": "number",
+              "description": "Electric aircraft propulsion mass.",
+              "units": "kg"
+            },
+            "Payload": {
+              "type": "number",
+              "description": "Payload mass, mainly used for off-design analysis.",
+              "units": "kg"
+            },
+            "WairfCF": {
+              "type": "number",
+              "description": "Airframe mass calibration factor.",
+              "units": "unitless"
+            }
+          }
+        },
+        "Propulsion": {
+          "type": "object",
+          "required": ["PropArch"],
+          "additionalProperties": false,
+          "properties": {
+            "Engine": {
+              "description": "Engine specification object or null when FAST should synthesize/default the engine.",
+              "type": "object",
+              "additionalProperties": true
+            },
+            "NumEngines": {
+              "type": "integer",
+              "description": "Number of gas-turbine engines.",
+              "units": "count",
+              "minimum": 0
+            },
+            "T_W": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "SLS": {
+                  "type": "number",
+                  "description": "Static sea-level thrust-to-weight ratio.",
+                  "units": "unitless"
+                }
+              }
+            },
+            "Thrust": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "SLS": {
+                  "type": "number",
+                  "description": "Total static sea-level thrust, not per engine.",
+                  "units": "N"
+                }
+              }
+            },
+            "Eta": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "Prop": {
+                  "type": "number",
+                  "description": "Propulsive efficiency.",
+                  "units": "unitless"
+                }
+              }
+            },
+            "MDotCF": {
+              "type": "number",
+              "description": "Fuel consumption calibration factor.",
+              "units": "unitless"
+            },
+            "PropArch": {
+              "type": "object",
+              "required": ["Type"],
+              "additionalProperties": false,
+              "properties": {
+                "Type": {
+                  "type": "string",
+                  "description": "Propulsion architecture type.",
+                  "enum": ["C", "E", "TE"]
+                }
+              }
+            }
+          }
+        },
+        "Power": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "SLS": {
+              "type": "number",
+              "description": "Static sea-level shaft or aircraft power, mainly for turboprops.",
+              "units": "W"
+            },
+            "SpecEnergy": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "Fuel": {
+                  "type": "number",
+                  "description": "Fuel specific energy. FAST converts from kWh/kg to J/kg internally.",
+                  "units": "kWh/kg"
+                },
+                "Batt": {
+                  "type": "number",
+                  "description": "Battery specific energy. FAST converts from kWh/kg to J/kg internally.",
+                  "units": "kWh/kg"
+                }
+              }
+            },
+            "Eta": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "EM": {
+                  "type": "number",
+                  "description": "Electric motor efficiency.",
+                  "units": "unitless"
+                },
+                "EG": {
+                  "type": "number",
+                  "description": "Electric generator efficiency.",
+                  "units": "unitless"
+                },
+                "Propeller": {
+                  "type": "number",
+                  "description": "Propeller efficiency.",
+                  "units": "unitless"
+                }
+              }
+            },
+            "P_W": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "SLS": {
+                  "type": "number",
+                  "description": "Static sea-level aircraft power-to-weight ratio. FAST converts from kW/kg to W/kg internally.",
+                  "units": "kW/kg"
+                },
+                "EM": {
+                  "type": "number",
+                  "description": "Electric motor power-to-weight ratio. FAST converts from kW/kg to W/kg internally.",
+                  "units": "kW/kg"
+                },
+                "EG": {
+                  "type": "number",
+                  "description": "Electric generator power-to-weight ratio. FAST converts from kW/kg to W/kg internally.",
+                  "units": "kW/kg"
+                },
+                "AC": {
+                  "type": "number",
+                  "description": "Aircraft power-to-weight ratio after internal processing.",
+                  "units": "W/kg"
+                }
+              }
+            },
+            "Battery": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "ParCells": {
+                  "type": "integer",
+                  "description": "Number of battery cells in parallel.",
+                  "units": "count",
+                  "minimum": 0
+                },
+                "SerCells": {
+                  "type": "integer",
+                  "description": "Number of battery cells in series.",
+                  "units": "count",
+                  "minimum": 0
+                },
+                "BegSOC": {
+                  "type": "number",
+                  "description": "Beginning battery state of charge.",
+                  "units": "percent",
+                  "minimum": 0,
+                  "maximum": 100
+                }
+              }
+            }
+          }
+        },
+        "Battery": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "NomVolCell": {
+              "type": "number",
+              "description": "Nominal cell voltage.",
+              "units": "V"
+            },
+            "MaxExtVolCell": {
+              "type": "number",
+              "description": "Maximum extracted cell voltage.",
+              "units": "V"
+            },
+            "CapCell": {
+              "type": "number",
+              "description": "Cell capacity.",
+              "units": "Ah"
+            },
+            "IntResist": {
+              "type": "number",
+              "description": "Cell internal resistance.",
+              "units": "ohm"
+            },
+            "ExpVol": {
+              "type": "number",
+              "description": "Battery exponential-zone voltage parameter.",
+              "units": "V"
+            },
+            "ExpCap": {
+              "type": "number",
+              "description": "Battery exponential-zone capacity parameter.",
+              "units": "Ah"
+            },
+            "MinSOC": {
+              "type": "number",
+              "description": "Minimum allowable state of charge.",
+              "units": "percent",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "BegSOC": {
+              "type": "number",
+              "description": "Beginning state of charge used by some battery inputs.",
+              "units": "percent",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "MaxAllowCRate": {
+              "type": "number",
+              "description": "Maximum allowable C-rate.",
+              "units": "C"
+            },
+            "Charging": {
+              "type": "number",
+              "description": "Charging power.",
+              "units": "W"
+            },
+            "Degradation": {
+              "type": "integer",
+              "description": "Battery degradation analysis flag.",
+              "units": "unitless",
+              "enum": [0, 1]
+            },
+            "Chem": {
+              "type": "integer",
+              "description": "Battery chemistry: 1 NMC, 2 LFP.",
+              "units": "unitless",
+              "enum": [1, 2, null]
+            },
+            "ChrgTime": {
+              "type": "number",
+              "description": "Charging time.",
+              "units": "s"
+            },
+            "GroundT": {
+              "type": "number",
+              "description": "Ground time used by battery aging analysis.",
+              "units": "s"
+            },
+            "Cpower": {
+              "type": "number",
+              "description": "Battery aging charge power; charging is negative.",
+              "units": "W"
+            },
+            "FEC": {
+              "type": "array",
+              "description": "Full equivalent cycles.",
+              "units": "cycles",
+              "items": {
+                "type": "number"
+              }
+            },
+            "SOH": {
+              "type": "array",
+              "description": "State of health.",
+              "units": "percent",
+              "items": {
+                "type": "number"
+              }
+            },
+            "OpTemp": {
+              "type": "number",
+              "description": "Battery operating temperature.",
+              "units": "deg C"
+            }
+          }
+        }
+      }
+    },
+    "Settings": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "TkoPoints": {
+          "type": "integer",
+          "description": "Number of discrete takeoff points.",
+          "units": "count",
+          "minimum": 0
+        },
+        "ClbPoints": {
+          "type": "integer",
+          "description": "Number of discrete climb points.",
+          "units": "count",
+          "minimum": 0
+        },
+        "CrsPoints": {
+          "type": "integer",
+          "description": "Number of discrete cruise points.",
+          "units": "count",
+          "minimum": 0
+        },
+        "DesPoints": {
+          "type": "integer",
+          "description": "Number of discrete descent points.",
+          "units": "count",
+          "minimum": 0
+        },
+        "OEW": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "MaxIter": {
+              "type": "integer",
+              "description": "Maximum operational-empty-weight iterations.",
+              "units": "count",
+              "minimum": 0
+            },
+            "Tol": {
+              "type": "number",
+              "description": "Operational-empty-weight convergence tolerance.",
+              "units": "unitless"
+            }
+          }
+        },
+        "Analysis": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "MaxIter": {
+              "type": "integer",
+              "description": "Maximum sizing or analysis iterations.",
+              "units": "count",
+              "minimum": 0
+            },
+            "Type": {
+              "type": "integer",
+              "description": "Analysis mode flag: +1 on-design, negative values off-design.",
+              "units": "unitless",
+              "enum": [1, -1, -2, null]
+            }
+          }
+        },
+        "Plotting": {
+          "type": "integer",
+          "description": "Mission history plotting flag.",
+          "units": "unitless",
+          "enum": [0, 1]
+        },
+        "Table": {
+          "type": "integer",
+          "description": "Mission history table flag.",
+          "units": "unitless",
+          "enum": [0, 1]
+        },
+        "VisualizeAircraft": {
+          "type": "integer",
+          "description": "Aircraft visualization flag.",
+          "units": "unitless",
+          "enum": [0, 1]
+        },
+        "PrintOut": {
+          "type": "integer",
+          "description": "Console printout flag.",
+          "units": "unitless",
+          "enum": [0, 1]
+        },
+        "Degradation": {
+          "type": "integer",
+          "description": "Degradation analysis flag.",
+          "units": "unitless",
+          "enum": [0, 1]
+        },
+        "Dir": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "Size": {
+              "type": "string",
+              "description": "Sizing directory path.",
+              "units": "path"
+            },
+            "Oper": {
+              "type": "string",
+              "description": "Operations directory path.",
+              "units": "path"
+            }
+          }
+        }
+      }
+    },
+    "Geometry": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "LengthSet": {
+          "type": "number",
+          "description": "Fuselage length used for visualization.",
+          "units": "m"
+        },
+        "Preset": {
+          "type": "string",
+          "description": "Geometry preset function handle in MATLAB inputs.",
+          "units": "unitless"
+        }
+      }
+    },
+    "Mission": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "Profile": {
+          "$ref": "MissionSchema.json"
+        }
+      }
+    }
+  }
+}
