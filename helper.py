@@ -25,55 +25,6 @@ class JsonValidationError(ValueError):
     """Report an invalid FAST JSON input or output file."""
 
 
-def build_input_json_paths(input_dir=None):
-    """Return the aircraft input path for a FAST run.
-
-    Inputs:
-        input_dir: Directory containing InputAircraft.json. A missing value
-            uses the default example directory.
-
-    Outputs:
-        The aircraft JSON path.
-
-    Assumptions:
-        FAST run inputs are grouped in one directory so callers can run several
-        cases without renaming files in the project root.
-    """
-
-    if input_dir is None:
-        base_path = DEFAULT_INPUT_DIR
-    else:
-        base_path = Path(input_dir)
-
-    return base_path / AIRCRAFT_JSON_PATH
-
-
-def build_output_json_paths(output_dir=None):
-    """Return generated output paths for a FAST run.
-
-    Inputs:
-        output_dir: Directory where OutputAircraft JSON files should be written.
-            A missing value uses the default example directory.
-
-    Outputs:
-        A tuple containing the full aircraft output path and structure output
-        path.
-
-    Assumptions:
-        Both generated output files belong in the same run output directory.
-    """
-
-    if output_dir is None:
-        base_path = DEFAULT_OUTPUT_DIR
-    else:
-        base_path = Path(output_dir)
-
-    return (
-        base_path / OUTPUT_AIRCRAFT_JSON_PATH,
-        base_path / OUTPUT_AIRCRAFT_SCHEMA_JSON_PATH,
-    )
-
-
 def print_result(result):
     """Print a cleaned FAST command-window log.
 
@@ -319,57 +270,6 @@ def is_json_number(value):
     )
 
 
-def build_json_schema_defs():
-    """Return reusable JSON Schema definitions for wrapper marker objects."""
-
-    return {
-        "matlabExpression": json_schema_matlab_expression(),
-        "pythonMarker": json_schema_python_marker(),
-        "numberOrExpression": {
-            "anyOf": [
-                {
-                    "type": "number",
-                },
-                json_schema_matlab_expression(),
-            ],
-        },
-        "optionalNumber": {
-            "anyOf": [
-                json_schema_number(),
-                {
-                    "const": "NaN",
-                },
-            ],
-        },
-        "optionalBoolean": {
-            "anyOf": [
-                {
-                    "type": "boolean",
-                },
-                {
-                    "const": "NaN",
-                },
-            ],
-        },
-        "optionalMatlabExpression": {
-            "anyOf": [
-                json_schema_matlab_expression(),
-                {
-                    "const": "NaN",
-                },
-            ],
-        },
-        "optionalPythonMarker": {
-            "anyOf": [
-                json_schema_python_marker(),
-                {
-                    "const": "NaN",
-                },
-            ],
-        },
-    }
-
-
 def json_schema_matlab_expression():
     """Return the inline schema for a MATLAB expression marker."""
 
@@ -433,56 +333,6 @@ def json_schema_number():
             json_schema_matlab_expression(),
         ],
     }
-
-
-def json_schema_may_be_nan(schema):
-    """Return a schema that also allows FAST's optional NaN marker."""
-
-    if schema == {"type": "string"}:
-        return schema
-
-    if set(schema.keys()) == {"anyOf"}:
-        return {
-            "anyOf": schema["anyOf"] + [
-                {
-                    "const": "NaN",
-                },
-            ],
-        }
-
-    return {
-        "anyOf": [
-            schema,
-            {
-                "const": "NaN",
-            },
-        ],
-    }
-
-
-def json_schema_required_value(schema):
-    """Return a schema that rejects FAST's NaN marker for required values."""
-
-    if not json_schema_allows_nan_string(schema):
-        return schema
-
-    required_schema = dict(schema)
-    required_schema["not"] = {
-        "const": "NaN",
-    }
-    return required_schema
-
-
-def json_schema_allows_nan_string(schema):
-    """Return True when a required schema could otherwise accept string NaN."""
-
-    if schema.get("type") == "string":
-        return True
-
-    if "anyOf" in schema:
-        return any(json_schema_allows_nan_string(option) for option in schema["anyOf"])
-
-    return False
 
 
 def build_json_schema_from_value(
@@ -611,160 +461,14 @@ def build_json_schema_from_value(
     }
 
 
-def build_input_json_structure(value):
-    """Return a standard JSON Schema document for FAST input JSON data.
-
-    Inputs:
-        value: Parsed JSON value from InputAircraft.json.
-
-    Outputs:
-        Draft 2020-12 JSON Schema document that preserves field names, broad
-        JSON types, marker shapes, and list item schemas.
-
-    Assumptions:
-        Generated input schema fields are optional by default. Optional "NaN"
-        placeholders are accepted by validation where a committed contract marks
-        the field optional.
-    """
-
-    return build_json_schema_document(
-        build_json_schema_from_value(value),
-        "FAST input JSON schema",
-        "Schema for FAST input JSON data.",
-    )
-
-
-def convert_contract_to_json_schema(contract, title):
-    """Convert the legacy FAST contract format into standard JSON Schema."""
-
-    return build_json_schema_document(
-        convert_contract_node_to_json_schema(contract, force_required=True),
-        title,
-    )
-
-
-def convert_contract_node_to_json_schema(contract, force_required=None):
-    """Convert one legacy type/required/fields node into JSON Schema."""
-
-    node_required = contract.get("required", False)
-
-    if force_required is not None:
-        node_required = force_required
-
-    expected_types = contract.get("type")
-
-    if isinstance(expected_types, list):
-        schema = {
-            "anyOf": [
-                convert_contract_type_to_json_schema(contract, expected_type)
-                for expected_type in expected_types
-            ],
-        }
-    else:
-        schema = convert_contract_type_to_json_schema(contract, expected_types)
-
-    if node_required:
-        return json_schema_required_value(schema)
-
-    return json_schema_may_be_nan(schema)
-
-
-def convert_contract_type_to_json_schema(contract, expected_type):
-    """Convert one legacy FAST contract type into a JSON Schema subtree."""
-
-    if expected_type == "object":
-        fields = contract.get("fields", {})
-        properties = {}
-        required = []
-
-        for key, child_contract in fields.items():
-            properties[key] = convert_contract_node_to_json_schema(child_contract)
-
-            if child_contract.get("required", False):
-                required.append(key)
-
-        schema = {
-            "type": "object",
-            "properties": properties,
-            "additionalProperties": False,
-        }
-
-        if required:
-            schema["required"] = required
-
-        return schema
-
-    if expected_type == "list":
-        schema = {
-            "type": "array",
-        }
-        item_contract = contract.get("items")
-
-        if item_contract is not None:
-            schema["items"] = convert_contract_node_to_json_schema(item_contract)
-
-        return schema
-
-    if expected_type == "matlab_row":
-        row_schema = {
-            "type": "array",
-        }
-        item_contract = contract.get("items")
-
-        if item_contract is not None:
-            row_schema = convert_contract_node_to_json_schema(
-                item_contract,
-                force_required=True,
-            )
-
-        return {
-            "type": "object",
-            "properties": {
-                "_matlab_row": row_schema,
-            },
-            "required": [
-                "_matlab_row",
-            ],
-            "additionalProperties": False,
-        }
-
-    if expected_type == "matlab_expression":
-        return json_schema_matlab_expression()
-
-    if expected_type == "python_marker":
-        return json_schema_python_marker()
-
-    if expected_type == "number":
-        return json_schema_number()
-
-    if expected_type == "string":
-        return {
-            "type": "string",
-        }
-
-    if expected_type == "bool":
-        return {
-            "type": "boolean",
-        }
-
-    if expected_type == "null":
-        return {
-            "type": "null",
-        }
-
-    return {
-        "type": "string",
-    }
-
-
-def read_contract_structure(file_name):
+def read_schema_file(file_name):
     """Read a committed JSON schema from schema/.
 
     Inputs:
-        file_name: Contract JSON file name.
+        file_name: Schema JSON file name.
 
     Outputs:
-        Parsed contract structure.
+        Parsed schema document.
 
     Side effects:
         None.
@@ -778,42 +482,46 @@ def read_contract_structure(file_name):
     return read_raw_json_file(path)
 
 
-def validate_json_structure_contract(data, contract, file_name, path=""):
+def validate_json_schema_document(data, schema, file_name, path=""):
     """Validate parsed JSON against a committed structure schema.
 
     Inputs:
         data: Parsed input JSON subtree.
-        contract: JSON Schema document or legacy contract subtree.
+        schema: JSON Schema document.
         file_name: Input file label used in validation errors.
         path: Current dotted JSON path.
 
     Outputs:
         None. Raises JsonValidationError when the input structure drifts from
-        the committed contract.
+        the committed schema.
 
     Assumptions:
-        Missing fields and "NaN" placeholders are accepted only for optional
-        contract nodes. Required nodes must be present and contain a real value
-        of the declared type.
+        Required fields and optional null placeholders are declared directly in
+        the schema files under schema/.
     """
 
-    if is_json_schema_document(contract):
-        validate_json_schema_value(data, contract, file_name, path or file_name, contract)
-        return
+    if not is_json_schema_document(schema):
+        raise JsonValidationError(f"{file_name} schema must be a JSON Schema document.")
 
-    validate_contract_value(data, contract, file_name, path or file_name)
+    validate_json_schema_value(
+        data,
+        schema,
+        file_name,
+        path or file_name,
+        schema,
+    )
 
 
-def is_json_schema_document(contract):
-    """Return True when a contract is a standard JSON Schema document."""
+def is_json_schema_document(schema):
+    """Return True when a value is a standard JSON Schema document."""
 
     return (
-        isinstance(contract, dict)
+        isinstance(schema, dict)
         and (
-            "$schema" in contract
-            or "properties" in contract
-            or "anyOf" in contract
-            or "const" in contract
+            "$schema" in schema
+            or "properties" in schema
+            or "anyOf" in schema
+            or "const" in schema
         )
     )
 
@@ -1034,276 +742,6 @@ def validate_json_schema_number_limits(data, schema, label):
         raise JsonValidationError(f"{label} must be at most {schema['maximum']}.")
 
 
-def validate_contract_value(data, contract, file_name, label):
-    """Validate one JSON value against either the new or legacy contract form."""
-
-    if is_new_contract_node(contract):
-        validate_new_contract_value(data, contract, file_name, label)
-        return
-
-    validate_legacy_contract_value(data, contract, file_name, label)
-
-
-def is_new_contract_node(contract):
-    """Return True when a contract node uses the optional field schema."""
-
-    return isinstance(contract, dict) and "type" in contract
-
-
-def validate_new_contract_value(data, contract, file_name, label):
-    """Validate one JSON value against a type/required/fields contract node."""
-
-    if data == "NaN":
-        if contract.get("required", False):
-            raise JsonValidationError(f"{label} is required and cannot be \"NaN\".")
-        return
-
-    expected_types = contract.get("type")
-
-    if isinstance(expected_types, str):
-        expected_types = [expected_types]
-
-    if len(expected_types) == 1:
-        validate_new_contract_type(
-            data,
-            contract,
-            expected_types[0],
-            file_name,
-            label,
-        )
-        return
-
-    errors = []
-
-    for expected_type in expected_types:
-        try:
-            validate_new_contract_type(
-                data,
-                contract,
-                expected_type,
-                file_name,
-                label,
-            )
-            return
-        except JsonValidationError as error:
-            errors.append(str(error))
-
-    if errors:
-        expected = ", ".join(expected_types)
-        raise JsonValidationError(f"{label} must match type {expected}.")
-
-    raise JsonValidationError(f"{label} has no valid contract type.")
-
-
-def validate_new_contract_type(data, contract, expected_type, file_name, label):
-    """Validate data against one concrete type inside a possibly union contract."""
-
-    if expected_type == "object":
-        if not isinstance(data, dict):
-            raise JsonValidationError(f"{label} must be a JSON object.")
-
-        fields = contract.get("fields", {})
-        expected_keys = set(fields)
-        actual_keys = set(data)
-
-        for key in sorted(actual_keys - expected_keys):
-            raise JsonValidationError(f"{label} contains unexpected field {key}.")
-
-        for key in sorted(expected_keys):
-            child_label = f"{label}.{key}"
-            child_contract = fields[key]
-
-            if key not in data:
-                if child_contract.get("required", False):
-                    raise JsonValidationError(
-                        f"{label} is missing required field {key}."
-                    )
-                continue
-
-            validate_contract_value(
-                data[key],
-                child_contract,
-                file_name,
-                child_label,
-            )
-
-        return
-
-    if expected_type == "list":
-        if not isinstance(data, list):
-            raise JsonValidationError(f"{label} must be a JSON array.")
-
-        item_contract = contract.get("items")
-
-        if item_contract is not None:
-            for index, item in enumerate(data):
-                validate_contract_value(
-                    item,
-                    item_contract,
-                    file_name,
-                    f"{label}[{index}]",
-                )
-
-        return
-
-    if expected_type == "matlab_row":
-        if not (
-            isinstance(data, dict)
-            and set(data.keys()) == {"_matlab_row"}
-            and isinstance(data["_matlab_row"], list)
-        ):
-            raise JsonValidationError(f"{label} must be a _matlab_row marker.")
-
-        item_contract = contract.get("items")
-
-        if item_contract is not None:
-            validate_contract_value(
-                data["_matlab_row"],
-                item_contract,
-                file_name,
-                f"{label}._matlab_row",
-            )
-
-        return
-
-    if expected_type == "matlab_expression":
-        if (
-            isinstance(data, dict)
-            and set(data.keys()) == {"_matlab_expression"}
-            and isinstance(data["_matlab_expression"], str)
-        ):
-            return
-
-        raise JsonValidationError(f"{label} must be a _matlab_expression marker.")
-
-    if expected_type == "python_marker":
-        if (
-            isinstance(data, dict)
-            and set(data.keys()) == {"_python_type", "_repr"}
-            and isinstance(data["_python_type"], str)
-            and isinstance(data["_repr"], str)
-        ):
-            return
-
-        raise JsonValidationError(f"{label} must be a Python output marker.")
-
-    if expected_type == "number":
-        if is_json_number(data):
-            return
-
-        if (
-            isinstance(data, dict)
-            and set(data.keys()) == {"_matlab_expression"}
-            and isinstance(data["_matlab_expression"], str)
-        ):
-            return
-
-        raise JsonValidationError(
-            f"{label} must be a number or a _matlab_expression marker."
-        )
-
-    if expected_type == "string":
-        if isinstance(data, str):
-            return
-
-        raise JsonValidationError(f"{label} must be a string.")
-
-    if expected_type == "bool":
-        if isinstance(data, bool):
-            return
-
-        raise JsonValidationError(f"{label} must be true or false.")
-
-    if expected_type == "null":
-        if data is None:
-            return
-
-        raise JsonValidationError(f"{label} must be null.")
-
-    raise JsonValidationError(f"{label} uses unknown contract type {expected_type}.")
-
-
-def validate_legacy_contract_value(data, contract, file_name, label):
-    """Validate one JSON value against the original structure-only contract."""
-
-    if isinstance(contract, dict) and contract.get("_type") == "list":
-        if not isinstance(data, list):
-            raise JsonValidationError(f"{label} must be a JSON array.")
-
-        item_contract = contract.get("_items")
-
-        if item_contract is not None:
-            for index, item in enumerate(data):
-                validate_json_structure_contract(
-                    item,
-                    item_contract,
-                    file_name,
-                    f"{label}[{index}]",
-                )
-
-        return
-
-    if isinstance(contract, dict):
-        if not isinstance(data, dict):
-            raise JsonValidationError(f"{label} must be a JSON object.")
-
-        expected_keys = set(contract)
-        actual_keys = set(data)
-
-        for key in sorted(expected_keys - actual_keys):
-            raise JsonValidationError(f"{label} is missing required field {key}.")
-
-        for key in sorted(actual_keys - expected_keys):
-            raise JsonValidationError(f"{label} contains unexpected field {key}.")
-
-        for key in sorted(expected_keys):
-            child_label = f"{label}.{key}"
-            validate_json_structure_contract(
-                data[key],
-                contract[key],
-                file_name,
-                child_label,
-            )
-
-        return
-
-    if contract == "number":
-        if is_json_number(data) or data == "NaN":
-            return
-
-        if (
-            isinstance(data, dict)
-            and set(data.keys()) == {"_matlab_expression"}
-            and isinstance(data["_matlab_expression"], str)
-        ):
-            return
-
-        raise JsonValidationError(
-            f"{label} must be a number, \"NaN\", or a _matlab_expression marker."
-        )
-
-    if contract == "string":
-        if isinstance(data, str):
-            return
-
-        raise JsonValidationError(f"{label} must be a string.")
-
-    if contract == "bool":
-        if isinstance(data, bool):
-            return
-
-        raise JsonValidationError(f"{label} must be true or false.")
-
-    if contract == "null":
-        if data is None:
-            return
-
-        raise JsonValidationError(f"{label} must be null.")
-
-    if type(data).__name__ != contract:
-        raise JsonValidationError(f"{label} must match contract type {contract}.")
-
-
 def require_json_number(data, keys, file_name):
     """Validate that a required nested field is numeric or a MATLAB expression."""
 
@@ -1323,17 +761,6 @@ def require_json_number(data, keys, file_name):
     raise JsonValidationError(
         f"{file_name}.{joined} must be a number or a _matlab_expression marker."
     )
-
-
-def require_json_number_or_nan(data, keys, file_name):
-    """Validate that a required numeric field also accepts FAST's NaN marker."""
-
-    value = get_json_path(data, keys, file_name)
-
-    if value == "NaN":
-        return
-
-    require_json_number(data, keys, file_name)
 
 
 def require_json_string(data, keys, file_name):
@@ -1438,9 +865,9 @@ def validate_aircraft_json(data):
 
     require_json_object(data, "InputAircraft.json")
     validate_json_markers(data, "InputAircraft.json")
-    validate_json_structure_contract(
+    validate_json_schema_document(
         data,
-        read_contract_structure(INPUT_AIRCRAFT_SCHEMA_JSON_PATH),
+        read_schema_file(INPUT_AIRCRAFT_SCHEMA_JSON_PATH),
         "InputAircraft.json",
     )
 
@@ -1526,9 +953,9 @@ def validate_output_aircraft_json(data):
 
     require_json_object(data, "OutputAircraft.json")
     validate_json_markers(data, "OutputAircraft.json", allow_output_markers=True)
-    validate_json_structure_contract(
+    validate_json_schema_document(
         data,
-        read_contract_structure(OUTPUT_AIRCRAFT_SCHEMA_JSON_PATH),
+        read_schema_file(OUTPUT_AIRCRAFT_SCHEMA_JSON_PATH),
         "OutputAircraft.json",
     )
 
@@ -1585,29 +1012,8 @@ def read_json_file(path, validator=None):
     return load_json_data(data)
 
 
-def require_input_json_file(path):
-    """Fail when a required FAST JSON input file is missing.
-
-    Inputs:
-        path: Required input JSON path.
-
-    Outputs:
-        None.
-
-    Assumptions:
-        InputAircraft.json is a committed/template input file that users edit
-        before running main.py.
-    """
-
-    if not path.exists():
-        raise JsonValidationError(
-            f"{path} is required. Edit or restore this input file, then rerun "
-            "python main.py."
-        )
-
-
-def load_input_json_files(input_dir=None):
-    """Load the merged FAST aircraft input from JSON.
+def load_input_aircraft_json(input_dir=None):
+    """Load the merged FAST aircraft input from InputAircraft.json.
 
     Inputs:
         input_dir: Directory containing InputAircraft.json. A missing value uses
@@ -1616,21 +1022,25 @@ def load_input_json_files(input_dir=None):
     Outputs:
         Aircraft dictionary ready for FastWrapper.run().
 
-    Side effects:
-        None.
+    Assumptions:
+        InputAircraft.json is a committed/template input file that users edit
+        before running main.py.
     """
 
-    aircraft_json_path = build_input_json_paths(input_dir)
+    if input_dir is None:
+        base_path = DEFAULT_INPUT_DIR
+    else:
+        base_path = Path(input_dir)
 
-    require_input_json_file(aircraft_json_path)
+    aircraft_json_path = base_path / AIRCRAFT_JSON_PATH
+
+    if not aircraft_json_path.exists():
+        raise JsonValidationError(
+            f"{aircraft_json_path} is required. Edit or restore this input file, "
+            "then rerun python main.py."
+        )
 
     return read_json_file(aircraft_json_path, validate_aircraft_json)
-
-
-def load_input_aircraft_json(input_dir=None):
-    """Load the merged FAST aircraft input from InputAircraft.json."""
-
-    return load_input_json_files(input_dir)
 
 
 def build_output_aircraft_structure(value):
@@ -1677,7 +1087,12 @@ def save_output_aircraft(value, output_dir=None):
         OutputAircraft.json after each successful FAST run.
     """
 
-    output_aircraft_path, _ = build_output_json_paths(output_dir)
+    if output_dir is None:
+        base_path = DEFAULT_OUTPUT_DIR
+    else:
+        base_path = Path(output_dir)
+
+    output_aircraft_path = base_path / OUTPUT_AIRCRAFT_JSON_PATH
     output_aircraft_path.parent.mkdir(parents=True, exist_ok=True)
 
     write_json_file(output_aircraft_path, build_json_data(value))
@@ -1702,7 +1117,12 @@ def save_output_aircraft_structure(value, output_dir=None):
         FAST numeric data.
     """
 
-    _, output_structure_path = build_output_json_paths(output_dir)
+    if output_dir is None:
+        base_path = DEFAULT_OUTPUT_DIR
+    else:
+        base_path = Path(output_dir)
+
+    output_structure_path = base_path / OUTPUT_AIRCRAFT_SCHEMA_JSON_PATH
     output_structure_path.parent.mkdir(parents=True, exist_ok=True)
 
     write_json_file(output_structure_path, value)
@@ -1746,8 +1166,14 @@ def print_output_aircraft_structure(
     prefix = " " * indent
 
     if max_depth is not None and depth >= max_depth:
-        if is_array_schema(value):
-            length = format_schema_array_length(value)
+        if isinstance(value, dict) and value.get("type") == "array":
+            length = ""
+
+            if (
+                value.get("minItems") == value.get("maxItems")
+                and "minItems" in value
+            ):
+                length = str(value["minItems"])
 
             if length:
                 print(f"{prefix}{name}: array[{length}] ...")
@@ -1760,8 +1186,14 @@ def print_output_aircraft_structure(
 
         return
 
-    if is_array_schema(value):
-        length = format_schema_array_length(value)
+    if isinstance(value, dict) and value.get("type") == "array":
+        length = ""
+
+        if (
+            value.get("minItems") == value.get("maxItems")
+            and "minItems" in value
+        ):
+            length = str(value["minItems"])
 
         if length:
             print(f"{prefix}{name}: array[{length}]")
@@ -1780,7 +1212,7 @@ def print_output_aircraft_structure(
 
         return
 
-    if is_object_schema(value):
+    if isinstance(value, dict) and value.get("type") == "object":
         print(f"{prefix}{name}: object")
 
         properties = value.get("properties", {})
@@ -1851,24 +1283,3 @@ def unwrap_printable_schema(value):
         return value["$ref"].split("/")[-1]
 
     return value
-
-
-def is_array_schema(value):
-    """Return True when a printable schema describes a JSON array."""
-
-    return isinstance(value, dict) and value.get("type") == "array"
-
-
-def is_object_schema(value):
-    """Return True when a printable schema describes a JSON object."""
-
-    return isinstance(value, dict) and value.get("type") == "object"
-
-
-def format_schema_array_length(value):
-    """Return an exact array length string when the schema has one."""
-
-    if value.get("minItems") == value.get("maxItems") and "minItems" in value:
-        return str(value["minItems"])
-
-    return ""
