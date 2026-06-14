@@ -1,17 +1,14 @@
 {
   "Specs": {
     "TLAR": {
-      "EIS": "NaN",
       "Class": "Turboprop",
       "MaxPax": 48
     },
     "Performance": {
       "Vels": {
-        "Tko": "NaN",
         "Crs": 0.4
       },
       "Alts": {
-        "Tko": "NaN",
         "Crs": 7620
       },
       "Range": 1326000,
@@ -20,8 +17,7 @@
     "Aero": {
       "L_D": {
         "Clb": 10,
-        "Crs": 12,
-        "Des": "NaN"
+        "Crs": 12
       },
       "W_S": {
         "SLS": 342
@@ -29,18 +25,11 @@
     },
     "Weight": {
       "MTOW": 18600,
-      "Fuel": 4500,
-      "MLW": "NaN",
-      "Batt": "NaN",
-      "EM": "NaN",
-      "EG": "NaN"
+      "Fuel": 4500
     },
     "Propulsion": {
       "PropArch": {
         "Type": "C"
-      },
-      "T_W": {
-        "SLS": "NaN"
       },
       "Eta": {
         "Prop": 0.8
@@ -71,7 +60,6 @@
       }
     },
     "Power": {
-      "SLS": "NaN",
       "SpecEnergy": {
         "Fuel": 12,
         "Batt": 0.35
@@ -81,14 +69,7 @@
         "EG": 0.96
       },
       "P_W": {
-        "SLS": 0.1731,
-        "EM": "NaN",
-        "EG": "NaN"
-      },
-      "Battery": {
-        "SerCells": "NaN",
-        "ParCells": "NaN",
-        "BegSOC": "NaN"
+        "SLS": 0.1731
       }
     }
   },
@@ -97,5 +78,138 @@
       "Type": 1
     },
     "Plotting": 0
+  },
+  "Mission": {
+    "Profile": {
+      "Target": {
+        "Valu": [
+          1301956,
+          277800,
+          45
+        ],
+        "Type": [
+          "Dist",
+          "Dist",
+          "Time"
+        ]
+      },
+      "Segs": [
+        "Takeoff",
+        "Climb",
+        "Cruise",
+        "Descent",
+        "Descent",
+        "Climb",
+        "Cruise",
+        "Cruise",
+        "Descent",
+        "Descent",
+        "Landing"
+      ],
+      "ID": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        2,
+        2,
+        3,
+        3,
+        3,
+        3
+      ],
+      "AltBeg": [
+        0,
+        0,
+        7620,
+        7620,
+        914.4,
+        457.2,
+        4572,
+        4572,
+        4572,
+        914.4,
+        457.2
+      ],
+      "AltEnd": [
+        0,
+        7620,
+        7620,
+        914.4,
+        457.2,
+        4572,
+        4572,
+        4572,
+        914.4,
+        457.2,
+        0
+      ],
+      "ClbRate": [
+        null,
+        null,
+        null,
+        -6.096,
+        null,
+        null,
+        null,
+        null,
+        -6.096,
+        null,
+        null
+      ],
+      "VelBeg": [
+        0,
+        82.3111,
+        102.8889,
+        102.8889,
+        102.8889,
+        82.3111,
+        102.8889,
+        102.8889,
+        102.8889,
+        102.8889,
+        82.3111
+      ],
+      "VelEnd": [
+        82.3111,
+        102.8889,
+        102.8889,
+        102.8889,
+        82.3111,
+        102.8889,
+        102.8889,
+        102.8889,
+        102.8889,
+        82.3111,
+        0
+      ],
+      "TypeBeg": [
+        "TAS",
+        "EAS",
+        "EAS",
+        "EAS",
+        "EAS",
+        "EAS",
+        "EAS",
+        "EAS",
+        "EAS",
+        "EAS",
+        "EAS"
+      ],
+      "TypeEnd": [
+        "EAS",
+        "EAS",
+        "EAS",
+        "EAS",
+        "EAS",
+        "EAS",
+        "EAS",
+        "EAS",
+        "EAS",
+        "EAS",
+        "EAS"
+      ]
+    }
   }
 }

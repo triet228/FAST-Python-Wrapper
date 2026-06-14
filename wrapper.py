@@ -111,12 +111,12 @@ class FastWrapper:
             self.engine.quit()
             self.engine = None
 
-    def run(self, aircraft, mission):
-        """Run FAST with Python dictionaries for aircraft and mission inputs.
+    def run(self, aircraft):
+        """Run FAST with one Python dictionary containing aircraft and mission input.
 
         Inputs:
-            aircraft: Nested dictionary matching the FAST Aircraft structure.
-            mission: Nested dictionary matching the FAST Mission.Profile fields.
+            aircraft: Nested dictionary matching the FAST Aircraft structure,
+                with Mission.Profile holding the mission profile fields.
 
         Outputs:
             Dictionary containing:
@@ -132,6 +132,7 @@ class FastWrapper:
         # slower than passing raw MATLAB objects, but it keeps main.py editable
         # with ordinary Python data and works without a separate schema layer.
         aircraft = self._prepare_aircraft(aircraft)
+        mission = self._extract_mission_profile(aircraft)
         aircraft_literal = self._to_matlab_literal(aircraft)
         mission_literal = self._to_matlab_literal(mission)
 
@@ -226,10 +227,15 @@ class FastWrapper:
 
         prop_arch = propulsion.get("PropArch")
 
-        if not isinstance(prop_arch, str):
+        if isinstance(prop_arch, dict):
+            arch_type = prop_arch.get("Type")
+        else:
+            arch_type = prop_arch
+
+        if not isinstance(arch_type, str):
             return aircraft
 
-        arch_type = prop_arch.upper()
+        arch_type = arch_type.upper()
 
         if arch_type == "O":
             # FAST uses "O" for a user-supplied graph architecture. The input
@@ -268,6 +274,22 @@ class FastWrapper:
         propulsion["PropArch"] = {"Type": arch_type}
         propulsion.pop("PropArchGraph", None)
         return aircraft
+
+    def _extract_mission_profile(self, aircraft):
+        """Remove and return the mission profile embedded in aircraft input."""
+
+        try:
+            mission_container = aircraft.pop("Mission")
+            mission = mission_container["Profile"]
+        except (KeyError, TypeError) as error:
+            raise ValueError(
+                "InputAircraft must include Mission.Profile for FAST runs."
+            ) from error
+
+        if not isinstance(mission, dict):
+            raise ValueError("InputAircraft Mission.Profile must be an object.")
+
+        return mission
 
     def _to_matlab_literal(self, value):
         """Convert supported Python values into MATLAB literal source text."""

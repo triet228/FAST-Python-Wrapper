@@ -19,16 +19,7 @@ def test_ATR42_wrapper_output_matches_saved_json_file(
 
     assert_fast_model_wrapper_matches_saved_output(
         name="ATR42",
-        aircraft=load_example_input(
-            examples_path,
-            "ATR42",
-            "InputAircraft.json",
-        ),
-        mission=load_example_input(
-            examples_path,
-            "ATR42",
-            "Mission.json",
-        ),
+        aircraft=load_example_input(examples_path, "ATR42"),
         saved="ATR42/outputs/OutputAircraft.json",
         fast_path=fast_path,
         examples_path=examples_path,

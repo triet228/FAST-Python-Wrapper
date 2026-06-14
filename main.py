@@ -3,7 +3,7 @@
 from pathlib import Path
 from helper import (
     build_output_aircraft_structure,
-    load_input_json_files,
+    load_input_aircraft_json,
     print_output_aircraft_structure,
     print_result,
     save_output_aircraft,
@@ -28,16 +28,15 @@ PRINT_OUTPUT_AIRCRAFT_STRUCTURE = True
 PRINT_OUTPUT_AIRCRAFT_STRUCTURE_DEPTH = 3
 PRINT_OUTPUT_AIRCRAFT_STRUCTURE_ITEMS = 20
 
-# Runtime inputs loaded from the default example input JSON files.
+# Runtime input loaded from the default example input JSON file.
 AIRCRAFT = {}
-MISSION = {}
 
 
 def main(INPUT_DIR, OUTPUT_DIR, FAST_DIR):
     """Run FAST from JSON inputs and save the converted OutputAircraft result.
 
     Inputs:
-        INPUT_DIR: Directory containing InputAircraft.json and Mission.json.
+        INPUT_DIR: Directory containing InputAircraft.json.
         OUTPUT_DIR: Directory where generated OutputAircraft files are written.
         FAST_DIR: Local FAST checkout path containing Main.m.
 
@@ -51,15 +50,14 @@ def main(INPUT_DIR, OUTPUT_DIR, FAST_DIR):
     """
 
     global AIRCRAFT
-    global MISSION
 
-    # The JSON files in INPUT_DIR are user-editable run inputs. They are
-    # validated before MATLAB starts so input mistakes fail quickly.
-    AIRCRAFT, MISSION = load_input_json_files(INPUT_DIR)
+    # The JSON file in INPUT_DIR is user-editable run input. It is validated
+    # before MATLAB starts so input mistakes fail quickly.
+    AIRCRAFT = load_input_aircraft_json(INPUT_DIR)
 
     # Start MATLAB, run FAST, and shut MATLAB down.
     with FastWrapper(FAST_DIR) as fast:
-        result = fast.run(aircraft=AIRCRAFT, mission=MISSION)
+        result = fast.run(aircraft=AIRCRAFT)
 
     # Populate the Python equivalent of MATLAB's saved OutputAircraft struct.
     OUTPUT_AIRCRAFT.clear()

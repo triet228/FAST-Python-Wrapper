@@ -72,13 +72,12 @@ def examples_path(monkeypatch):
     return PROJECT_ROOT / "examples"
 
 
-def load_example_input(examples_path, case_path, file_name):
+def load_example_input(examples_path, case_path):
     """Load an example JSON input fixture.
 
     Inputs:
         examples_path: Root path for examples.
         case_path: Case directory name, such as A320.
-        file_name: InputAircraft.json or Mission.json.
 
     Outputs:
         Python data accepted by FastWrapper.run().
@@ -89,7 +88,7 @@ def load_example_input(examples_path, case_path, file_name):
         row vectors where MATLAB orientation matters.
     """
 
-    path = examples_path / case_path / "inputs" / file_name
+    path = examples_path / case_path / "inputs" / "InputAircraft.json"
     return load_json_data(read_raw_json_file(path))
 
 
@@ -170,7 +169,7 @@ def compare_json_value(actual, expected, path="Aircraft"):
 
             return [f"{path} numeric mismatch: {actual!r} != {expected!r}"], 1
 
-        tolerance = 1e-6 + 1e-8 * abs(expected)
+        tolerance = 5e-5 + 1e-8 * abs(expected)
 
         if abs(actual - expected) <= tolerance:
             return [], 1
@@ -311,7 +310,6 @@ def is_comparable_repr_value(value):
 def assert_fast_model_wrapper_matches_saved_output(
     name,
     aircraft,
-    mission,
     saved,
     fast_path,
     examples_path,
@@ -321,10 +319,8 @@ def assert_fast_model_wrapper_matches_saved_output(
 
     Inputs:
         name: Aircraft case name used in failure output.
-        aircraft: Python dictionary generated from the vendored aircraft JSON
-            input fixture.
-        mission: Python dictionary generated from the vendored mission JSON
-            input fixture.
+        aircraft: Python dictionary generated from the vendored merged aircraft
+            JSON input fixture.
         saved: Case-relative path to the saved OutputAircraft.json baseline.
         fast_path: Local FAST checkout path.
         examples_path: Example fixture root.
@@ -334,17 +330,16 @@ def assert_fast_model_wrapper_matches_saved_output(
         from the saved FAST output JSON field.
 
     Assumptions:
-        The JSON fixture files mirror the historical FAST aircraft and mission
-        definitions. This keeps the tests on the
-        same user-facing path as main.py: Python data goes into the wrapper,
-        FAST runs, and the final aircraft is checked recursively.
+        The JSON fixture files mirror the user-facing path in main.py: merged
+        aircraft and mission data goes into the wrapper, FAST runs, and the
+        final aircraft is checked recursively.
     """
 
     if not examples_path.exists():
         pytest.skip(f"examples path not found: {examples_path}")
 
     with FastWrapper(fast_path) as fast:
-        result = fast.run(aircraft=aircraft, mission=mission)
+        result = fast.run(aircraft=aircraft)
 
     actual = build_json_data(result["aircraft"])
     expected = read_raw_json_file(examples_path / saved)

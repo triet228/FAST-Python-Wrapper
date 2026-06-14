@@ -3,7 +3,7 @@
     "TLAR": {
       "EIS": 2016,
       "Class": "Turbofan",
-      "MaxPax": 161.14736842105262
+      "MaxPax": 161.1474
     },
     "Aero": {
       "L_D": {
@@ -14,7 +14,7 @@
         "Des": 16
       },
       "W_S": {
-        "SLS": 624.505928853755
+        "SLS": 624.5059
       }
     },
     "Propulsion": {
@@ -64,12 +64,12 @@
         "Cff3": 0.4006,
         "Cff2": -0.4323,
         "Cff1": 0.9946,
-        "Cffch": 6.1e-07,
+        "Cffch": 0,
         "HEcoeff": 1
       },
       "NumEngines": 2,
       "T_W": {
-        "SLS": 0.3286941687990181
+        "SLS": 0.3287
       },
       "Thrust": {
         "SLS": 237000
@@ -81,14 +81,11 @@
     "Weight": {
       "WairfCF": 1,
       "MTOW": 79000,
-      "EG": "NaN",
-      "EM": "NaN",
-      "Fuel": 19000,
-      "Batt": "NaN"
+      "Fuel": 19000
     },
     "Performance": {
       "Vels": {
-        "Tko": 69.45000000000007,
+        "Tko": 69.45,
         "Crs": 0.82
       },
       "Alts": {
@@ -100,38 +97,7 @@
     },
     "Power": {
       "SpecEnergy": {
-        "Fuel": 12,
-        "Batt": "NaN"
-      },
-      "Eta": {
-        "EM": "NaN",
-        "EG": "NaN"
-      },
-      "P_W": {
-        "SLS": "NaN",
-        "EM": "NaN",
-        "EG": "NaN"
-      },
-      "LamUps": {
-        "SLS": 0,
-        "Tko": 0,
-        "Clb": 0,
-        "Crs": 0,
-        "Des": 0,
-        "Lnd": 0
-      },
-      "LamDwn": {
-        "SLS": 0,
-        "Tko": 0,
-        "Clb": 0,
-        "Crs": 0,
-        "Des": 0,
-        "Lnd": 0
-      },
-      "Battery": {
-        "ParCells": "NaN",
-        "SerCells": "NaN",
-        "BegSOC": "NaN"
+        "Fuel": 12
       }
     }
   },
@@ -151,5 +117,178 @@
     "Plotting": 0,
     "Table": 0,
     "VisualizeAircraft": 0
+  },
+  "Mission": {
+    "Profile": {
+      "Target": {
+        "Valu": [
+          2098933.3333,
+          2098933.3333,
+          2098933.3333,
+          370400,
+          30
+        ],
+        "Type": [
+          "Dist",
+          "Dist",
+          "Dist",
+          "Dist",
+          "Time"
+        ]
+      },
+      "Segs": [
+        "Takeoff",
+        "Climb",
+        "Climb",
+        "Cruise",
+        "Climb",
+        "Cruise",
+        "Climb",
+        "Cruise",
+        "Descent",
+        "Climb",
+        "Cruise",
+        "Descent",
+        "Cruise",
+        "Descent",
+        "Landing"
+      ],
+      "ID": [
+        1,
+        1,
+        1,
+        1,
+        2,
+        2,
+        3,
+        3,
+        3,
+        4,
+        4,
+        4,
+        5,
+        5,
+        5
+      ],
+      "AltBeg": [
+        0,
+        0,
+        3048,
+        10668,
+        10668,
+        11277.6,
+        11277.6,
+        11887.2,
+        11887.2,
+        457.2,
+        4572,
+        4572,
+        457.2,
+        457.2,
+        0
+      ],
+      "AltEnd": [
+        0,
+        3048,
+        10668,
+        10668,
+        11277.6,
+        11277.6,
+        11887.2,
+        11887.2,
+        457.2,
+        4572,
+        4572,
+        457.2,
+        457.2,
+        0,
+        0
+      ],
+      "ClbRate": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "VelBeg": [
+        0,
+        0.3,
+        128.6111,
+        0.78,
+        0.78,
+        0.78,
+        0.78,
+        0.78,
+        0.78,
+        0.3,
+        0.3,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "VelEnd": [
+        0.3,
+        128.6111,
+        0.78,
+        0.78,
+        0.78,
+        0.78,
+        0.78,
+        0.78,
+        0.3,
+        0.3,
+        0.3,
+        0.3,
+        0.3,
+        0.3,
+        0
+      ],
+      "TypeBeg": [
+        "Mach",
+        "Mach",
+        "TAS",
+        "Mach",
+        "Mach",
+        "Mach",
+        "Mach",
+        "Mach",
+        "Mach",
+        "Mach",
+        "Mach",
+        "Mach",
+        "Mach",
+        "Mach",
+        "Mach"
+      ],
+      "TypeEnd": [
+        "Mach",
+        "TAS",
+        "Mach",
+        "Mach",
+        "Mach",
+        "Mach",
+        "Mach",
+        "Mach",
+        "Mach",
+        "Mach",
+        "Mach",
+        "Mach",
+        "Mach",
+        "Mach",
+        "Mach"
+      ]
+    }
   }
 }

@@ -19,16 +19,7 @@ def test_A320_wrapper_output_matches_saved_json_file(
 
     assert_fast_model_wrapper_matches_saved_output(
         name="A320",
-        aircraft=load_example_input(
-            examples_path,
-            "A320",
-            "InputAircraft.json",
-        ),
-        mission=load_example_input(
-            examples_path,
-            "A320",
-            "Mission.json",
-        ),
+        aircraft=load_example_input(examples_path, "A320"),
         saved="A320/outputs/OutputAircraft.json",
         fast_path=fast_path,
         examples_path=examples_path,
