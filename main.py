@@ -10,7 +10,7 @@ from core.matlab_bridge import (
     python_to_matlab,
     resolve_fast_path,
     start_matlab,
-    to_python_data,
+    matlab_to_python,
 )
 
 
@@ -82,7 +82,7 @@ def FAST_Python_Wrapper(input_aircraft, fast_path):
         except Exception:
             fast_result = {}
 
-        output = to_python_data(fast_result)
+        output = matlab_to_python(fast_result)
 
         if isinstance(output, dict):
             clean_output_fields(output)

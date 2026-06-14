@@ -179,7 +179,7 @@ def _to_matlab_row(value):
     return "[" + ", ".join(python_to_matlab(item) for item in value) + "]"
 
 
-def to_python_data(value):
+def matlab_to_python(value):
     """Convert MATLAB Engine return values into ordinary Python data.
 
     Outputs:
@@ -199,7 +199,7 @@ def to_python_data(value):
 
     if isinstance(value, dict):
         return {
-            key: to_python_data(item)
+            key: matlab_to_python(item)
             for key, item in value.items()
         }
 
@@ -207,7 +207,7 @@ def to_python_data(value):
 
     if struct_fields is not None:
         return {
-            key: to_python_data(value[key])
+            key: matlab_to_python(value[key])
             for key in struct_fields
         }
 
@@ -277,7 +277,7 @@ def _convert_sequence(value):
         those keeps scalar OutputAircraft fields as scalars in Python dicts.
     """
 
-    items = [to_python_data(item) for item in value]
+    items = [matlab_to_python(item) for item in value]
 
     if len(items) == 1 and not isinstance(items[0], dict):
         return items[0]
