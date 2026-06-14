@@ -10,11 +10,10 @@ from wrapper import MatlabExpression, MatlabRow
 # FAST unspecified input marker.
 nan = float("nan")
 
-# Default example run directories and file names. InputAircraft.json is the
-# single required run input; the OutputAircraft files are regenerated after
-# each successful FAST run.
-DEFAULT_INPUT_DIR = Path("examples/CeRAS/inputs")
-DEFAULT_OUTPUT_DIR = Path("examples/CeRAS/outputs")
+# Default example case directories and file names. InputAircraft.json is the
+# single required run input; OutputAircraft.json is an optional saved fixture.
+DEFAULT_INPUT_DIR = Path("examples/CeRAS")
+DEFAULT_OUTPUT_DIR = Path("examples/CeRAS")
 CONTRACTS_DIR = Path("contracts")
 AIRCRAFT_JSON_PATH = Path("InputAircraft.json")
 INPUT_AIRCRAFT_SCHEMA_JSON_PATH = Path("InputAircraftSchema.json")
@@ -31,7 +30,7 @@ def build_input_json_paths(input_dir=None):
 
     Inputs:
         input_dir: Directory containing InputAircraft.json. A missing value
-            uses the default inputs directory.
+            uses the default example directory.
 
     Outputs:
         The aircraft JSON path.
@@ -54,7 +53,7 @@ def build_output_json_paths(output_dir=None):
 
     Inputs:
         output_dir: Directory where OutputAircraft JSON files should be written.
-            A missing value uses the default outputs directory.
+            A missing value uses the default example directory.
 
     Outputs:
         A tuple containing the full aircraft output path and structure output
@@ -1612,7 +1611,7 @@ def load_input_json_files(input_dir=None):
 
     Inputs:
         input_dir: Directory containing InputAircraft.json. A missing value uses
-            the default inputs directory.
+            the default example directory.
 
     Outputs:
         Aircraft dictionary ready for FastWrapper.run().
@@ -1668,7 +1667,7 @@ def save_output_aircraft(value, output_dir=None):
         value: Python dictionary converted from the MATLAB OutputAircraft
             struct returned by FAST.
         output_dir: Directory where OutputAircraft.json should be written. A
-            missing value uses the default outputs directory.
+            missing value uses the default example directory.
 
     Outputs:
         Destination path written.
@@ -1692,7 +1691,7 @@ def save_output_aircraft_structure(value, output_dir=None):
     Inputs:
         value: Structure map from build_output_aircraft_structure().
         output_dir: Directory where OutputAircraftSchema.json should be
-            written. A missing value uses the default outputs directory.
+            written. A missing value uses the default example directory.
 
     Outputs:
         Destination path written.

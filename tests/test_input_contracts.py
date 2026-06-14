@@ -16,7 +16,7 @@ from helper import (
 from tests.helpers import PROJECT_ROOT
 
 
-DEFAULT_INPUT_DIR = PROJECT_ROOT / "examples" / "CeRAS" / "inputs"
+DEFAULT_INPUT_DIR = PROJECT_ROOT / "examples" / "CeRAS"
 EXAMPLES_DIR = PROJECT_ROOT / "examples"
 CASE_NAMES = ["A320", "AEA", "ATR42", "CeRAS"]
 
@@ -34,17 +34,17 @@ def test_example_input_aircraft_matches_schema_contract(case_name):
     """Validate each example aircraft input against the merged schema."""
 
     data = read_raw_json_file(
-        EXAMPLES_DIR / case_name / "inputs" / "InputAircraft.json"
+        EXAMPLES_DIR / case_name / "InputAircraft.json"
     )
 
     validate_aircraft_json(data)
 
 
 @pytest.mark.parametrize("case_name", CASE_NAMES)
-def test_example_inputs_do_not_have_standalone_mission_files(case_name):
+def test_example_cases_do_not_have_standalone_mission_files(case_name):
     """Keep mission data embedded under InputAircraft.json Mission.Profile."""
 
-    input_dir = EXAMPLES_DIR / case_name / "inputs"
+    input_dir = EXAMPLES_DIR / case_name
 
     assert not list(input_dir.glob("*Mission*.json"))
 
@@ -53,7 +53,7 @@ def test_example_inputs_do_not_have_standalone_mission_files(case_name):
 def test_example_output_aircraft_matches_schema_contract(case_name):
     """Validate each example aircraft output against the output schema."""
 
-    data = read_raw_json_file(EXAMPLES_DIR / case_name / "outputs" / "OutputAircraft.json")
+    data = read_raw_json_file(EXAMPLES_DIR / case_name / "OutputAircraft.json")
 
     validate_output_aircraft_json(data)
 

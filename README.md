@@ -6,8 +6,8 @@ Python wrapper for running [Future Aircraft Sizing Tool (FAST)](https://github.c
 
 - `wrapper.py`: core wrapper around MATLAB Engine and FAST.
 - `main.py`: direct script that runs FAST-Python_Wrapper from a Python dictionary.
-- `examples/<Aircraft>/inputs/InputAircraft.json`: optional merged aircraft and mission example input data.
-- `examples/<Aircraft>/outputs/`: optional saved aircraft output fixtures.
+- `examples/<Aircraft>/InputAircraft.json`: optional merged aircraft and mission example input data.
+- `examples/<Aircraft>/OutputAircraft.json`: optional saved aircraft output fixture.
 - `contracts/InputAircraftSchema.json`: JSON Schema for merged input aircraft JSON.
 - `contracts/OutputAircraftSchema.json`: JSON Schema for output aircraft JSON.
 
@@ -91,7 +91,7 @@ The JSON files in `examples/` are fixtures and templates, not required runtime I
 from helper import load_input_aircraft_json
 from main import main
 
-input_aircraft = load_input_aircraft_json("examples/CeRAS/inputs")
+input_aircraft = load_input_aircraft_json("examples/CeRAS")
 result = main(input_aircraft, FAST_DIR)
 ```
 

@@ -20,7 +20,7 @@ def test_AEA_wrapper_output_matches_saved_json_file(
     assert_fast_model_wrapper_matches_saved_output(
         name="AEA",
         aircraft=load_example_input(examples_path, "AEA"),
-        saved="AEA/outputs/OutputAircraft.json",
+        saved="AEA/OutputAircraft.json",
         fast_path=fast_path,
         examples_path=examples_path,
         tmp_path=tmp_path,

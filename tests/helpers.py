@@ -88,7 +88,7 @@ def load_example_input(examples_path, case_path):
         row vectors where MATLAB orientation matters.
     """
 
-    path = examples_path / case_path / "inputs" / "InputAircraft.json"
+    path = examples_path / case_path / "InputAircraft.json"
     return load_json_data(read_raw_json_file(path))
 
 

@@ -16,7 +16,7 @@ from tests.helpers import PROJECT_ROOT
 from wrapper import FastWrapper
 
 
-DEFAULT_INPUT_PATH = PROJECT_ROOT / "examples" / "CeRAS" / "inputs" / "InputAircraft.json"
+DEFAULT_INPUT_PATH = PROJECT_ROOT / "examples" / "CeRAS" / "InputAircraft.json"
 
 
 def test_json_null_values_load_as_fast_nan():

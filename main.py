@@ -94,7 +94,7 @@ def main(INPUT_AIRCRAFT_DICT, FAST_DIR):
 
 if __name__ == "__main__":
     ROOT_DIR = Path(__file__).resolve().parent
-    INPUT_DIR = ROOT_DIR / "examples" / "CeRAS" / "inputs"
+    INPUT_DIR = ROOT_DIR / "examples" / "CeRAS"
     FAST_DIR = ROOT_DIR.parent / "FAST"
     INPUT_AIRCRAFT_DICT = load_input_aircraft_json(INPUT_DIR)
 
