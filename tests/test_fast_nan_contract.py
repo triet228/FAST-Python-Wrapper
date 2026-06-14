@@ -13,7 +13,7 @@ from core.helper import (
     validate_aircraft_json,
 )
 from tests.helpers import PROJECT_ROOT
-import main as wrapper_module
+import core.fast_runner as runner_module
 from main import FAST_Python_Wrapper
 
 
@@ -70,8 +70,8 @@ def test_wrapper_requires_embedded_mission_profile(monkeypatch, tmp_path):
     fast_path.mkdir()
     (fast_path / "Main.m").write_text("", encoding="utf-8")
     monkeypatch.setattr(
-        wrapper_module,
-        "_start_matlab",
+        runner_module,
+        "start_matlab",
         lambda path: fake_engine(fail_evalc),
     )
 
@@ -106,7 +106,7 @@ def test_wrapper_returns_status_log_output_dict(monkeypatch, tmp_path):
     fast_path = tmp_path / "FAST"
     fast_path.mkdir()
     (fast_path / "Main.m").write_text("", encoding="utf-8")
-    monkeypatch.setattr(wrapper_module, "_start_matlab", lambda path: engine)
+    monkeypatch.setattr(runner_module, "start_matlab", lambda path: engine)
     input_aircraft = {
         "Specs": {
             "Propulsion": {
@@ -142,8 +142,8 @@ def test_wrapper_reports_no_when_output_is_missing(monkeypatch, tmp_path):
     fast_path.mkdir()
     (fast_path / "Main.m").write_text("", encoding="utf-8")
     monkeypatch.setattr(
-        wrapper_module,
-        "_start_matlab",
+        runner_module,
+        "start_matlab",
         lambda path: fake_engine(evalc, workspace),
     )
     input_aircraft = {
@@ -199,8 +199,8 @@ def test_wrapper_keeps_only_supported_prop_arch_output(monkeypatch, tmp_path):
     fast_path.mkdir()
     (fast_path / "Main.m").write_text("", encoding="utf-8")
     monkeypatch.setattr(
-        wrapper_module,
-        "_start_matlab",
+        runner_module,
+        "start_matlab",
         lambda path: fake_engine(evalc, workspace),
     )
     input_aircraft = {
