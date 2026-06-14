@@ -33,11 +33,12 @@ def FAST_Python_Wrapper(input_aircraft, fast_path):
         Starts MATLAB Engine, adds FAST to the MATLAB path, runs Main.m, and
         quits MATLAB before returning.
     """
-
+    # Start MATLAB Engine
     engine = start_matlab(resolve_fast_path(fast_path))
 
     try:
         try:
+            # Convert Python Dictionary to MATLAB struct
             aircraft_python = prepare_aircraft(input_aircraft)
             mission_python = extract_mission_profile(aircraft_python)
             aircraft_matlab = python_to_matlab(aircraft_python)
@@ -50,6 +51,7 @@ def FAST_Python_Wrapper(input_aircraft, fast_path):
             }
 
         try:
+            # Run FAST in MATLAB
             log = engine.evalc(
                 f"""
                 aircraft_spec = {aircraft_matlab};
@@ -73,17 +75,21 @@ def FAST_Python_Wrapper(input_aircraft, fast_path):
             }
 
         try:
+            # Extract FAST run status
             fast_status = engine.workspace["fast_status"]
         except Exception:
             fast_status = "No"
 
         try:
+            # Extract OutputAircraft
             fast_result = engine.workspace["fast_result"]
         except Exception:
             fast_result = {}
 
+        # Convert MATLAB struct to Python dictionary
         output = matlab_to_python(fast_result)
 
+        # Clean OutputAircraft fields that are too specific (like local file paths)
         if isinstance(output, dict):
             clean_output_fields(output)
 
@@ -101,10 +107,12 @@ def FAST_Python_Wrapper(input_aircraft, fast_path):
                 "output": output,
             }
 
+        # FAST ran successfully and produced an output
         return {
             "status": "Yes",
             "log": log,
             "output": output,
         }
     finally:
+        # Quit MATLAB Engine
         engine.quit()
