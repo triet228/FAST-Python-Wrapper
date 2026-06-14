@@ -14,7 +14,7 @@ nan = float("nan")
 # single required run input; OutputAircraft.json is an optional saved fixture.
 DEFAULT_INPUT_DIR = Path("examples/CeRAS")
 DEFAULT_OUTPUT_DIR = Path("examples/CeRAS")
-CONTRACTS_DIR = Path("contracts")
+SCHEMA_DIR = Path("schema")
 AIRCRAFT_JSON_PATH = Path("InputAircraft.json")
 INPUT_AIRCRAFT_SCHEMA_JSON_PATH = Path("InputAircraftSchema.json")
 OUTPUT_AIRCRAFT_JSON_PATH = Path("OutputAircraft.json")
@@ -758,7 +758,7 @@ def convert_contract_type_to_json_schema(contract, expected_type):
 
 
 def read_contract_structure(file_name):
-    """Read a committed JSON contract from contracts/.
+    """Read a committed JSON schema from schema/.
 
     Inputs:
         file_name: Contract JSON file name.
@@ -770,7 +770,7 @@ def read_contract_structure(file_name):
         None.
     """
 
-    path = CONTRACTS_DIR / file_name
+    path = SCHEMA_DIR / file_name
 
     if not path.exists():
         raise JsonValidationError(f"{path} is required for input validation.")

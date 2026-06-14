@@ -1,6 +1,6 @@
-# tests/test_input_contracts.py
+# tests/test_input_schema.py
 
-"""Check committed JSON files against the merged aircraft contracts."""
+"""Check committed JSON files against the merged aircraft schemas."""
 
 from copy import deepcopy
 

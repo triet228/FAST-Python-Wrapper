@@ -8,9 +8,9 @@ Python wrapper for running [Future Aircraft Sizing Tool (FAST)](https://github.c
 - `main.py`: direct script that runs FAST-Python_Wrapper from a Python dictionary.
 - `examples/<Aircraft>/InputAircraft.json`: optional merged aircraft and mission example input data.
 - `examples/<Aircraft>/OutputAircraft.json`: optional saved aircraft output fixture.
-- `contracts/InputAircraftSchema.json`: JSON Schema for merged input aircraft JSON.
-- `contracts/OutputAircraftSchema.json`: JSON Schema for output aircraft JSON.
-- `contracts/WrapperOutputSchema.json`: JSON Schema for `FastWrapper.run()` results.
+- `schema/InputAircraftSchema.json`: JSON Schema for merged input aircraft JSON.
+- `schema/OutputAircraftSchema.json`: JSON Schema for output aircraft JSON.
+- `schema/WrapperOutputSchema.json`: JSON Schema for `FastWrapper.run()` results.
 
 
 ## Requirements
