@@ -76,7 +76,7 @@ def _validate_fast_path(path):
         raise RuntimeError(f"FAST path is missing required files: {joined_paths}")
 
 
-def to_matlab_literal(value):
+def python_to_matlab(value):
     """Convert supported Python values into MATLAB literal source text.
 
     Inputs:
@@ -106,7 +106,7 @@ def to_matlab_literal(value):
             if not VALID_STRUCT_FIELD.match(key):
                 raise ValueError(f"Invalid MATLAB struct field name: {key}")
 
-            fields.append(f'"{key}", {to_matlab_literal(item)}')
+            fields.append(f'"{key}", {python_to_matlab(item)}')
 
         if not fields:
             return "struct()"
@@ -149,11 +149,11 @@ def _to_matlab_array(value):
         return "[]"
 
     if all(isinstance(item, str) for item in value):
-        rows = [to_matlab_literal(item) for item in value]
+        rows = [python_to_matlab(item) for item in value]
         return "[" + "; ".join(rows) + "]"
 
     if all(not isinstance(item, list) and not isinstance(item, tuple) for item in value):
-        rows = [to_matlab_literal(item) for item in value]
+        rows = [python_to_matlab(item) for item in value]
         return "[" + "; ".join(rows) + "]"
 
     rows = []
@@ -162,7 +162,7 @@ def _to_matlab_array(value):
         if not isinstance(row, list) and not isinstance(row, tuple):
             raise TypeError("MATLAB matrix rows must all be lists or tuples.")
 
-        rows.append(", ".join(to_matlab_literal(item) for item in row))
+        rows.append(", ".join(python_to_matlab(item) for item in row))
 
     return "[" + "; ".join(rows) + "]"
 
@@ -176,7 +176,7 @@ def _to_matlab_row(value):
     if any(isinstance(item, list) or isinstance(item, tuple) for item in value):
         raise TypeError("MATLAB row values must be one-dimensional.")
 
-    return "[" + ", ".join(to_matlab_literal(item) for item in value) + "]"
+    return "[" + ", ".join(python_to_matlab(item) for item in value) + "]"
 
 
 def to_python_data(value):

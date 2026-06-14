@@ -8,9 +8,9 @@ from core.aircraft_contract import (
 )
 from core.matlab_bridge import (
     matlab_expr,
+    python_to_matlab,
     resolve_fast_path,
     start_matlab,
-    to_matlab_literal,
     to_python_data,
 )
 
@@ -39,11 +39,11 @@ def FAST_Python_Wrapper(input_aircraft, fast_path):
 
     try:
         try:
-            aircraft = prepare_aircraft(input_aircraft)
-            input_prop_arch_type = prop_arch_type(aircraft)
-            mission = extract_mission_profile(aircraft)
-            aircraft_literal = to_matlab_literal(aircraft)
-            mission_literal = to_matlab_literal(mission)
+            aircraft_python = prepare_aircraft(input_aircraft)
+            input_prop_arch_type = prop_arch_type(aircraft_python)
+            mission_python = extract_mission_profile(aircraft_python)
+            aircraft_matlab = python_to_matlab(aircraft_python)
+            mission_matlab = python_to_matlab(mission_python)
         except Exception as error:
             return {
                 "status": "No",
@@ -54,8 +54,8 @@ def FAST_Python_Wrapper(input_aircraft, fast_path):
         try:
             log = engine.evalc(
                 f"""
-                aircraft_spec = {aircraft_literal};
-                mission_profile = @(Aircraft) setfield(Aircraft, "Mission", "Profile", {mission_literal});
+                aircraft_spec = {aircraft_matlab};
+                mission_profile = @(Aircraft) setfield(Aircraft, "Mission", "Profile", {mission_matlab});
                 fast_result = struct();
                 fast_status = 'No';
                 try
