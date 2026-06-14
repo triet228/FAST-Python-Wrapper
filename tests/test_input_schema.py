@@ -6,7 +6,7 @@ from copy import deepcopy
 
 import pytest
 
-from helper import (
+from core.helper import (
     JsonValidationError,
     build_json_data,
     read_raw_json_file,

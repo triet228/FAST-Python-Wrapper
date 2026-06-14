@@ -6,15 +6,15 @@ from math import isnan
 
 import pytest
 
-from helper import (
+from core.helper import (
     JsonValidationError,
     load_json_data,
     read_raw_json_file,
     validate_aircraft_json,
 )
 from tests.helpers import PROJECT_ROOT
-import wrapper as wrapper_module
-from wrapper import wrap
+import core.wrapper as wrapper_module
+from core.wrapper import wrap
 
 
 DEFAULT_INPUT_PATH = PROJECT_ROOT / "examples" / "CeRAS" / "InputAircraft.json"

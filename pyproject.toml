@@ -16,12 +16,10 @@ requires = ["setuptools>=69"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
+packages = [
+    "core",
+]
 py-modules = [
-    "wrapper",
-    "helper",
-    "json_io",
-    "schema_contract",
-    "output_structure",
     "main",
 ]
 

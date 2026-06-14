@@ -1,13 +1,13 @@
 # main.py
 
 from pathlib import Path
-from helper import (
+from core.helper import (
     build_output_aircraft_structure,
     load_input_aircraft_json,
     print_output_aircraft_structure,
     print_result,
 )
-from wrapper import wrap
+from core.wrapper import wrap
 
 
 # Python dictionary equivalent of FAST MATLAB OutputAircraft.

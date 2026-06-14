@@ -22,8 +22,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from helper import build_json_data, is_json_number, load_json_data, read_raw_json_file
-from wrapper import wrap
+from core.helper import build_json_data, is_json_number, load_json_data, read_raw_json_file
+from core.wrapper import wrap
 
 
 IGNORED_OUTPUT_PATHS = {

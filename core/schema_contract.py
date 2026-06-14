@@ -1,8 +1,8 @@
-# schema_contract.py
+# core/schema_contract.py
 
 import json
 
-from json_io import (
+from .json_io import (
     INPUT_AIRCRAFT_SCHEMA_JSON_PATH,
     JsonValidationError,
     OUTPUT_AIRCRAFT_SCHEMA_JSON_PATH,
@@ -12,7 +12,7 @@ from json_io import (
     read_raw_json_file,
     require_json_object,
 )
-from wrapper import PROP_ARCH_TYPES
+from .wrapper import PROP_ARCH_TYPES
 
 
 def json_schema_matlab_expression():

@@ -1,7 +1,7 @@
-# output_structure.py
+# core/output_structure.py
 
-from json_io import build_json_data
-from schema_contract import (
+from .json_io import build_json_data
+from .schema_contract import (
     apply_prop_arch_schema_contract,
     build_json_schema_from_value,
     is_json_schema_document,

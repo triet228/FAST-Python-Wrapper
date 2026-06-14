@@ -4,12 +4,12 @@ Python wrapper for running [Future Aircraft Sizing Tool (FAST)](https://github.c
 
 ## Files
 
-- `wrapper.py`: core wrapper around MATLAB Engine and FAST.
+- `core/wrapper.py`: core wrapper around MATLAB Engine and FAST.
 - `main.py`: direct script that runs FAST-Python_Wrapper from a Python dictionary.
-- `helper.py`: compatibility imports and example input loader.
-- `json_io.py`: JSON serialization, parsing, marker conversion, and log printing helpers.
-- `schema_contract.py`: JSON Schema inference and validation helpers.
-- `output_structure.py`: OutputAircraft structure generation and console preview helpers.
+- `core/helper.py`: compatibility imports and example input loader.
+- `core/json_io.py`: JSON serialization, parsing, marker conversion, and log printing helpers.
+- `core/schema_contract.py`: JSON Schema inference and validation helpers.
+- `core/output_structure.py`: OutputAircraft structure generation and console preview helpers.
 - `examples/<Aircraft>/InputAircraft.json`: optional merged aircraft and mission example input data.
 - `examples/<Aircraft>/OutputAircraft.json`: optional saved aircraft output fixture.
 - `schema/InputAircraftSchema.json`: JSON Schema for merged input aircraft JSON.
@@ -57,7 +57,7 @@ If this gives error, you will need to debug this before continue. If this prints
 Use the wrapper with an in-memory `InputAircraft` dictionary. `wrap()` does not write JSON files; it returns a Python dictionary with `status`, `log`, and `output`.
 
 ```python
-from wrapper import wrap
+from core.wrapper import wrap
 
 input_aircraft = {
     "Specs": {
@@ -83,7 +83,7 @@ else:
 The JSON files in `examples/` are fixtures and templates, not required runtime I/O. To run one of them manually:
 
 ```python
-from helper import load_input_aircraft_json
+from core.helper import load_input_aircraft_json
 from main import main
 
 input_aircraft = load_input_aircraft_json("examples/CeRAS")

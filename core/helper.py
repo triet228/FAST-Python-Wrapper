@@ -1,8 +1,8 @@
-# helper.py
+# core/helper.py
 
 from pathlib import Path
 
-from json_io import (
+from .json_io import (
     AIRCRAFT_JSON_PATH,
     DEFAULT_INPUT_DIR,
     INPUT_AIRCRAFT_SCHEMA_JSON_PATH,
@@ -18,12 +18,12 @@ from json_io import (
     read_raw_json_file,
     require_json_object,
 )
-from output_structure import (
+from .output_structure import (
     build_output_aircraft_structure,
     print_output_aircraft_structure,
     unwrap_printable_schema,
 )
-from schema_contract import (
+from .schema_contract import (
     apply_prop_arch_schema_contract,
     build_json_schema_from_value,
     is_json_schema_document,
