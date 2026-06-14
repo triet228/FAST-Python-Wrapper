@@ -676,9 +676,12 @@
               "additionalProperties": false,
               "properties": {
                 "Valu": {
-                  "$ref": "#/properties/Mission/properties/Profile/$defs/numberVector",
+                  "type": "array",
                   "description": "Mission target value. Use meters for distance targets and minutes for time targets.",
-                  "units": "m or min"
+                  "units": "m or min",
+                  "items": {
+                    "type": "number"
+                  }
                 },
                 "Type": {
                   "$ref": "#/properties/Mission/properties/Profile/$defs/targetTypeVector",
@@ -698,14 +701,20 @@
               "units": "count"
             },
             "AltBeg": {
-              "$ref": "#/properties/Mission/properties/Profile/$defs/numberVector",
+              "type": "array",
               "description": "Beginning altitude for each segment.",
-              "units": "m"
+              "units": "m",
+              "items": {
+                "type": "number"
+              }
             },
             "AltEnd": {
-              "$ref": "#/properties/Mission/properties/Profile/$defs/numberVector",
+              "type": "array",
               "description": "Ending altitude for each segment.",
-              "units": "m"
+              "units": "m",
+              "items": {
+                "type": "number"
+              }
             },
             "ClbRate": {
               "$ref": "#/properties/Mission/properties/Profile/$defs/nullableNumberVector",
@@ -713,14 +722,20 @@
               "units": "m/s"
             },
             "VelBeg": {
-              "$ref": "#/properties/Mission/properties/Profile/$defs/numberVector",
+              "type": "array",
               "description": "Beginning speed for each segment. Units are m/s when corresponding TypeBeg is TAS or EAS, and Mach when TypeBeg is Mach.",
-              "units": "m/s or Mach"
+              "units": "m/s or Mach",
+              "items": {
+                "type": "number"
+              }
             },
             "VelEnd": {
-              "$ref": "#/properties/Mission/properties/Profile/$defs/numberVector",
+              "type": "array",
               "description": "Ending speed for each segment. Units are m/s when corresponding TypeEnd is TAS or EAS, and Mach when TypeEnd is Mach.",
-              "units": "m/s or Mach"
+              "units": "m/s or Mach",
+              "items": {
+                "type": "number"
+              }
             },
             "TypeBeg": {
               "$ref": "#/properties/Mission/properties/Profile/$defs/velocityTypeVector",
@@ -744,19 +759,6 @@
             }
           },
           "$defs": {
-            "numberVector": {
-              "oneOf": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "array",
-                  "items": {
-                    "type": "number"
-                  }
-                }
-              ]
-            },
             "nullableNumberVector": {
               "oneOf": [
                 {
