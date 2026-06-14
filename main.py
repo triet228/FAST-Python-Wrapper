@@ -1,9 +1,16 @@
 # main.py
 
+from pathlib import Path
+import json
+
 from core.aircraft_contract import (
     clean_output_fields,
     extract_mission_profile,
     prepare_aircraft,
+)
+from core.helper import (
+    load_input_aircraft_json,
+    print_result,
 )
 from core.matlab_bridge import (
     matlab_expr,
@@ -108,3 +115,16 @@ def FAST_Python_Wrapper(input_aircraft, fast_path):
     finally:
         # Quit MATLAB Engine
         engine.quit()
+
+
+if __name__ == "__main__":
+    project_dir = Path(__file__).resolve().parent
+    input_aircraft_path = project_dir / "examples" / "CeRAS" / "InputAircraft.json"
+    fast_dir = project_dir.parent / "FAST"
+    
+    with open(input_aircraft_path, 'r') as file:
+        input_aircraft = json.load(file)
+
+    result = FAST_Python_Wrapper(input_aircraft, fast_dir)
+
+    print(result)
