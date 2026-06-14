@@ -56,7 +56,7 @@ def json_schema_prop_arch():
 
     Assumptions:
         The Python wrapper currently supports only public FAST architecture
-        labels C, E, and TE. Graph-style architecture details are intentionally
+        labels C and E. Graph-style architecture details are intentionally
         outside this schema.
     """
 

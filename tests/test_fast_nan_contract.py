@@ -163,7 +163,7 @@ def test_wrapper_reports_no_when_output_is_missing(monkeypatch, tmp_path):
 
 
 def test_wrapper_keeps_only_supported_prop_arch_output(monkeypatch, tmp_path):
-    """Collapse FAST internal PropArch output back to C, E, or TE."""
+    """Collapse FAST internal PropArch output back to C or E."""
 
     workspace = {}
 
@@ -207,7 +207,7 @@ def test_wrapper_keeps_only_supported_prop_arch_output(monkeypatch, tmp_path):
         "Specs": {
             "Propulsion": {
                 "PropArch": {
-                    "Type": "TE",
+                    "Type": "E",
                 },
             },
         },
@@ -221,7 +221,7 @@ def test_wrapper_keeps_only_supported_prop_arch_output(monkeypatch, tmp_path):
 
     assert "Preset" not in output["Geometry"]
     assert output["Geometry"]["LengthSet"] == 1
-    assert output["Specs"]["Propulsion"]["PropArch"] == {"Type": "TE"}
+    assert output["Specs"]["Propulsion"]["PropArch"] == {"Type": "E"}
     assert "ProfileFxn" not in output["Mission"]
     assert "Size" not in output["Settings"]["Dir"]
     assert output["Settings"]["Dir"]["Oper"] == "keep"

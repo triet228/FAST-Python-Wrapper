@@ -21,7 +21,7 @@ def build_output_aircraft_structure(value):
     Assumptions:
         FAST output array lengths vary by aircraft and mission, so the schema
         validates item shape without locking one example's exact lengths.
-        PropArch is post-processed to the public C/E/TE contract even when FAST
+        PropArch is post-processed to the public C/E contract even when FAST
         returns internal architecture expansion fields.
     """
 

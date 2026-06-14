@@ -275,8 +275,7 @@
                   "description": "Propulsion architecture type.",
                   "enum": [
                     "C",
-                    "E",
-                    "TE"
+                    "E"
                   ]
                 }
               }

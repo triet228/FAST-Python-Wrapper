@@ -46,7 +46,7 @@
     },
     "Propulsion": {
       "PropArch": {
-        "Type": "TE"
+        "Type": "E"
       },
       "NumEngines": 4,
       "T_W": {

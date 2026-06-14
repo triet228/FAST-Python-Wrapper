@@ -95,6 +95,17 @@ def test_input_aircraft_contract_rejects_unexpected_field():
         validate_aircraft_json(changed)
 
 
+def test_input_aircraft_contract_rejects_unsupported_prop_arch():
+    """Keep supported propulsion architectures limited to C and E."""
+
+    data = read_raw_json_file(DEFAULT_INPUT_DIR / "InputAircraft.json")
+    changed = deepcopy(data)
+    changed["Specs"]["Propulsion"]["PropArch"]["Type"] = "Unsupported"
+
+    with pytest.raises(JsonValidationError, match="PropArch.Type"):
+        validate_aircraft_json(changed)
+
+
 def test_input_aircraft_contract_allows_missing_optional_field():
     """Allow omitted optional fields that are known in the schema."""
 

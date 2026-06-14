@@ -251,8 +251,7 @@
                   "type": "string",
                   "enum": [
                     "C",
-                    "E",
-                    "TE"
+                    "E"
                   ]
                 }
               },

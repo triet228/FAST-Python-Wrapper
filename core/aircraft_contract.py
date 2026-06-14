@@ -3,7 +3,7 @@
 from copy import deepcopy
 
 
-PROP_ARCH_TYPES = ("C", "E", "TE")
+PROP_ARCH_TYPES = ("C", "E")
 OUTPUT_FIELDS_TO_REMOVE = (
     ("Geometry", "Preset"),
     ("Mission", "ProfileFxn"),
@@ -21,8 +21,8 @@ def prepare_aircraft(aircraft):
         Deep-copied aircraft dictionary ready for MATLAB literal conversion.
 
     Assumptions:
-        For now the wrapper only supports propulsion architecture types C, E,
-        and TE. Any legacy PropArch companion fields are removed so stale graph
+        For now the wrapper only supports propulsion architecture types C and
+        E. Any legacy PropArch companion fields are removed so stale graph
         architecture data cannot leak into a conventional run.
     """
 
@@ -113,7 +113,7 @@ def clean_output_fields(output, prop_arch_type_value=None):
     Inputs:
         output: Python dictionary converted from MATLAB OutputAircraft.
         prop_arch_type_value: Input PropArch type used when FAST returns an
-            internal expanded architecture object instead of C, E, or TE.
+            internal expanded architecture object instead of C or E.
 
     Side effects:
         Mutates output in place. The result is the public OutputAircraft dict
@@ -149,9 +149,9 @@ def _clean_prop_arch_fields(value, fallback_type=None):
     """Keep every PropArch object limited to Type for supported architectures.
 
     Assumptions:
-        FAST may expand TE into internal graph-like data. The wrapper currently
-        supports only the public architecture labels C, E, and TE, so expanded
-        fields are intentionally removed from output.
+        FAST may expand propulsion architectures into internal graph-like data.
+        The wrapper currently supports only the public architecture labels C
+        and E, so expanded fields are intentionally removed from output.
     """
 
     if isinstance(value, dict):
