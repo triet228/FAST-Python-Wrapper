@@ -2,26 +2,17 @@
   "title": "FAST Input Aircraft Schema",
   "description": "Schema for FAST input aircraft.",
   "type": "object",
-  "required": [
-    "Specs"
-  ],
+  "required": ["Specs"],
   "additionalProperties": false,
   "properties": {
     "Specs": {
       "type": "object",
-      "required": [
-        "TLAR",
-        "Performance",
-        "Propulsion"
-      ],
+      "required": ["TLAR", "Performance", "Propulsion"],
       "additionalProperties": false,
       "properties": {
         "TLAR": {
           "type": "object",
-          "required": [
-            "Class",
-            "MaxPax"
-          ],
+          "required": ["Class", "MaxPax"],
           "additionalProperties": false,
           "properties": {
             "EIS": {
@@ -33,12 +24,7 @@
             "Class": {
               "type": "string",
               "description": "Aircraft class.",
-              "enum": [
-                "Turbofan",
-                "Turboprop",
-                "Propfan",
-                "Piston"
-              ]
+              "enum": ["Turbofan", "Turboprop", "Propfan", "Piston"]
             },
             "MaxPax": {
               "type": "number",
@@ -49,9 +35,7 @@
         },
         "Performance": {
           "type": "object",
-          "required": [
-            "Range"
-          ],
+          "required": ["Range"],
           "additionalProperties": false,
           "properties": {
             "Vels": {
@@ -71,12 +55,7 @@
                 "Type": {
                   "type": "string",
                   "description": "Optional velocity type used by some legacy inputs.",
-                  "enum": [
-                    "TAS",
-                    "EAS",
-                    "Mach",
-                    null
-                  ]
+                  "enum": ["TAS", "EAS", "Mach", null]
                 }
               }
             },
@@ -209,9 +188,7 @@
         },
         "Propulsion": {
           "type": "object",
-          "required": [
-            "PropArch"
-          ],
+          "required": ["PropArch"],
           "additionalProperties": false,
           "properties": {
             "Engine": {
@@ -265,19 +242,13 @@
             },
             "PropArch": {
               "type": "object",
-              "required": [
-                "Type"
-              ],
+              "required": ["Type"],
               "additionalProperties": false,
               "properties": {
                 "Type": {
                   "type": "string",
                   "description": "Propulsion architecture type.",
-                  "enum": [
-                    "C",
-                    "E",
-                    "TE"
-                  ]
+                  "enum": ["C", "E", "TE"]
                 }
               }
             }
@@ -444,20 +415,13 @@
               "type": "integer",
               "description": "Battery degradation analysis flag.",
               "units": "unitless",
-              "enum": [
-                0,
-                1
-              ]
+              "enum": [0, 1]
             },
             "Chem": {
               "type": "integer",
               "description": "Battery chemistry: 1 NMC, 2 LFP.",
               "units": "unitless",
-              "enum": [
-                1,
-                2,
-                null
-              ]
+              "enum": [1, 2, null]
             },
             "ChrgTime": {
               "type": "number",
@@ -558,12 +522,7 @@
               "type": "integer",
               "description": "Analysis mode flag: +1 on-design, negative values off-design.",
               "units": "unitless",
-              "enum": [
-                1,
-                -1,
-                -2,
-                null
-              ]
+              "enum": [1, -1, -2, null]
             }
           }
         },
@@ -571,46 +530,31 @@
           "type": "integer",
           "description": "Mission history plotting flag.",
           "units": "unitless",
-          "enum": [
-            0,
-            1
-          ]
+          "enum": [0, 1]
         },
         "Table": {
           "type": "integer",
           "description": "Mission history table flag.",
           "units": "unitless",
-          "enum": [
-            0,
-            1
-          ]
+          "enum": [0, 1]
         },
         "VisualizeAircraft": {
           "type": "integer",
           "description": "Aircraft visualization flag.",
           "units": "unitless",
-          "enum": [
-            0,
-            1
-          ]
+          "enum": [0, 1]
         },
         "PrintOut": {
           "type": "integer",
           "description": "Console printout flag.",
           "units": "unitless",
-          "enum": [
-            0,
-            1
-          ]
+          "enum": [0, 1]
         },
         "Degradation": {
           "type": "integer",
           "description": "Degradation analysis flag.",
           "units": "unitless",
-          "enum": [
-            0,
-            1
-          ]
+          "enum": [0, 1]
         },
         "Dir": {
           "type": "object",
@@ -653,26 +597,12 @@
         "Profile": {
           "description": "Schema for FAST input mission profile.",
           "type": "object",
-          "required": [
-            "Target",
-            "Segs",
-            "ID",
-            "AltBeg",
-            "AltEnd",
-            "ClbRate",
-            "VelBeg",
-            "VelEnd",
-            "TypeBeg",
-            "TypeEnd"
-          ],
+          "required": ["Target", "Segs", "ID", "AltBeg", "AltEnd", "ClbRate", "VelBeg", "VelEnd", "TypeBeg", "TypeEnd"],
           "additionalProperties": false,
           "properties": {
             "Target": {
               "type": "object",
-              "required": [
-                "Valu",
-                "Type"
-              ],
+              "required": ["Valu", "Type"],
               "additionalProperties": false,
               "properties": {
                 "Valu": {
@@ -689,10 +619,7 @@
                   "units": "unitless",
                   "items": {
                     "type": "string",
-                    "enum": [
-                      "Dist",
-                      "Time"
-                    ]
+                    "enum": ["Dist", "Time"]
                   }
                 }
               }
@@ -703,13 +630,7 @@
               "units": "unitless",
               "items": {
                 "type": "string",
-                "enum": [
-                  "Takeoff",
-                  "Climb",
-                  "Cruise",
-                  "Descent",
-                  "Landing"
-                ]
+                "enum": ["Takeoff", "Climb", "Cruise", "Descent", "Landing"]
               }
             },
             "ID": {
@@ -741,10 +662,7 @@
               "description": "Climb rate for each segment. Use null in JSON where MATLAB inputs use NaN.",
               "units": "m/s",
               "items": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               }
             },
             "VelBeg": {
@@ -769,11 +687,7 @@
               "units": "unitless",
               "items": {
                 "type": "string",
-                "enum": [
-                  "TAS",
-                  "EAS",
-                  "Mach"
-                ]
+                "enum": ["TAS", "EAS", "Mach"]
               }
             },
             "TypeEnd": {
@@ -782,11 +696,7 @@
               "units": "unitless",
               "items": {
                 "type": "string",
-                "enum": [
-                  "TAS",
-                  "EAS",
-                  "Mach"
-                ]
+                "enum": ["TAS", "EAS", "Mach"]
               }
             },
             "PowerOpt": {
@@ -795,10 +705,7 @@
               "units": "unitless",
               "items": {
                 "type": "integer",
-                "enum": [
-                  0,
-                  1
-                ]
+                "enum": [0, 1]
               }
             },
             "SegEnd": {
