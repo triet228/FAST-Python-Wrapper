@@ -20,6 +20,18 @@ from wrapper import wrap
 DEFAULT_INPUT_PATH = PROJECT_ROOT / "examples" / "CeRAS" / "InputAircraft.json"
 
 
+def fake_engine(evalc, workspace=None, quit=None):
+    """Return the small MATLAB Engine surface wrap() needs for unit tests."""
+
+    def engine():
+        pass
+
+    engine.workspace = {} if workspace is None else workspace
+    engine.evalc = evalc
+    engine.quit = (lambda: None) if quit is None else quit
+    return engine
+
+
 def test_json_null_values_load_as_fast_nan():
     """Convert schema-level null placeholders into FAST NaN inputs."""
 
@@ -51,20 +63,17 @@ def test_schema_rejects_legacy_nan_string_in_mission_profile():
 def test_wrap_requires_embedded_mission_profile(monkeypatch, tmp_path):
     """Require Mission.Profile before generating MATLAB FAST source."""
 
-    class FakeEngine:
-        def __init__(self):
-            self.workspace = {}
-
-        def evalc(self, script, nargout=1):
-            raise AssertionError("FAST should not run without Mission.Profile")
-
-        def quit(self):
-            pass
+    def fail_evalc(script, nargout=1):
+        raise AssertionError("FAST should not run without Mission.Profile")
 
     fast_path = tmp_path / "FAST"
     fast_path.mkdir()
     (fast_path / "Main.m").write_text("", encoding="utf-8")
-    monkeypatch.setattr(wrapper_module, "_start_matlab", lambda path: FakeEngine())
+    monkeypatch.setattr(
+        wrapper_module,
+        "_start_matlab",
+        lambda path: fake_engine(fail_evalc),
+    )
 
     result = wrap({"Specs": {}}, fast_path)
 
@@ -76,33 +85,28 @@ def test_wrap_requires_embedded_mission_profile(monkeypatch, tmp_path):
 def test_wrap_returns_status_log_output_dict(monkeypatch, tmp_path):
     """Keep wrap() as the in-memory status/log/output API."""
 
-    class FakeEngine:
-        def __init__(self):
-            self.workspace = {}
-            self.quit_called = False
+    workspace = {}
+    quit_calls = []
 
-        def evalc(self, script, nargout=1):
-            self.workspace["fast_status"] = "Yes"
-            self.workspace["fast_result"] = {
-                "Specs": {
-                    "Weight": {
-                        "MTOW": 123.4567,
-                    },
+    def evalc(script, nargout=1):
+        workspace["fast_status"] = "Yes"
+        workspace["fast_result"] = {
+            "Specs": {
+                "Weight": {
+                    "MTOW": 123.4567,
                 },
-                "Mission": {
-                    "Profile": {},
-                },
-            }
-            return "fake log"
+            },
+            "Mission": {
+                "Profile": {},
+            },
+        }
+        return "fake log"
 
-        def quit(self):
-            self.quit_called = True
-
-    fake_engine = FakeEngine()
+    engine = fake_engine(evalc, workspace, lambda: quit_calls.append(True))
     fast_path = tmp_path / "FAST"
     fast_path.mkdir()
     (fast_path / "Main.m").write_text("", encoding="utf-8")
-    monkeypatch.setattr(wrapper_module, "_start_matlab", lambda path: fake_engine)
+    monkeypatch.setattr(wrapper_module, "_start_matlab", lambda path: engine)
     input_aircraft = {
         "Specs": {
             "Propulsion": {
@@ -121,28 +125,27 @@ def test_wrap_returns_status_log_output_dict(monkeypatch, tmp_path):
     assert result["status"] == "Yes"
     assert result["log"] == "fake log"
     assert result["output"]["Specs"]["Weight"]["MTOW"] == 123.4567
-    assert fake_engine.quit_called
+    assert quit_calls
 
 
 def test_wrap_reports_no_when_output_is_missing(monkeypatch, tmp_path):
     """Return a No status instead of assuming FAST produced OutputAircraft."""
 
-    class FakeEngine:
-        def __init__(self):
-            self.workspace = {}
+    workspace = {}
 
-        def evalc(self, script, nargout=1):
-            self.workspace["fast_status"] = "No"
-            self.workspace["fast_result"] = {}
-            return "FAST did not converge"
-
-        def quit(self):
-            pass
+    def evalc(script, nargout=1):
+        workspace["fast_status"] = "No"
+        workspace["fast_result"] = {}
+        return "FAST did not converge"
 
     fast_path = tmp_path / "FAST"
     fast_path.mkdir()
     (fast_path / "Main.m").write_text("", encoding="utf-8")
-    monkeypatch.setattr(wrapper_module, "_start_matlab", lambda path: FakeEngine())
+    monkeypatch.setattr(
+        wrapper_module,
+        "_start_matlab",
+        lambda path: fake_engine(evalc, workspace),
+    )
     input_aircraft = {
         "Specs": {},
         "Mission": {
@@ -162,45 +165,44 @@ def test_wrap_reports_no_when_output_is_missing(monkeypatch, tmp_path):
 def test_wrap_keeps_only_supported_prop_arch_output(monkeypatch, tmp_path):
     """Collapse FAST internal PropArch output back to C, E, or TE."""
 
-    class FakeEngine:
-        def __init__(self):
-            self.workspace = {}
+    workspace = {}
 
-        def evalc(self, script, nargout=1):
-            self.workspace["fast_status"] = "Yes"
-            self.workspace["fast_result"] = {
-                "Geometry": {
-                    "Preset": "drop",
-                    "LengthSet": 1,
-                },
-                "Specs": {
-                    "Propulsion": {
-                        "PropArch": {
-                            "Type": "FAST internal",
-                            "Unexpected": "drop",
-                        },
+    def evalc(script, nargout=1):
+        workspace["fast_status"] = "Yes"
+        workspace["fast_result"] = {
+            "Geometry": {
+                "Preset": "drop",
+                "LengthSet": 1,
+            },
+            "Specs": {
+                "Propulsion": {
+                    "PropArch": {
+                        "Type": "FAST internal",
+                        "Unexpected": "drop",
                     },
                 },
-                "Mission": {
-                    "Profile": {},
-                    "ProfileFxn": "drop",
+            },
+            "Mission": {
+                "Profile": {},
+                "ProfileFxn": "drop",
+            },
+            "Settings": {
+                "Dir": {
+                    "Size": "drop",
+                    "Oper": "keep",
                 },
-                "Settings": {
-                    "Dir": {
-                        "Size": "drop",
-                        "Oper": "keep",
-                    },
-                },
-            }
-            return "fake log"
-
-        def quit(self):
-            pass
+            },
+        }
+        return "fake log"
 
     fast_path = tmp_path / "FAST"
     fast_path.mkdir()
     (fast_path / "Main.m").write_text("", encoding="utf-8")
-    monkeypatch.setattr(wrapper_module, "_start_matlab", lambda path: FakeEngine())
+    monkeypatch.setattr(
+        wrapper_module,
+        "_start_matlab",
+        lambda path: fake_engine(evalc, workspace),
+    )
     input_aircraft = {
         "Specs": {
             "Propulsion": {

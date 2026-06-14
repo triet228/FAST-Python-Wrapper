@@ -14,42 +14,12 @@ OUTPUT_FIELDS_TO_REMOVE = (
 )
 
 
-class MatlabExpression:
-    """Store trusted MATLAB code that should not be quoted as a string.
-
-    Inputs:
-        value: MATLAB source text, such as a package constant or anonymous
-            function expression already written in FAST syntax.
-
-    Assumptions:
-        Callers only use this for trusted local specs. The text is copied into
-        the MATLAB script verbatim so FAST can evaluate native MATLAB symbols.
-    """
-
-    def __init__(self, value):
-        self.value = value
-
-
-class MatlabRow:
-    """Mark a Python sequence that must become one MATLAB row vector.
-
-    Inputs:
-        value: One-dimensional Python list or tuple.
-
-    Assumptions:
-        Normal Python lists become MATLAB column vectors because mission fields
-        are row-aligned by segment. This marker is reserved for FAST fields
-        such as engine spool RPMs where MATLAB expects one horizontal vector.
-    """
-
-    def __init__(self, value):
-        self.value = value
-
-
 def matlab_expr(value):
     """Return a marker for MATLAB expressions embedded in Python specs."""
 
-    return MatlabExpression(value)
+    return {
+        "_matlab_expression": value,
+    }
 
 
 def wrap(input_aircraft, fast_path):
@@ -310,7 +280,8 @@ def _to_matlab_literal(value):
     """Convert supported Python values into MATLAB literal source text.
 
     Inputs:
-        value: JSON-like Python value, MatlabExpression, or MatlabRow.
+        value: JSON-like Python value or one of the explicit MATLAB marker
+            dictionaries loaded from InputAircraft.json.
 
     Outputs:
         MATLAB source text safe to splice into the generated evalc script.
@@ -320,13 +291,15 @@ def _to_matlab_literal(value):
         MATLAB does not receive malformed struct(...) source.
     """
 
-    if isinstance(value, MatlabExpression):
-        return value.value
-
-    if isinstance(value, MatlabRow):
-        return _to_matlab_row(value.value)
-
     if isinstance(value, dict):
+        keys = set(value)
+
+        if keys == {"_matlab_expression"}:
+            return value["_matlab_expression"]
+
+        if keys == {"_matlab_row"}:
+            return _to_matlab_row(value["_matlab_row"])
+
         fields = []
 
         for key, item in value.items():
@@ -368,7 +341,8 @@ def _to_matlab_array(value):
     Assumptions:
         One-dimensional lists are column vectors because FAST mission arrays
         align by segment row. Nested lists are matrices whose inner lists are
-        MATLAB rows. MatlabRow is the explicit escape hatch for row vectors.
+        MATLAB rows. The _matlab_row marker is the explicit escape hatch for
+        row vectors.
     """
 
     if not value:
