@@ -58,12 +58,30 @@ def test_example_output_aircraft_matches_schema_contract(case_name):
     validate_output_aircraft_json(data)
 
 
-def test_output_object_repr_omits_memory_address():
-    """Keep generated opaque object markers stable across Python processes."""
+def test_json_data_omits_object_memory_address():
+    """Keep generated opaque object strings stable across Python processes."""
 
     data = build_json_data(object())
 
-    assert " at 0x" not in data["_repr"]
+    assert " at 0x" not in data
+
+
+def test_json_data_serializes_nonfinite_numbers_as_strings():
+    """Write non-finite FAST numbers as portable JSON string markers."""
+
+    data = build_json_data(
+        [
+            float("nan"),
+            float("inf"),
+            -float("inf"),
+        ]
+    )
+
+    assert data == [
+        "NaN",
+        "Inf",
+        "-Inf",
+    ]
 
 
 def test_input_aircraft_contract_rejects_unexpected_field():

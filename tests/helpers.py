@@ -8,7 +8,6 @@ boundary is the final FAST aircraft structure rather than isolated helper
 methods.
 """
 
-import ast
 import importlib.util
 import json
 import math
@@ -31,7 +30,6 @@ from wrapper import FastWrapper
 IGNORED_OUTPUT_PATHS = {
     "Aircraft.Settings.Plotting",
 }
-UNPARSED_REPR = object()
 
 
 def skip_unless_matlab_available():
@@ -111,12 +109,6 @@ def compare_json_value(actual, expected, path="Aircraft"):
         return [], 0
 
     if isinstance(actual, dict) and isinstance(expected, dict):
-        if set(actual) == {"_python_type", "_repr"} and set(expected) == {
-            "_python_type",
-            "_repr",
-        }:
-            return compare_output_marker(actual, expected, path)
-
         failures = []
         compared = 1
         actual_keys = set(actual)
@@ -187,122 +179,6 @@ def is_json_number(value):
         value,
         bool,
     )
-
-
-def compare_output_marker(actual, expected, path):
-    """Compare saved output marker objects.
-
-    Inputs:
-        actual: Marker dictionary produced by build_json_data().
-        expected: Marker dictionary from a saved FAST output fixture.
-        path: Dotted path used in failure messages.
-
-    Outputs:
-        A tuple of failure messages and compared values.
-
-    Assumptions:
-        MATLAB Engine exposes some arrays as opaque objects, so build_json_data()
-        stores their repr strings. Numeric repr payloads can vary by tiny
-        floating-point amounts between MATLAB releases and machines, so parseable
-        repr strings are compared recursively with the normal numeric tolerance.
-    """
-
-    if actual["_python_type"] != expected["_python_type"]:
-        return [
-            f"{path} Python type mismatch: "
-            f"{actual['_python_type']!r} != {expected['_python_type']!r}"
-        ], 1
-
-    if actual["_python_type"] == "object":
-        return [], 1
-
-    actual_repr = parse_comparable_repr(actual["_repr"])
-    expected_repr = parse_comparable_repr(expected["_repr"])
-
-    if actual_repr is not UNPARSED_REPR and expected_repr is not UNPARSED_REPR:
-        return compare_json_value(actual_repr, expected_repr, f"{path}._repr")
-
-    if actual["_repr"] == expected["_repr"]:
-        return [], 1
-
-    return [
-        f"{path} repr mismatch: "
-        f"{actual['_repr'][:120]!r} != {expected['_repr'][:120]!r}"
-    ], 1
-
-
-def parse_comparable_repr(value):
-    """Return a Python value when an output repr is safe to compare recursively."""
-
-    try:
-        parsed = ast.literal_eval(value)
-    except (SyntaxError, ValueError):
-        parsed = parse_repr_expression(value)
-
-    if not is_comparable_repr_value(parsed):
-        return UNPARSED_REPR
-
-    return parsed
-
-
-def parse_repr_expression(value):
-    """Parse repr lists that contain MATLAB-style nan or inf tokens."""
-
-    try:
-        tree = ast.parse(value, mode="eval")
-    except SyntaxError:
-        return UNPARSED_REPR
-
-    try:
-        return parse_repr_node(tree.body)
-    except ValueError:
-        return UNPARSED_REPR
-
-
-def parse_repr_node(node):
-    """Return a value from a narrow, literal-only repr syntax tree."""
-
-    if isinstance(node, ast.List):
-        return [parse_repr_node(item) for item in node.elts]
-
-    if isinstance(node, ast.Tuple):
-        return tuple(parse_repr_node(item) for item in node.elts)
-
-    if isinstance(node, ast.Constant):
-        return node.value
-
-    if isinstance(node, ast.Name):
-        if node.id == "nan":
-            return math.nan
-
-        if node.id == "inf":
-            return math.inf
-
-    if isinstance(node, ast.UnaryOp):
-        value = parse_repr_node(node.operand)
-
-        if isinstance(node.op, ast.USub) and is_json_number(value):
-            return -value
-
-        if isinstance(node.op, ast.UAdd) and is_json_number(value):
-            return value
-
-    raise ValueError("Unsupported repr node.")
-
-
-def is_comparable_repr_value(value):
-    """Return True when a parsed repr contains only stable comparable values."""
-
-    if value is None or isinstance(value, str) or isinstance(value, bool):
-        return True
-
-    if is_json_number(value):
-        return True
-
-    if isinstance(value, list) or isinstance(value, tuple):
-        return all(is_comparable_repr_value(item) for item in value)
-
-    return False
 
 
 def assert_fast_model_wrapper_matches_saved_output(

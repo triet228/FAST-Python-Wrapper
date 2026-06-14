@@ -531,7 +531,7 @@ class FastWrapper:
         module_name = type(value).__module__
 
         return (
-            module_name.startswith("matlab.")
+            (module_name == "matlab" or module_name.startswith("matlab."))
             and hasattr(value, "__iter__")
             and not isinstance(value, str)
         )

@@ -1,4 +1,4 @@
-# helper.py
+# helpers.py
 
 import json
 import re
@@ -66,9 +66,9 @@ def build_json_data(value):
         has no portable NaN literal.
 
     Assumptions:
-        Input files can be rehydrated by load_json_data(). Output files are for
-        inspection, so unsupported MATLAB/Python objects are represented by
-        their type and string form instead of being dropped.
+        Input files can be rehydrated by load_json_data(). Unsupported
+        MATLAB/Python objects fall back to a stable string representation so
+        output JSON does not contain wrapper-specific marker objects.
     """
 
     if isinstance(value, MatlabExpression):
@@ -86,10 +86,22 @@ def build_json_data(value):
     if isinstance(value, list) or isinstance(value, tuple):
         return [build_json_data(item) for item in value]
 
-    if isinstance(value, float) and value != value:
-        return "NaN"
+    if isinstance(value, float):
+        if value != value:
+            return "NaN"
 
-    if type(value).__module__.startswith("matlab.") and hasattr(value, "__iter__"):
+        if value == float("inf"):
+            return "Inf"
+
+        if value == -float("inf"):
+            return "-Inf"
+
+    module_name = type(value).__module__
+
+    if (
+        (module_name == "matlab" or module_name.startswith("matlab."))
+        and hasattr(value, "__iter__")
+    ):
         return [build_json_data(item) for item in value]
 
     if value is None or isinstance(value, str):
@@ -98,14 +110,11 @@ def build_json_data(value):
     if isinstance(value, bool) or isinstance(value, int) or isinstance(value, float):
         return value
 
-    return {
-        "_python_type": type(value).__name__,
-        "_repr": normalize_object_repr(str(value)),
-    }
+    return normalize_object_text(str(value))
 
 
-def normalize_object_repr(value):
-    """Return object repr text without process-specific memory addresses."""
+def normalize_object_text(value):
+    """Return object text without process-specific memory addresses."""
 
     return re.sub(r" at 0x[0-9A-Fa-f]+(?=>)", "", value)
 
@@ -164,6 +173,12 @@ def load_json_data(value):
 
     if value == "NaN":
         return nan
+
+    if value == "Inf":
+        return float("inf")
+
+    if value == "-Inf":
+        return -float("inf")
 
     if value is None:
         return nan
@@ -287,27 +302,6 @@ def json_schema_matlab_expression():
     }
 
 
-def json_schema_python_marker():
-    """Return the inline schema for an opaque Python output marker."""
-
-    return {
-        "type": "object",
-        "properties": {
-            "_python_type": {
-                "type": "string",
-            },
-            "_repr": {
-                "type": "string",
-            },
-        },
-        "required": [
-            "_python_type",
-            "_repr",
-        ],
-        "additionalProperties": False,
-    }
-
-
 def build_json_schema_document(schema, title, description=None):
     """Wrap a JSON Schema subtree in the project schema file format."""
 
@@ -339,7 +333,6 @@ def build_json_schema_from_value(
     value,
     require_properties=False,
     require_lengths=False,
-    allow_output_markers=False,
 ):
     """Infer a JSON Schema subtree from a JSON-safe FAST value.
 
@@ -349,16 +342,13 @@ def build_json_schema_from_value(
             listed as required in the schema.
         require_lengths: Whether observed list lengths should become minItems
             and maxItems constraints.
-        allow_output_markers: Whether output-only Python marker objects are
-            expected.
-
     Outputs:
         A JSON Schema subtree using standard Draft 2020-12 keywords.
 
     Assumptions:
-        FAST arrays are homogeneous enough that the first item describes the
-        useful item schema. The string "NaN" is treated as FAST's numeric
-        unspecified marker, matching load_json_data().
+        FAST arrays can mix finite values with non-finite string markers, so
+        item schemas are merged across observed items. The string "NaN" is
+        treated as FAST's numeric unspecified marker, matching load_json_data().
     """
 
     if isinstance(value, dict):
@@ -377,7 +367,6 @@ def build_json_schema_from_value(
                     value["_matlab_row"],
                     require_properties,
                     require_lengths,
-                    allow_output_markers,
                 )
 
             return {
@@ -391,15 +380,11 @@ def build_json_schema_from_value(
                 "additionalProperties": False,
             }
 
-        if allow_output_markers and keys == {"_python_type", "_repr"}:
-            return json_schema_python_marker()
-
         properties = {
             key: build_json_schema_from_value(
                 item,
                 require_properties,
                 require_lengths,
-                allow_output_markers,
             )
             for key, item in value.items()
         }
@@ -424,11 +409,15 @@ def build_json_schema_from_value(
             schema["maxItems"] = len(value)
 
         if value:
-            schema["items"] = build_json_schema_from_value(
-                value[0],
-                require_properties,
-                require_lengths,
-                allow_output_markers,
+            schema["items"] = merge_json_schemas(
+                [
+                    build_json_schema_from_value(
+                        item,
+                        require_properties,
+                        require_lengths,
+                    )
+                    for item in value
+                ]
             )
 
         return schema
@@ -441,9 +430,9 @@ def build_json_schema_from_value(
     if is_json_number(value):
         return json_schema_number()
 
-    if value == "NaN":
+    if value in ("NaN", "Inf", "-Inf"):
         return {
-            "const": "NaN",
+            "const": value,
         }
 
     if isinstance(value, str):
@@ -459,6 +448,123 @@ def build_json_schema_from_value(
     return {
         "type": "string",
     }
+
+
+def merge_json_schemas(schemas):
+    """Return one schema accepting each schema in a list."""
+
+    unique_schemas = []
+    seen_schemas = set()
+
+    for schema in schemas:
+        key = json.dumps(schema, sort_keys=True)
+
+        if key not in seen_schemas:
+            unique_schemas.append(schema)
+            seen_schemas.add(key)
+
+    if len(unique_schemas) == 1:
+        return unique_schemas[0]
+
+    if all(schema.get("type") == "object" for schema in unique_schemas):
+        return merge_json_object_schemas(unique_schemas)
+
+    if all(schema.get("type") == "array" for schema in unique_schemas):
+        return merge_json_array_schemas(unique_schemas)
+
+    any_of = []
+
+    for schema in unique_schemas:
+        if set(schema.keys()) == {"anyOf"}:
+            any_of.extend(schema["anyOf"])
+        else:
+            any_of.append(schema)
+
+    return merge_json_schemas_without_specialization(any_of)
+
+
+def merge_json_schemas_without_specialization(schemas):
+    """Return an anyOf schema without recursively merging schema kinds."""
+
+    unique_schemas = []
+    seen_schemas = set()
+
+    for schema in schemas:
+        key = json.dumps(schema, sort_keys=True)
+
+        if key not in seen_schemas:
+            unique_schemas.append(schema)
+            seen_schemas.add(key)
+
+    if len(unique_schemas) == 1:
+        return unique_schemas[0]
+
+    return {
+        "anyOf": unique_schemas,
+    }
+
+
+def merge_json_object_schemas(schemas):
+    """Merge object schemas from multiple FAST output examples."""
+
+    property_names = []
+    property_name_set = set()
+    required_sets = []
+
+    for schema in schemas:
+        properties = schema.get("properties", {})
+
+        for key in properties:
+            if key not in property_name_set:
+                property_names.append(key)
+                property_name_set.add(key)
+
+        required_sets.append(set(schema.get("required", [])))
+
+    merged_properties = {}
+
+    for key in property_names:
+        child_schemas = [
+            schema["properties"][key]
+            for schema in schemas
+            if key in schema.get("properties", {})
+        ]
+        merged_properties[key] = merge_json_schemas(child_schemas)
+
+    merged_schema = {
+        "type": "object",
+        "properties": merged_properties,
+        "additionalProperties": False,
+    }
+
+    required = [
+        key
+        for key in property_names
+        if required_sets and all(key in required_set for required_set in required_sets)
+    ]
+
+    if required:
+        merged_schema["required"] = required
+
+    return merged_schema
+
+
+def merge_json_array_schemas(schemas):
+    """Merge array schemas from multiple FAST output examples."""
+
+    item_schemas = [
+        schema["items"]
+        for schema in schemas
+        if "items" in schema
+    ]
+    merged_schema = {
+        "type": "array",
+    }
+
+    if item_schemas:
+        merged_schema["items"] = merge_json_schemas(item_schemas)
+
+    return merged_schema
 
 
 def read_schema_file(file_name):
@@ -798,14 +904,13 @@ def require_json_list_or_scalar_list(data, keys, file_name):
     return [value]
 
 
-def validate_json_markers(value, file_name, path="", allow_output_markers=False):
+def validate_json_markers(value, file_name, path=""):
     """Validate wrapper marker objects used inside JSON files.
 
     Inputs:
         value: Parsed JSON subtree.
         file_name: File label used in validation errors.
         path: Current dotted JSON path.
-        allow_output_markers: Whether output-only object markers are accepted.
 
     Outputs:
         None. Raises JsonValidationError on invalid markers.
@@ -835,29 +940,21 @@ def validate_json_markers(value, file_name, path="", allow_output_markers=False)
                     value["_matlab_row"],
                     file_name,
                     f"{label}._matlab_row",
-                    allow_output_markers,
                 )
-                return
-
-            if allow_output_markers and keys == {"_python_type", "_repr"}:
-                if not isinstance(value["_python_type"], str):
-                    raise JsonValidationError(f"{label}._python_type must be a string.")
-                if not isinstance(value["_repr"], str):
-                    raise JsonValidationError(f"{label}._repr must be a string.")
                 return
 
             raise JsonValidationError(f"{label} contains invalid marker keys.")
 
         for key, item in value.items():
             child_path = key if not path else f"{path}.{key}"
-            validate_json_markers(item, file_name, child_path, allow_output_markers)
+            validate_json_markers(item, file_name, child_path)
 
         return
 
     if isinstance(value, list):
         for index, item in enumerate(value):
             child_path = f"{path}[{index}]"
-            validate_json_markers(item, file_name, child_path, allow_output_markers)
+            validate_json_markers(item, file_name, child_path)
 
 
 def validate_aircraft_json(data):
@@ -952,7 +1049,7 @@ def validate_output_aircraft_json(data):
     """Validate OutputAircraft.json after writing FAST output data."""
 
     require_json_object(data, "OutputAircraft.json")
-    validate_json_markers(data, "OutputAircraft.json", allow_output_markers=True)
+    validate_json_markers(data, "OutputAircraft.json")
     validate_json_schema_document(
         data,
         read_schema_file(OUTPUT_AIRCRAFT_SCHEMA_JSON_PATH),
@@ -1050,20 +1147,19 @@ def build_output_aircraft_structure(value):
         value: Python data converted from the MATLAB OutputAircraft struct.
 
     Outputs:
-        Draft 2020-12 JSON Schema document that preserves struct field names,
-        marker object shapes, and observed list lengths.
+        Draft 2020-12 JSON Schema document that preserves struct field names
+        and JSON value shapes.
 
     Assumptions:
-        FAST arrays are usually homogeneous, so the first list item is enough
-        to show the useful item schema without duplicating every mission point.
+        FAST output array lengths vary by aircraft and mission, so the schema
+        validates item shape without locking one example's exact lengths.
     """
 
     return build_json_schema_document(
         build_json_schema_from_value(
             build_json_data(value),
             require_properties=True,
-            require_lengths=True,
-            allow_output_markers=True,
+            require_lengths=False,
         ),
         "FAST Output Aircraft Schema",
         "Schema for FAST output aircraft.",
