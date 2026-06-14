@@ -321,5 +321,7 @@ if __name__ == "__main__":
 
     result = FAST_Python_Wrapper(input_aircraft, fast_dir)
 
-    print(result["status"])
+    print("Run success:" + str(result["status"]))
     print(result["log"])
+    print("MTOW:" + str(result["output"]["Specs"]["Weight"]["MTOW"]))
+    
