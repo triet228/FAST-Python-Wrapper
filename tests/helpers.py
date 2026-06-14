@@ -1,6 +1,6 @@
 # tests/helpers.py
 
-"""Helpers for comparing Python-wrapper and saved FAST JSON results.
+"""Helpers for comparing Python wrapper output and saved FAST JSON results.
 
 The tests intentionally run MATLAB instead of mocking it. The wrapper exists
 to preserve FAST behavior from Python-defined inputs, so the useful regression
@@ -33,7 +33,12 @@ IGNORED_OUTPUT_PATHS = {
 
 
 def skip_unless_matlab_available():
-    """Skip integration tests when MATLAB or MATLAB Engine is unavailable."""
+    """Skip integration tests when MATLAB or MATLAB Engine is unavailable.
+
+    Side effects:
+        Calls pytest.skip() before any expensive FAST setup when local MATLAB
+        requirements are missing.
+    """
 
     if shutil.which("matlab") is None:
         pytest.skip("MATLAB executable is not available on PATH.")
@@ -49,7 +54,14 @@ def skip_unless_matlab_available():
 
 @pytest.fixture
 def fast_path():
-    """Return the configured FAST checkout path for integration tests."""
+    """Return the configured FAST checkout path for integration tests.
+
+    Inputs:
+        FAST_PATH environment variable.
+
+    Outputs:
+        Absolute Path to a local FAST checkout.
+    """
 
     skip_unless_matlab_available()
     value = os.environ.get("FAST_PATH", "").strip()
@@ -62,7 +74,12 @@ def fast_path():
 
 @pytest.fixture
 def examples_path(monkeypatch):
-    """Return the root examples path used by parity tests."""
+    """Return the root examples path used by parity tests.
+
+    Side effects:
+        Clears FAST_MODELS_PATH so the committed examples are the only fixture
+        source used by these tests.
+    """
 
     monkeypatch.delenv("FAST_MODELS_PATH", raising=False)
     return PROJECT_ROOT / "examples"
@@ -92,7 +109,7 @@ def compare_json_value(actual, expected, path="Aircraft"):
     """Return recursive JSON comparison failures.
 
     Inputs:
-        actual: JSON-safe wrapper output.
+        actual: JSON-safe output from wrap().
         expected: Saved JSON fixture output.
         path: Dotted path used in failure messages.
 
@@ -189,7 +206,7 @@ def assert_fast_model_wrapper_matches_saved_output(
     examples_path,
     tmp_path,
 ):
-    """Run one JSON fixture case through the wrapper and compare JSON output.
+    """Run one JSON fixture case through wrap() and compare JSON output.
 
     Inputs:
         name: Aircraft case name used in failure output.
@@ -205,7 +222,8 @@ def assert_fast_model_wrapper_matches_saved_output(
 
     Assumptions:
         The JSON fixture files provide merged aircraft and mission data for the
-        wrapper, FAST runs, and the final aircraft is checked recursively.
+        run. Integration checks compare the final aircraft recursively because
+        smaller mocked checks cannot prove parity with MATLAB FAST.
     """
 
     if not examples_path.exists():

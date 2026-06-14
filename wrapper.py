@@ -15,21 +15,39 @@ OUTPUT_FIELDS_TO_REMOVE = (
 
 
 class MatlabExpression:
-    """Store trusted MATLAB code inserted directly into generated source."""
+    """Store trusted MATLAB code that should not be quoted as a string.
+
+    Inputs:
+        value: MATLAB source text, such as a package constant or anonymous
+            function expression already written in FAST syntax.
+
+    Assumptions:
+        Callers only use this for trusted local specs. The text is copied into
+        the MATLAB script verbatim so FAST can evaluate native MATLAB symbols.
+    """
 
     def __init__(self, value):
         self.value = value
 
 
 class MatlabRow:
-    """Mark a Python sequence that must become a MATLAB row vector."""
+    """Mark a Python sequence that must become one MATLAB row vector.
+
+    Inputs:
+        value: One-dimensional Python list or tuple.
+
+    Assumptions:
+        Normal Python lists become MATLAB column vectors because mission fields
+        are row-aligned by segment. This marker is reserved for FAST fields
+        such as engine spool RPMs where MATLAB expects one horizontal vector.
+    """
 
     def __init__(self, value):
         self.value = value
 
 
 def matlab_expr(value):
-    """Return a MATLAB expression marker for Python-defined specs."""
+    """Return a marker for MATLAB expressions embedded in Python specs."""
 
     return MatlabExpression(value)
 
@@ -132,7 +150,18 @@ def wrap(input_aircraft, fast_path):
 
 
 def _start_matlab(fast_path):
-    """Start MATLAB Engine and add the FAST checkout to MATLAB's path."""
+    """Start MATLAB Engine and add FAST packages/functions to the path.
+
+    Inputs:
+        fast_path: Validated FAST checkout containing Main.m.
+
+    Outputs:
+        A running MATLAB Engine object ready to evaluate FAST scripts.
+
+    Side effects:
+        Launches an external MATLAB process. wrap() is responsible for quitting
+        it after the run finishes or fails.
+    """
 
     try:
         import matlab.engine
@@ -147,7 +176,17 @@ def _start_matlab(fast_path):
 
 
 def _resolve_fast_path(fast_path):
-    """Resolve and validate the configured FAST checkout path."""
+    """Resolve and validate the configured FAST checkout path.
+
+    Inputs:
+        fast_path: Path-like value pointing to a local FAST checkout.
+
+    Outputs:
+        Absolute Path to the checkout.
+
+    Assumptions:
+        Main.m is the stable FAST entry point used by this Python wrapper.
+    """
 
     if not fast_path:
         raise RuntimeError("FAST path is required.")
@@ -172,7 +211,19 @@ def _validate_fast_path(path):
 
 
 def _prepare_aircraft(aircraft):
-    """Normalize Python aircraft input into the structure expected by FAST."""
+    """Normalize InputAircraft without mutating the caller's dictionary.
+
+    Inputs:
+        aircraft: Python InputAircraft dictionary.
+
+    Outputs:
+        Deep-copied aircraft dictionary ready for MATLAB literal conversion.
+
+    Assumptions:
+        For now the wrapper only supports propulsion architecture types C, E,
+        and TE. Any legacy PropArch companion fields are removed so stale graph
+        architecture data cannot leak into a conventional run.
+    """
 
     if not isinstance(aircraft, dict):
         return aircraft
@@ -210,7 +261,7 @@ def _prepare_aircraft(aircraft):
 
 
 def _prop_arch_type(aircraft):
-    """Return the normalized propulsion architecture type when present."""
+    """Return the supported PropArch type used to label cleaned FAST output."""
 
     try:
         arch_type = aircraft["Specs"]["Propulsion"]["PropArch"]["Type"]
@@ -229,7 +280,19 @@ def _prop_arch_type(aircraft):
 
 
 def _extract_mission_profile(aircraft):
-    """Remove and return the mission profile embedded in aircraft input."""
+    """Remove and return the mission profile embedded in InputAircraft.
+
+    Inputs:
+        aircraft: Prepared aircraft dictionary that still contains Mission.
+
+    Outputs:
+        Mission.Profile dictionary passed into FAST's mission_profile handle.
+
+    Side effects:
+        Mutates the prepared copy by removing Mission before aircraft_spec is
+        converted to MATLAB. FAST receives mission data through the function
+        handle, not as a standalone top-level aircraft field.
+    """
 
     try:
         mission_container = aircraft.pop("Mission")
@@ -244,7 +307,18 @@ def _extract_mission_profile(aircraft):
 
 
 def _to_matlab_literal(value):
-    """Convert supported Python values into MATLAB literal source text."""
+    """Convert supported Python values into MATLAB literal source text.
+
+    Inputs:
+        value: JSON-like Python value, MatlabExpression, or MatlabRow.
+
+    Outputs:
+        MATLAB source text safe to splice into the generated evalc script.
+
+    Assumptions:
+        This is intentionally narrow. Unsupported objects fail in Python so
+        MATLAB does not receive malformed struct(...) source.
+    """
 
     if isinstance(value, MatlabExpression):
         return value.value
@@ -289,7 +363,13 @@ def _to_matlab_literal(value):
 
 
 def _to_matlab_array(value):
-    """Convert Python list or tuple input into a MATLAB array literal."""
+    """Convert Python list or tuple input into a MATLAB array literal.
+
+    Assumptions:
+        One-dimensional lists are column vectors because FAST mission arrays
+        align by segment row. Nested lists are matrices whose inner lists are
+        MATLAB rows. MatlabRow is the explicit escape hatch for row vectors.
+    """
 
     if not value:
         return "[]"
@@ -326,7 +406,16 @@ def _to_matlab_row(value):
 
 
 def _to_python_data(value):
-    """Convert MATLAB Engine return values into ordinary Python data."""
+    """Convert MATLAB Engine return values into ordinary Python data.
+
+    Outputs:
+        Nested dictionaries, lists, and scalars suitable for OutputAircraft.
+
+    Assumptions:
+        MATLAB Engine exposes structs and arrays with different Python shapes
+        across releases, so detection is capability-based instead of importing
+        concrete matlab.* classes.
+    """
 
     if value is None or isinstance(value, str):
         return value
@@ -407,7 +496,12 @@ def _looks_like_matlab_array(value):
 
 
 def _convert_sequence(value):
-    """Recursively convert list-like values returned by MATLAB Engine."""
+    """Recursively convert list-like values returned by MATLAB Engine.
+
+    Assumptions:
+        MATLAB scalar arrays often arrive as one-item containers. Collapsing
+        those keeps scalar OutputAircraft fields as scalars in Python dicts.
+    """
 
     items = [_to_python_data(item) for item in value]
 
@@ -418,7 +512,17 @@ def _convert_sequence(value):
 
 
 def _clean_output_fields(output, prop_arch_type=None):
-    """Remove FAST fields that are not part of reusable OutputAircraft data."""
+    """Remove FAST runtime fields from reusable OutputAircraft data.
+
+    Inputs:
+        output: Python dictionary converted from MATLAB OutputAircraft.
+        prop_arch_type: Input PropArch type used when FAST returns an internal
+            expanded architecture object instead of C, E, or TE.
+
+    Side effects:
+        Mutates output in place. The result is the public OutputAircraft dict
+        returned by wrap() and used by the JSON fixtures.
+    """
 
     for path in OUTPUT_FIELDS_TO_REMOVE:
         current = output
@@ -446,7 +550,13 @@ def _clean_output_fields(output, prop_arch_type=None):
 
 
 def _clean_prop_arch_fields(value, fallback_type=None):
-    """Keep PropArch objects limited to Type for supported architectures."""
+    """Keep every PropArch object limited to Type for supported architectures.
+
+    Assumptions:
+        FAST may expand TE into internal graph-like data. The wrapper currently
+        supports only the public architecture labels C, E, and TE, so expanded
+        fields are intentionally removed from output.
+    """
 
     if isinstance(value, dict):
         for key, item in list(value.items()):

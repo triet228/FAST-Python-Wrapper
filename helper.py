@@ -62,8 +62,8 @@ def build_json_data(value):
 
     Outputs:
         A JSON-serializable structure preserving field names and MATLAB source
-        expressions. NaN is written as the string "NaN" because standard JSON
-        has no portable NaN literal.
+        expressions. NaN and infinities are written as strings because standard
+        JSON has no portable non-finite number literals.
 
     Assumptions:
         Input files can be rehydrated by load_json_data(). Unsupported
@@ -120,7 +120,12 @@ def normalize_object_text(value):
 
 
 def round_json_numbers(value):
-    """Return JSON-compatible data with floating point numbers rounded."""
+    """Return JSON-compatible data with floats rounded to 4 decimal places.
+
+    Assumptions:
+        Four decimal places are enough for committed FAST fixtures while
+        avoiding noisy machine-precision churn in large OutputAircraft files.
+    """
 
     if isinstance(value, dict):
         return {
@@ -317,7 +322,13 @@ def build_json_schema_document(schema, title, description=None):
 
 
 def json_schema_number():
-    """Return the FAST numeric schema, including MATLAB expressions."""
+    """Return the FAST numeric schema, including MATLAB expression markers.
+
+    Assumptions:
+        Input templates can still contain trusted MATLAB expressions for values
+        defined by FAST packages, so numeric fields accept either JSON numbers
+        or the explicit marker object.
+    """
 
     return {
         "anyOf": [
@@ -330,7 +341,13 @@ def json_schema_number():
 
 
 def json_schema_prop_arch():
-    """Return the supported propulsion architecture schema."""
+    """Return the supported propulsion architecture schema.
+
+    Assumptions:
+        The Python wrapper currently supports only public FAST architecture
+        labels C, E, and TE. Graph-style architecture details are intentionally
+        outside this schema.
+    """
 
     return {
         "type": "object",
@@ -348,7 +365,18 @@ def json_schema_prop_arch():
 
 
 def apply_prop_arch_schema_contract(schema):
-    """Limit every PropArch schema branch to the supported Type field."""
+    """Limit every PropArch schema branch to the supported Type field.
+
+    Inputs:
+        schema: Generated JSON Schema dictionary or subtree.
+
+    Outputs:
+        The same schema object after in-place normalization.
+
+    Side effects:
+        Mutates generated schemas so historical/reference output data cannot
+        reintroduce internal PropArch graph fields.
+    """
 
     if isinstance(schema, dict):
         properties = schema.get("properties")
@@ -496,7 +524,15 @@ def build_json_schema_from_value(
 
 
 def merge_json_schemas(schemas):
-    """Return one schema accepting each schema in a list."""
+    """Return one schema accepting each schema in a list.
+
+    Inputs:
+        schemas: JSON Schema subtrees inferred from example values.
+
+    Outputs:
+        A merged schema that keeps shared object/array structure when possible
+        and falls back to anyOf only when the observed shapes truly differ.
+    """
 
     unique_schemas = []
     seen_schemas = set()
@@ -529,7 +565,12 @@ def merge_json_schemas(schemas):
 
 
 def merge_json_schemas_without_specialization(schemas):
-    """Return an anyOf schema without recursively merging schema kinds."""
+    """Return an anyOf schema without recursively merging schema kinds.
+
+    Assumptions:
+        Mixed scalar/container observations should stay explicit so validation
+        errors point at the accepted alternatives instead of a guessed shape.
+    """
 
     unique_schemas = []
     seen_schemas = set()
@@ -678,7 +719,22 @@ def is_json_schema_document(schema):
 
 
 def validate_json_schema_value(data, schema, file_name, label, root_schema):
-    """Validate one JSON value against the generated JSON Schema subset."""
+    """Validate one JSON value against the generated JSON Schema subset.
+
+    Inputs:
+        data: Parsed JSON value being checked.
+        schema: Schema subtree for this value.
+        file_name: Source file label used in error messages.
+        label: Dotted path to the current value.
+        root_schema: Full schema document used for local $ref resolution.
+
+    Outputs:
+        None. Raises JsonValidationError with the concrete JSON path on drift.
+
+    Assumptions:
+        The project generates and consumes a small Draft 2020-12 subset; this
+        validator implements only keywords used by the committed schemas.
+    """
 
     if "$ref" in schema:
         validate_json_schema_value(
@@ -894,7 +950,13 @@ def validate_json_schema_number_limits(data, schema, label):
 
 
 def require_json_number(data, keys, file_name):
-    """Validate that a required nested field is numeric or a MATLAB expression."""
+    """Validate that a required nested field is numeric or a MATLAB expression.
+
+    Assumptions:
+        FAST templates sometimes store package-derived numeric values as
+        explicit MATLAB expressions, so validation accepts that marker where a
+        number would otherwise be required.
+    """
 
     value = get_json_path(data, keys, file_name)
 
@@ -950,7 +1012,7 @@ def require_json_list_or_scalar_list(data, keys, file_name):
 
 
 def validate_json_markers(value, file_name, path=""):
-    """Validate wrapper marker objects used inside JSON files.
+    """Validate MATLAB marker objects used inside JSON files.
 
     Inputs:
         value: Parsed JSON subtree.
@@ -1198,6 +1260,8 @@ def build_output_aircraft_structure(value):
     Assumptions:
         FAST output array lengths vary by aircraft and mission, so the schema
         validates item shape without locking one example's exact lengths.
+        PropArch is post-processed to the public C/E/TE contract even when FAST
+        returns internal architecture expansion fields.
     """
 
     schema = build_json_schema_document(

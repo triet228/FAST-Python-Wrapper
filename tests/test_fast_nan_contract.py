@@ -49,7 +49,7 @@ def test_schema_rejects_legacy_nan_string_in_mission_profile():
 
 
 def test_wrap_requires_embedded_mission_profile(monkeypatch, tmp_path):
-    """Require mission data to be embedded in InputAircraft."""
+    """Require Mission.Profile before generating MATLAB FAST source."""
 
     class FakeEngine:
         def __init__(self):
@@ -74,7 +74,7 @@ def test_wrap_requires_embedded_mission_profile(monkeypatch, tmp_path):
 
 
 def test_wrap_returns_status_log_output_dict(monkeypatch, tmp_path):
-    """Keep wrap() as the status/log/output API."""
+    """Keep wrap() as the in-memory status/log/output API."""
 
     class FakeEngine:
         def __init__(self):
@@ -160,7 +160,7 @@ def test_wrap_reports_no_when_output_is_missing(monkeypatch, tmp_path):
 
 
 def test_wrap_keeps_only_supported_prop_arch_output(monkeypatch, tmp_path):
-    """Keep output focused on reusable aircraft data."""
+    """Collapse FAST internal PropArch output back to C, E, or TE."""
 
     class FakeEngine:
         def __init__(self):
