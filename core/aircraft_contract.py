@@ -61,25 +61,6 @@ def prepare_aircraft(aircraft):
     return aircraft
 
 
-def prop_arch_type(aircraft):
-    """Return the supported PropArch type used to label cleaned FAST output."""
-
-    try:
-        arch_type = aircraft["Specs"]["Propulsion"]["PropArch"]["Type"]
-    except (KeyError, TypeError):
-        return None
-
-    if not isinstance(arch_type, str):
-        return None
-
-    arch_type = arch_type.upper()
-
-    if arch_type in PROP_ARCH_TYPES:
-        return arch_type
-
-    return None
-
-
 def extract_mission_profile(aircraft):
     """Remove and return the mission profile embedded in InputAircraft.
 
@@ -107,13 +88,11 @@ def extract_mission_profile(aircraft):
     return mission
 
 
-def clean_output_fields(output, prop_arch_type_value=None):
+def clean_output_fields(output):
     """Remove FAST runtime fields from reusable OutputAircraft data.
 
     Inputs:
         output: Python dictionary converted from MATLAB OutputAircraft.
-        prop_arch_type_value: Input PropArch type used when FAST returns an
-            internal expanded architecture object instead of C or E.
 
     Side effects:
         Mutates output in place. The result is the public OutputAircraft dict
@@ -142,10 +121,10 @@ def clean_output_fields(output, prop_arch_type_value=None):
             if key_text.startswith("narg") and "oper" in key_text:
                 del settings[key]
 
-    _clean_prop_arch_fields(output, prop_arch_type_value)
+    _clean_prop_arch_fields(output)
 
 
-def _clean_prop_arch_fields(value, fallback_type=None):
+def _clean_prop_arch_fields(value):
     """Keep every PropArch object limited to Type for supported architectures.
 
     Assumptions:
@@ -162,9 +141,6 @@ def _clean_prop_arch_fields(value, fallback_type=None):
                 if isinstance(arch_type, str):
                     arch_type = arch_type.upper()
 
-                if arch_type not in PROP_ARCH_TYPES:
-                    arch_type = fallback_type
-
                 if arch_type in PROP_ARCH_TYPES:
                     value[key] = {
                         "Type": arch_type,
@@ -174,10 +150,10 @@ def _clean_prop_arch_fields(value, fallback_type=None):
 
                 continue
 
-            _clean_prop_arch_fields(item, fallback_type)
+            _clean_prop_arch_fields(item)
 
         return
 
     if isinstance(value, list):
         for item in value:
-            _clean_prop_arch_fields(item, fallback_type)
+            _clean_prop_arch_fields(item)

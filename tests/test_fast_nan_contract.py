@@ -221,7 +221,7 @@ def test_wrapper_keeps_only_supported_prop_arch_output(monkeypatch, tmp_path):
 
     assert "Preset" not in output["Geometry"]
     assert output["Geometry"]["LengthSet"] == 1
-    assert output["Specs"]["Propulsion"]["PropArch"] == {"Type": "E"}
+    assert output["Specs"]["Propulsion"]["PropArch"] == {}
     assert "ProfileFxn" not in output["Mission"]
     assert "Size" not in output["Settings"]["Dir"]
     assert output["Settings"]["Dir"]["Oper"] == "keep"

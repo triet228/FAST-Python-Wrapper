@@ -4,7 +4,6 @@ from core.aircraft_contract import (
     clean_output_fields,
     extract_mission_profile,
     prepare_aircraft,
-    prop_arch_type,
 )
 from core.matlab_bridge import (
     matlab_expr,
@@ -40,7 +39,6 @@ def FAST_Python_Wrapper(input_aircraft, fast_path):
     try:
         try:
             aircraft_python = prepare_aircraft(input_aircraft)
-            input_prop_arch_type = prop_arch_type(aircraft_python)
             mission_python = extract_mission_profile(aircraft_python)
             aircraft_matlab = python_to_matlab(aircraft_python)
             mission_matlab = python_to_matlab(mission_python)
@@ -87,7 +85,7 @@ def FAST_Python_Wrapper(input_aircraft, fast_path):
         output = to_python_data(fast_result)
 
         if isinstance(output, dict):
-            clean_output_fields(output, input_prop_arch_type)
+            clean_output_fields(output)
 
         if not isinstance(output, dict) or not output:
             return {
