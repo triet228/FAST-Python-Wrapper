@@ -6,10 +6,12 @@ from copy import deepcopy
 
 import pytest
 
-from core.helper import (
+from core.json_io import (
     JsonValidationError,
     build_json_data,
     read_raw_json_file,
+)
+from core.schema_validation import (
     validate_aircraft_json,
     validate_output_aircraft_json,
 )

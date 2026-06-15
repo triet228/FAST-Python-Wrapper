@@ -9,7 +9,6 @@ from core.aircraft_contract import (
     prepare_aircraft,
 )
 from core.matlab_bridge import (
-    matlab_expr,
     python_to_matlab,
     resolve_fast_path,
     start_matlab,

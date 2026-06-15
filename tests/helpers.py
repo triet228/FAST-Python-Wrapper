@@ -13,18 +13,18 @@ import math
 import os
 import pytest
 import shutil
-import sys
 from pathlib import Path
+
+from core.json_io import (
+    build_json_data,
+    is_json_number,
+    load_json_data,
+    read_raw_json_file,
+)
+from main import FAST_Python_Wrapper
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
-
-from core.helper import build_json_data, is_json_number, load_json_data, read_raw_json_file
-from main import FAST_Python_Wrapper
-
 
 IGNORED_OUTPUT_PATHS = {
     "Aircraft.Settings.Plotting",

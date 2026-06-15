@@ -6,10 +6,12 @@ from math import isnan
 
 import pytest
 
-from core.helper import (
+from core.json_io import (
     JsonValidationError,
     load_json_data,
     read_raw_json_file,
+)
+from core.schema_validation import (
     validate_aircraft_json,
 )
 from tests.helpers import PROJECT_ROOT

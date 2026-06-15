@@ -4,8 +4,6 @@
 
 from tests.helpers import (
     assert_fast_model_wrapper_matches_saved_output,
-    examples_path,
-    fast_path,
     load_example_input,
 )
 
