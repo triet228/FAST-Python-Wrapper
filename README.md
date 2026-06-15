@@ -9,10 +9,15 @@ The wrapper accepts an `input_aircraft` dictionary and the local path to FAST.
 
 ```python
 
+
 from math import nan
 from pathlib import Path
 
+from numpy import nan
+
 from main import FAST_Python_Wrapper
+
+from core.matlab_bridge import matlab_expr
 
 project_dir = Path(__file__).resolve().parent
 fast_dir = project_dir.parent / "FAST"
@@ -20,7 +25,7 @@ fast_dir = project_dir.parent / "FAST"
 input_aircraft = {
     "Specs": {
         "TLAR": {
-            "Class": "Turbofan",
+            "Class": "Turbofan", # Turbofan, Turboprop
             "MaxPax": 180,
         },
         "Performance": {
@@ -28,45 +33,11 @@ input_aircraft = {
         },
         "Propulsion": {
             "PropArch": {
-                "Type": "C",
+                "Type": "C", # C for Conventional, E for Electric
             },
-            "Engine": {
-                "OPR": 24.5,
-                "FPR": 1.6,
-                "BPR": 4,
-                "Tt4Max": 1711,
-                "NoSpools": 2,
-                "RPMs": {
-                    "_matlab_row": [
-                        7400,
-                        17820,
-                    ],
-                },
-                "FanGearRatio": nan,
-                "FanBoosters": False,
-                "CoreFlow": {
-                    "PaxBleed": 0.03,
-                    "Leakage": 0.01,
-                    "Cooling": 0,
-                },
-                "MaxIter": 300,
-                "EtaPoly": {
-                    "Inlet": 0.99,
-                    "Diffusers": 0.99,
-                    "Fan": 0.99,
-                    "Compressors": 0.94,
-                    "BypassNozzle": 0.99,
-                    "Combustor": 0.995,
-                    "Turbines": 0.94,
-                    "CoreNozzle": 0.99,
-                    "Nozzles": 0.99,
-                },
-                "Cff3": 0.299,
-                "Cff2": -0.346,
-                "Cff1": 0.701,
-                "Cffch": 0,
-                "HEcoeff": 1,
-            },
+            # Turboprop: nan, AE2100_D3, AE501D_22G, Allison_250_C30G, PT6A_114A, PW_123, PW_127M, TPE331_14GR_805H
+            # Turbofan: LEAP_1A26, CF34_8E5
+            "Engine": matlab_expr("EngineModelPkg.EngineSpecsPkg.CF34_8E5")
         },
         "Power": {
             "P_W": {},
@@ -98,7 +69,8 @@ print(result["log"])
 
 if result["status"] == "Yes":
     MTOW = result["output"]["Specs"]["Weight"]["MTOW"]
-    print("MTOW:" + str(MTOW) + "kg")
+    print("MTOW:" + str(MTOW) + " kg")
+
 
 ```
 
