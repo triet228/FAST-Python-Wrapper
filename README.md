@@ -49,15 +49,15 @@ input_aircraft = {
                 "Valu": [4630000],
                 "Type": ["Dist"],
             },
-            "Segs": ["Cruise"],
-            "ID": [1],
-            "AltBeg": [10668],
-            "AltEnd": [10668],
-            "ClbRate": [nan],
-            "VelBeg": [0.78],
-            "VelEnd": [0.78],
-            "TypeBeg": ["Mach"],
-            "TypeEnd": ["Mach"],
+            "Segs": ["Climb", "Cruise", "Descent"],
+            "ID": [1, 1, 1],
+            "AltBeg": [0, 10668, 10668],
+            "AltEnd": [10668, 10668, 0],
+            "ClbRate": [nan, nan, nan],
+            "VelBeg": [0.2, 0.78, 0.78],
+            "VelEnd": [0.78, 0.78, 0.2],
+            "TypeBeg": ["Mach", "Mach", "Mach"],
+            "TypeEnd": ["Mach", "Mach", "Mach"],
         },
     },
 }
@@ -65,7 +65,7 @@ input_aircraft = {
 result = FAST_Python_Wrapper(input_aircraft, fast_dir)
 
 print("Run success:", result["status"])
-print(result["log"])
+# print(result["log"])
 
 if result["status"] == "Yes":
     MTOW = result["output"]["Specs"]["Weight"]["MTOW"]
