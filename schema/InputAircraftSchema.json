@@ -13,7 +13,8 @@
       "required": [
         "TLAR",
         "Performance",
-        "Propulsion"
+        "Propulsion",
+        "Power"
       ],
       "additionalProperties": false,
       "properties": {
@@ -29,16 +30,16 @@
               "type": "number",
               "description": "Entry into service year.",
               "units": "year",
-              "default": 2021
+              "default": 2021,
+              "minimum": 1900,
+              "maximum": 2100
             },
             "Class": {
               "type": "string",
               "description": "Aircraft class.",
               "enum": [
                 "Turbofan",
-                "Turboprop",
-                "Propfan",
-                "Piston"
+                "Turboprop"
               ]
             },
             "MaxPax": {
@@ -216,9 +217,28 @@
           "additionalProperties": false,
           "properties": {
             "Engine": {
-              "description": "Engine specification object or null when FAST should synthesize/default the engine.",
+              "description": "Engine specification object. Omit this field for generated electric aircraft unless complete engine data are available; if provided for a turbofan architecture, include EtaPoly.Fan because FAST uses it as the fan efficiency.",
               "type": "object",
-              "additionalProperties": true
+              "required": [
+                "EtaPoly"
+              ],
+              "additionalProperties": true,
+              "properties": {
+                "EtaPoly": {
+                  "type": "object",
+                  "required": [
+                    "Fan"
+                  ],
+                  "additionalProperties": true,
+                  "properties": {
+                    "Fan": {
+                      "type": "number",
+                      "description": "Fan polytropic efficiency used by FAST electric turbofan/fan propulsion architectures.",
+                      "units": "unitless"
+                    }
+                  }
+                }
+              }
             },
             "NumEngines": {
               "type": "integer",
@@ -285,6 +305,9 @@
         },
         "Power": {
           "type": "object",
+          "required": [
+            "P_W"
+          ],
           "additionalProperties": false,
           "properties": {
             "SLS": {
@@ -336,17 +359,23 @@
                 "SLS": {
                   "type": "number",
                   "description": "Static sea-level aircraft power-to-weight ratio. FAST converts from kW/kg to W/kg internally.",
-                  "units": "kW/kg"
+                  "units": "kW/kg",
+                  "minimum": 0,
+                  "maximum": 10
                 },
                 "EM": {
                   "type": "number",
                   "description": "Electric motor power-to-weight ratio. FAST converts from kW/kg to W/kg internally.",
-                  "units": "kW/kg"
+                  "units": "kW/kg",
+                  "minimum": 0,
+                  "maximum": 100
                 },
                 "EG": {
                   "type": "number",
                   "description": "Electric generator power-to-weight ratio. FAST converts from kW/kg to W/kg internally.",
-                  "units": "kW/kg"
+                  "units": "kW/kg",
+                  "minimum": 0,
+                  "maximum": 100
                 },
                 "AC": {
                   "type": "number",
@@ -679,17 +708,31 @@
               "additionalProperties": false,
               "properties": {
                 "Valu": {
-                  "type": "array",
-                  "description": "Mission target value. Use meters for distance targets and minutes for time targets.",
+                  "type": [
+                    "number",
+                    "array"
+                  ],
+                  "description": "Mission target value. For a single sizing mission, use one distance target in meters only; do not include passenger count, cargo mass, altitude, speed, or state of charge as target values. Arrays are only for multi-mission profiles with matching mission IDs.",
                   "units": "m or min",
+                  "minItems": 1,
+                  "maxItems": 1,
                   "items": {
                     "type": "number"
                   }
                 },
                 "Type": {
-                  "type": "array",
-                  "description": "Mission target type.",
+                  "type": [
+                    "string",
+                    "array"
+                  ],
+                  "description": "Mission target type. For a single sizing mission, use Dist. Arrays are only for multi-mission profiles with matching mission IDs.",
                   "units": "unitless",
+                  "enum": [
+                    "Dist",
+                    "Time"
+                  ],
+                  "minItems": 1,
+                  "maxItems": 1,
                   "items": {
                     "type": "string",
                     "enum": [
@@ -702,31 +745,39 @@
             },
             "Segs": {
               "type": "array",
-              "description": "Ordered mission segment names.",
+              "description": "Ordered mission segment names. For generated single sizing runs, use exactly Climb, Cruise, Descent in that order.",
               "units": "unitless",
+              "minItems": 3,
+              "maxItems": 3,
               "items": {
                 "type": "string",
                 "enum": [
-                  "Takeoff",
                   "Climb",
                   "Cruise",
-                  "Descent",
-                  "Landing"
+                  "Descent"
                 ]
               }
             },
             "ID": {
               "type": "array",
-              "description": "Mission identifier for each segment. Segments in the same mission should be consecutive.",
+              "description": "Mission identifier for each segment. For a single sizing mission, use 1 for every segment so the climb, cruise, and descent belong to the same mission target.",
               "units": "count",
+              "minItems": 3,
+              "maxItems": 3,
               "items": {
-                "type": "integer"
+                "type": "integer",
+                "minimum": 1,
+                "enum": [
+                  1
+                ]
               }
             },
             "AltBeg": {
               "type": "array",
               "description": "Beginning altitude for each segment.",
               "units": "m",
+              "minItems": 3,
+              "maxItems": 3,
               "items": {
                 "type": "number"
               }
@@ -735,6 +786,8 @@
               "type": "array",
               "description": "Ending altitude for each segment.",
               "units": "m",
+              "minItems": 3,
+              "maxItems": 3,
               "items": {
                 "type": "number"
               }
@@ -743,6 +796,8 @@
               "type": "array",
               "description": "Climb rate for each segment. Use null in JSON where MATLAB inputs use NaN.",
               "units": "m/s",
+              "minItems": 3,
+              "maxItems": 3,
               "items": {
                 "type": [
                   "number",
@@ -754,6 +809,8 @@
               "type": "array",
               "description": "Beginning speed for each segment. Units are m/s when corresponding TypeBeg is TAS or EAS, and Mach when TypeBeg is Mach.",
               "units": "m/s or Mach",
+              "minItems": 3,
+              "maxItems": 3,
               "items": {
                 "type": "number"
               }
@@ -762,6 +819,8 @@
               "type": "array",
               "description": "Ending speed for each segment. Units are m/s when corresponding TypeEnd is TAS or EAS, and Mach when TypeEnd is Mach.",
               "units": "m/s or Mach",
+              "minItems": 3,
+              "maxItems": 3,
               "items": {
                 "type": "number"
               }
@@ -770,6 +829,8 @@
               "type": "array",
               "description": "Beginning speed type for each segment.",
               "units": "unitless",
+              "minItems": 3,
+              "maxItems": 3,
               "items": {
                 "type": "string",
                 "enum": [
@@ -783,6 +844,8 @@
               "type": "array",
               "description": "Ending speed type for each segment.",
               "units": "unitless",
+              "minItems": 3,
+              "maxItems": 3,
               "items": {
                 "type": "string",
                 "enum": [
@@ -796,6 +859,8 @@
               "type": "array",
               "description": "Power optimization flag used by some mission profiles.",
               "units": "unitless",
+              "minItems": 3,
+              "maxItems": 3,
               "items": {
                 "type": "integer",
                 "enum": [
