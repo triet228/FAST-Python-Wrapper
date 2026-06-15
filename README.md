@@ -8,6 +8,7 @@ Python wrapper for running [Future Aircraft Sizing Tool (FAST)](https://github.c
 The wrapper accepts an `input_aircraft` dictionary and the local path to FAST.
 
 ```python
+
 from math import nan
 from pathlib import Path
 
@@ -29,6 +30,46 @@ input_aircraft = {
             "PropArch": {
                 "Type": "C",
             },
+            "Engine": {
+                "OPR": 24.5,
+                "FPR": 1.6,
+                "BPR": 4,
+                "Tt4Max": 1711,
+                "NoSpools": 2,
+                "RPMs": {
+                    "_matlab_row": [
+                        7400,
+                        17820,
+                    ],
+                },
+                "FanGearRatio": nan,
+                "FanBoosters": False,
+                "CoreFlow": {
+                    "PaxBleed": 0.03,
+                    "Leakage": 0.01,
+                    "Cooling": 0,
+                },
+                "MaxIter": 300,
+                "EtaPoly": {
+                    "Inlet": 0.99,
+                    "Diffusers": 0.99,
+                    "Fan": 0.99,
+                    "Compressors": 0.94,
+                    "BypassNozzle": 0.99,
+                    "Combustor": 0.995,
+                    "Turbines": 0.94,
+                    "CoreNozzle": 0.99,
+                    "Nozzles": 0.99,
+                },
+                "Cff3": 0.299,
+                "Cff2": -0.346,
+                "Cff1": 0.701,
+                "Cffch": 0,
+                "HEcoeff": 1,
+            },
+        },
+        "Power": {
+            "P_W": {},
         },
     },
     "Mission": {
@@ -58,6 +99,7 @@ print(result["log"])
 if result["status"] == "Yes":
     MTOW = result["output"]["Specs"]["Weight"]["MTOW"]
     print("MTOW:" + str(MTOW) + "kg")
+
 ```
 
 
