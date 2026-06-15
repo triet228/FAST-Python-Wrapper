@@ -3,7 +3,8 @@
   "description": "Schema for FAST input aircraft.",
   "type": "object",
   "required": [
-    "Specs"
+    "Specs",
+    "Mission"
   ],
   "additionalProperties": false,
   "properties": {
@@ -647,6 +648,9 @@
     },
     "Mission": {
       "type": "object",
+      "required": [
+        "Profile"
+      ],
       "additionalProperties": true,
       "properties": {
         "Profile": {

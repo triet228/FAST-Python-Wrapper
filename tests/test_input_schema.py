@@ -125,7 +125,18 @@ def test_input_aircraft_contract_rejects_missing_mission_profile():
     changed = deepcopy(data)
     del changed["Mission"]["Profile"]
 
-    with pytest.raises(JsonValidationError, match="Mission.Profile"):
+    with pytest.raises(JsonValidationError, match="Mission.*Profile"):
+        validate_aircraft_json(changed)
+
+
+def test_input_aircraft_contract_rejects_missing_mission():
+    """Require the merged mission block in InputAircraft.json."""
+
+    data = read_raw_json_file(DEFAULT_INPUT_DIR / "InputAircraft.json")
+    changed = deepcopy(data)
+    del changed["Mission"]
+
+    with pytest.raises(JsonValidationError, match="missing required field Mission"):
         validate_aircraft_json(changed)
 
 
