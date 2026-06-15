@@ -1,9 +1,13 @@
 # core/output_structure.py
 
+"""Build and print readable OutputAircraft structure views."""
+
 from .json_io import build_json_data
-from .schema_contract import (
+from .schema_builder import (
     apply_prop_arch_schema_contract,
     build_json_schema_from_value,
+)
+from .schema_validation import (
     is_json_schema_document,
 )
 
@@ -65,113 +69,25 @@ def print_output_aircraft_structure(
     """
 
     if is_json_schema_document(value):
-        value = {
-            key: item
-            for key, item in value.items()
-            if key not in ("$schema", "$defs", "title", "description")
-        }
+        value = _schema_without_document_metadata(value)
 
     value = unwrap_printable_schema(value)
     prefix = " " * indent
 
     if max_depth is not None and depth >= max_depth:
-        if isinstance(value, dict) and value.get("type") == "array":
-            length = ""
-
-            if (
-                value.get("minItems") == value.get("maxItems")
-                and "minItems" in value
-            ):
-                length = str(value["minItems"])
-
-            if length:
-                print(f"{prefix}{name}: array[{length}] ...")
-            else:
-                print(f"{prefix}{name}: array ...")
-        elif isinstance(value, dict):
-            print(f"{prefix}{name}: object ...")
-        else:
-            print(f"{prefix}{name}: {value}")
-
+        _print_depth_limited_node(prefix, name, value)
         return
 
-    if isinstance(value, dict) and value.get("type") == "array":
-        length = ""
-
-        if (
-            value.get("minItems") == value.get("maxItems")
-            and "minItems" in value
-        ):
-            length = str(value["minItems"])
-
-        if length:
-            print(f"{prefix}{name}: array[{length}]")
-        else:
-            print(f"{prefix}{name}: array")
-
-        if "items" in value:
-            print_output_aircraft_structure(
-                value["items"],
-                "[0]",
-                indent + 2,
-                depth + 1,
-                max_depth,
-                max_items,
-            )
-
+    if _is_array_schema(value):
+        _print_array_schema(value, name, indent, depth, max_depth, max_items)
         return
 
-    if isinstance(value, dict) and value.get("type") == "object":
-        print(f"{prefix}{name}: object")
-
-        properties = value.get("properties", {})
-        items = list(properties.items())
-
-        if max_items is None:
-            printed_items = items
-        else:
-            printed_items = items[:max_items]
-
-        for key, item in printed_items:
-            print_output_aircraft_structure(
-                item,
-                key,
-                indent + 2,
-                depth + 1,
-                max_depth,
-                max_items,
-            )
-
-        if max_items is not None and len(items) > max_items:
-            remaining = len(items) - max_items
-            print(f"{prefix}  ... {remaining} more fields in JSON schema")
-
+    if _is_object_schema(value):
+        _print_object_schema(value, name, indent, depth, max_depth, max_items)
         return
 
     if isinstance(value, dict):
-        print(f"{prefix}{name}: object")
-
-        items = list(value.items())
-
-        if max_items is None:
-            printed_items = items
-        else:
-            printed_items = items[:max_items]
-
-        for key, item in printed_items:
-            print_output_aircraft_structure(
-                item,
-                key,
-                indent + 2,
-                depth + 1,
-                max_depth,
-                max_items,
-            )
-
-        if max_items is not None and len(items) > max_items:
-            remaining = len(items) - max_items
-            print(f"{prefix}  ... {remaining} more fields in JSON file")
-
+        _print_plain_mapping(value, name, indent, depth, max_depth, max_items)
         return
 
     print(f"{prefix}{name}: {value}")
@@ -192,3 +108,126 @@ def unwrap_printable_schema(value):
         return value["$ref"].split("/")[-1]
 
     return value
+
+
+def _schema_without_document_metadata(value):
+    """Remove document-level schema keys before printing a field tree."""
+
+    return {
+        key: item
+        for key, item in value.items()
+        if key not in ("$schema", "$defs", "title", "description")
+    }
+
+
+def _is_array_schema(value):
+    """Return True when a schema node describes a JSON array."""
+
+    return isinstance(value, dict) and value.get("type") == "array"
+
+
+def _is_object_schema(value):
+    """Return True when a schema node describes a JSON object."""
+
+    return isinstance(value, dict) and value.get("type") == "object"
+
+
+def _print_depth_limited_node(prefix, name, value):
+    """Print a compact placeholder when max_depth stops recursion."""
+
+    if _is_array_schema(value):
+        print(f"{prefix}{name}: {_array_label(value)} ...")
+        return
+
+    if isinstance(value, dict):
+        print(f"{prefix}{name}: object ...")
+        return
+
+    print(f"{prefix}{name}: {value}")
+
+
+def _print_array_schema(value, name, indent, depth, max_depth, max_items):
+    """Print an array schema and then its item schema, when present."""
+
+    prefix = " " * indent
+    print(f"{prefix}{name}: {_array_label(value)}")
+
+    if "items" not in value:
+        return
+
+    print_output_aircraft_structure(
+        value["items"],
+        "[0]",
+        indent + 2,
+        depth + 1,
+        max_depth,
+        max_items,
+    )
+
+
+def _array_label(value):
+    """Return array or array[N] for fixed-length arrays."""
+
+    if (
+        value.get("minItems") == value.get("maxItems")
+        and "minItems" in value
+    ):
+        return f"array[{value['minItems']}]"
+
+    return "array"
+
+
+def _print_object_schema(value, name, indent, depth, max_depth, max_items):
+    """Print an object schema by walking its properties."""
+
+    prefix = " " * indent
+    print(f"{prefix}{name}: object")
+
+    _print_child_items(
+        list(value.get("properties", {}).items()),
+        indent + 2,
+        depth + 1,
+        max_depth,
+        max_items,
+        "JSON schema",
+    )
+
+
+def _print_plain_mapping(value, name, indent, depth, max_depth, max_items):
+    """Print a normal dictionary that is not a JSON Schema object node."""
+
+    prefix = " " * indent
+    print(f"{prefix}{name}: object")
+
+    _print_child_items(
+        list(value.items()),
+        indent + 2,
+        depth + 1,
+        max_depth,
+        max_items,
+        "JSON file",
+    )
+
+
+def _print_child_items(items, indent, depth, max_depth, max_items, source_label):
+    """Print dictionary items with an optional max_items limit."""
+
+    if max_items is None:
+        printed_items = items
+    else:
+        printed_items = items[:max_items]
+
+    for key, item in printed_items:
+        print_output_aircraft_structure(
+            item,
+            key,
+            indent,
+            depth,
+            max_depth,
+            max_items,
+        )
+
+    if max_items is not None and len(items) > max_items:
+        remaining = len(items) - max_items
+        prefix = " " * indent
+        print(f"{prefix}... {remaining} more fields in {source_label}")

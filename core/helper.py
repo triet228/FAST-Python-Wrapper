@@ -1,5 +1,12 @@
 # core/helper.py
 
+"""Convenience imports and small file-loading helpers for FAST users.
+
+Most examples import from this module so beginners have one place to start.
+Implementation details still live in focused modules such as json_io.py,
+schema_builder.py, schema_validation.py, and output_structure.py.
+"""
+
 from pathlib import Path
 
 from .json_io import (
@@ -23,10 +30,9 @@ from .output_structure import (
     print_output_aircraft_structure,
     unwrap_printable_schema,
 )
-from .schema_contract import (
+from .schema_builder import (
     apply_prop_arch_schema_contract,
     build_json_schema_from_value,
-    is_json_schema_document,
     json_schema_matlab_expression,
     json_schema_number,
     json_schema_prop_arch,
@@ -34,6 +40,9 @@ from .schema_contract import (
     merge_json_object_schemas,
     merge_json_schemas,
     merge_json_schemas_without_specialization,
+)
+from .schema_validation import (
+    is_json_schema_document,
     read_schema_file,
     require_json_list,
     require_json_number,

@@ -1,5 +1,7 @@
 # core/json_io.py
 
+"""JSON loading, saving helpers, and marker conversion for FAST data."""
+
 import json
 import re
 from pathlib import Path

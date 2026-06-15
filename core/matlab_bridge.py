@@ -1,5 +1,7 @@
 # core/matlab_bridge.py
 
+"""Translate between Python data and MATLAB Engine values for FAST."""
+
 import re
 from pathlib import Path
 

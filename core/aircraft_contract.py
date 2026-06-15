@@ -1,5 +1,7 @@
 # core/aircraft_contract.py
 
+"""Keep Python aircraft dictionaries aligned with the public FAST contract."""
+
 from copy import deepcopy
 
 
@@ -30,33 +32,21 @@ def prepare_aircraft(aircraft):
         return aircraft
 
     aircraft = deepcopy(aircraft)
+    propulsion = _get_propulsion_section(aircraft)
 
-    try:
-        propulsion = aircraft["Specs"]["Propulsion"]
-    except KeyError:
+    if propulsion is None:
         return aircraft
 
-    prop_arch = propulsion.get("PropArch")
-
-    if isinstance(prop_arch, dict):
-        arch_type = prop_arch.get("Type")
-    else:
-        arch_type = prop_arch
+    arch_type = _get_prop_arch_type(propulsion)
 
     if not isinstance(arch_type, str):
         return aircraft
 
     arch_type = arch_type.upper()
-
-    if arch_type not in PROP_ARCH_TYPES:
-        joined_types = ", ".join(PROP_ARCH_TYPES)
-        raise ValueError(f"PropArch.Type must be one of: {joined_types}.")
+    _require_supported_prop_arch_type(arch_type)
 
     propulsion["PropArch"] = {"Type": arch_type}
-
-    for field_name in list(propulsion):
-        if field_name.startswith("PropArch") and field_name != "PropArch":
-            del propulsion[field_name]
+    _remove_legacy_prop_arch_fields(propulsion)
 
     return aircraft
 
@@ -100,14 +90,7 @@ def clean_output_fields(output):
     """
 
     for path in OUTPUT_FIELDS_TO_REMOVE:
-        current = output
-
-        for key in path[:-1]:
-            if not isinstance(current, dict):
-                current = None
-                break
-
-            current = current.get(key)
+        current = _nested_dict(output, path[:-1])
 
         if isinstance(current, dict):
             current.pop(path[-1], None)
@@ -124,6 +107,66 @@ def clean_output_fields(output):
     _clean_prop_arch_fields(output)
 
 
+def _get_propulsion_section(aircraft):
+    """Return Specs.Propulsion when the input has that nested object."""
+
+    try:
+        propulsion = aircraft["Specs"]["Propulsion"]
+    except KeyError:
+        return None
+
+    if isinstance(propulsion, dict):
+        return propulsion
+
+    return None
+
+
+def _get_prop_arch_type(propulsion):
+    """Return the propulsion architecture label from current or legacy shape."""
+
+    prop_arch = propulsion.get("PropArch")
+
+    if isinstance(prop_arch, dict):
+        return prop_arch.get("Type")
+
+    return prop_arch
+
+
+def _require_supported_prop_arch_type(arch_type):
+    """Fail early when the wrapper does not support a PropArch label."""
+
+    if arch_type in PROP_ARCH_TYPES:
+        return
+
+    joined_types = ", ".join(PROP_ARCH_TYPES)
+    raise ValueError(f"PropArch.Type must be one of: {joined_types}.")
+
+
+def _remove_legacy_prop_arch_fields(propulsion):
+    """Drop old PropArch companion fields that FAST no longer needs here."""
+
+    for field_name in list(propulsion):
+        if field_name.startswith("PropArch") and field_name != "PropArch":
+            del propulsion[field_name]
+
+
+def _nested_dict(value, path):
+    """Return a nested dictionary or None when any step is missing."""
+
+    current = value
+
+    for key in path:
+        if not isinstance(current, dict):
+            return None
+
+        current = current.get(key)
+
+    if isinstance(current, dict):
+        return current
+
+    return None
+
+
 def _clean_prop_arch_fields(value):
     """Keep every PropArch object limited to Type for supported architectures.
 
@@ -136,18 +179,7 @@ def _clean_prop_arch_fields(value):
     if isinstance(value, dict):
         for key, item in list(value.items()):
             if key == "PropArch" and isinstance(item, dict):
-                arch_type = item.get("Type")
-
-                if isinstance(arch_type, str):
-                    arch_type = arch_type.upper()
-
-                if arch_type in PROP_ARCH_TYPES:
-                    value[key] = {
-                        "Type": arch_type,
-                    }
-                else:
-                    value[key] = {}
-
+                value[key] = _public_prop_arch(item)
                 continue
 
             _clean_prop_arch_fields(item)
@@ -157,3 +189,19 @@ def _clean_prop_arch_fields(value):
     if isinstance(value, list):
         for item in value:
             _clean_prop_arch_fields(item)
+
+
+def _public_prop_arch(prop_arch):
+    """Return the public PropArch object from expanded FAST internals."""
+
+    arch_type = prop_arch.get("Type")
+
+    if isinstance(arch_type, str):
+        arch_type = arch_type.upper()
+
+    if arch_type in PROP_ARCH_TYPES:
+        return {
+            "Type": arch_type,
+        }
+
+    return {}
