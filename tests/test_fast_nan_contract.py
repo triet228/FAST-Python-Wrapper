@@ -165,7 +165,7 @@ def test_wrapper_reports_no_when_output_is_missing(monkeypatch, tmp_path):
 
 
 def test_wrapper_keeps_only_supported_prop_arch_output(monkeypatch, tmp_path):
-    """Collapse FAST internal PropArch output back to C or E."""
+    """Collapse FAST internal PropArch output back to a public Type object."""
 
     workspace = {}
 

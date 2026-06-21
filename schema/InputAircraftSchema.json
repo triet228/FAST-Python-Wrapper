@@ -226,9 +226,6 @@
               "properties": {
                 "EtaPoly": {
                   "type": "object",
-                  "required": [
-                    "Fan"
-                  ],
                   "additionalProperties": true,
                   "properties": {
                     "Fan": {
@@ -285,29 +282,212 @@
               "units": "unitless"
             },
             "PropArch": {
-              "type": "object",
-              "required": [
-                "Type"
-              ],
-              "additionalProperties": false,
-              "properties": {
-                "Type": {
-                  "type": "string",
-                  "description": "Propulsion architecture type.",
-                  "enum": [
-                    "C",
-                    "E"
-                  ]
+              "anyOf": [
+                {
+                  "type": "object",
+                  "required": [
+                    "Type"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "Type": {
+                      "type": "string",
+                      "description": "Preset propulsion architecture type.",
+                      "enum": [
+                        "C",
+                        "E"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "Type",
+                    "Arch",
+                    "OperUps",
+                    "OperDwn",
+                    "EtaUps",
+                    "EtaDwn",
+                    "SrcType",
+                    "TrnType"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "Type": {
+                      "type": "string",
+                      "description": "Custom propulsion architecture type.",
+                      "const": "O"
+                    },
+                    "Arch": {
+                      "description": "Fixed numeric architecture matrix.",
+                      "anyOf": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          }
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "array",
+                            "items": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "OperUps": {
+                      "description": "Fixed numeric upstream operational matrix.",
+                      "anyOf": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          }
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "array",
+                            "items": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "OperDwn": {
+                      "description": "Fixed numeric downstream operational matrix.",
+                      "anyOf": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          }
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "array",
+                            "items": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "EtaUps": {
+                      "description": "Fixed numeric upstream efficiency matrix.",
+                      "anyOf": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          }
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "array",
+                            "items": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "EtaDwn": {
+                      "description": "Fixed numeric downstream efficiency matrix.",
+                      "anyOf": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          }
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "array",
+                            "items": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "SrcType": {
+                      "description": "Fixed numeric source type vector.",
+                      "anyOf": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          }
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "array",
+                            "items": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "TrnType": {
+                      "description": "Fixed numeric transmitter type vector.",
+                      "anyOf": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          }
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "array",
+                            "items": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
                 }
-              }
+              ]
             }
           }
         },
         "Power": {
           "type": "object",
-          "required": [
-            "P_W"
-          ],
           "additionalProperties": false,
           "properties": {
             "SLS": {
@@ -715,7 +895,6 @@
                   "description": "Mission target value. For a single sizing mission, use one distance target in meters only; do not include passenger count, cargo mass, altitude, speed, or state of charge as target values. Arrays are only for multi-mission profiles with matching mission IDs.",
                   "units": "m or min",
                   "minItems": 1,
-                  "maxItems": 1,
                   "items": {
                     "type": "number"
                   }
@@ -727,12 +906,7 @@
                   ],
                   "description": "Mission target type. For a single sizing mission, use Dist. Arrays are only for multi-mission profiles with matching mission IDs.",
                   "units": "unitless",
-                  "enum": [
-                    "Dist",
-                    "Time"
-                  ],
                   "minItems": 1,
-                  "maxItems": 1,
                   "items": {
                     "type": "string",
                     "enum": [
@@ -745,39 +919,28 @@
             },
             "Segs": {
               "type": "array",
-              "description": "Ordered mission segment names. For generated single sizing runs, use exactly Climb, Cruise, Descent in that order.",
+              "description": "Ordered mission segment names.",
               "units": "unitless",
-              "minItems": 3,
-              "maxItems": 3,
+              "minItems": 1,
               "items": {
-                "type": "string",
-                "enum": [
-                  "Climb",
-                  "Cruise",
-                  "Descent"
-                ]
+                "type": "string"
               }
             },
             "ID": {
               "type": "array",
               "description": "Mission identifier for each segment. For a single sizing mission, use 1 for every segment so the climb, cruise, and descent belong to the same mission target.",
               "units": "count",
-              "minItems": 3,
-              "maxItems": 3,
+              "minItems": 1,
               "items": {
                 "type": "integer",
-                "minimum": 1,
-                "enum": [
-                  1
-                ]
+                "minimum": 1
               }
             },
             "AltBeg": {
               "type": "array",
               "description": "Beginning altitude for each segment.",
               "units": "m",
-              "minItems": 3,
-              "maxItems": 3,
+              "minItems": 1,
               "items": {
                 "type": "number"
               }
@@ -786,8 +949,7 @@
               "type": "array",
               "description": "Ending altitude for each segment.",
               "units": "m",
-              "minItems": 3,
-              "maxItems": 3,
+              "minItems": 1,
               "items": {
                 "type": "number"
               }
@@ -796,8 +958,7 @@
               "type": "array",
               "description": "Climb rate for each segment. Use null in JSON where MATLAB inputs use NaN.",
               "units": "m/s",
-              "minItems": 3,
-              "maxItems": 3,
+              "minItems": 1,
               "items": {
                 "type": [
                   "number",
@@ -809,8 +970,7 @@
               "type": "array",
               "description": "Beginning speed for each segment. Units are m/s when corresponding TypeBeg is TAS or EAS, and Mach when TypeBeg is Mach.",
               "units": "m/s or Mach",
-              "minItems": 3,
-              "maxItems": 3,
+              "minItems": 1,
               "items": {
                 "type": "number"
               }
@@ -819,8 +979,7 @@
               "type": "array",
               "description": "Ending speed for each segment. Units are m/s when corresponding TypeEnd is TAS or EAS, and Mach when TypeEnd is Mach.",
               "units": "m/s or Mach",
-              "minItems": 3,
-              "maxItems": 3,
+              "minItems": 1,
               "items": {
                 "type": "number"
               }
@@ -829,8 +988,7 @@
               "type": "array",
               "description": "Beginning speed type for each segment.",
               "units": "unitless",
-              "minItems": 3,
-              "maxItems": 3,
+              "minItems": 1,
               "items": {
                 "type": "string",
                 "enum": [
@@ -844,8 +1002,7 @@
               "type": "array",
               "description": "Ending speed type for each segment.",
               "units": "unitless",
-              "minItems": 3,
-              "maxItems": 3,
+              "minItems": 1,
               "items": {
                 "type": "string",
                 "enum": [
@@ -859,8 +1016,7 @@
               "type": "array",
               "description": "Power optimization flag used by some mission profiles.",
               "units": "unitless",
-              "minItems": 3,
-              "maxItems": 3,
+              "minItems": 1,
               "items": {
                 "type": "integer",
                 "enum": [

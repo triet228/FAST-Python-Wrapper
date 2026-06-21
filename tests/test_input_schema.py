@@ -6,13 +6,18 @@ from copy import deepcopy
 
 import pytest
 
+from core.aircraft_contract import prepare_aircraft
 from core.json_io import (
+    INPUT_AIRCRAFT_SCHEMA_JSON_PATH,
     JsonValidationError,
     build_json_data,
     read_raw_json_file,
 )
+from core.matlab_bridge import python_to_matlab
 from core.schema_validation import (
+    read_schema_file,
     validate_aircraft_json,
+    validate_json_schema_document,
     validate_output_aircraft_json,
 )
 from tests.helpers import PROJECT_ROOT
@@ -98,14 +103,84 @@ def test_input_aircraft_contract_rejects_unexpected_field():
 
 
 def test_input_aircraft_contract_rejects_unsupported_prop_arch():
-    """Keep supported propulsion architectures limited to C and E."""
+    """Reject propulsion architecture labels outside the wrapper contract."""
 
     data = read_raw_json_file(DEFAULT_INPUT_DIR / "InputAircraft.json")
     changed = deepcopy(data)
     changed["Specs"]["Propulsion"]["PropArch"]["Type"] = "Unsupported"
 
-    with pytest.raises(JsonValidationError, match="PropArch.Type"):
+    with pytest.raises(JsonValidationError, match="PropArch"):
         validate_aircraft_json(changed)
+
+
+def test_input_aircraft_contract_accepts_fixed_numeric_custom_prop_arch():
+    """Allow O propulsion architectures with fixed numeric matrix fields."""
+
+    validate_json_schema_document(
+        fixed_custom_prop_arch(),
+        prop_arch_schema(),
+        "InputAircraft.json.Specs.Propulsion.PropArch",
+    )
+
+
+def test_input_aircraft_contract_rejects_custom_prop_arch_variables():
+    """Reject MATLAB markers and variable-like values inside O matrices."""
+
+    prop_arch = fixed_custom_prop_arch()
+    prop_arch["OperUps"][0][0] = {
+        "_matlab_expression": "lambda"
+    }
+
+    with pytest.raises(JsonValidationError, match="PropArch"):
+        validate_json_schema_document(
+            prop_arch,
+            prop_arch_schema(),
+            "InputAircraft.json.Specs.Propulsion.PropArch",
+        )
+
+
+def test_prepare_aircraft_preserves_fixed_numeric_custom_prop_arch():
+    """Keep O architecture matrix fields for MATLAB instead of collapsing Type."""
+
+    data = read_raw_json_file(DEFAULT_INPUT_DIR / "InputAircraft.json")
+    changed = deepcopy(data)
+    changed["Specs"]["Propulsion"]["PropArch"] = fixed_custom_prop_arch()
+
+    prepared = prepare_aircraft(changed)
+
+    assert prepared["Specs"]["Propulsion"]["PropArch"] == fixed_custom_prop_arch()
+
+
+def test_prepare_aircraft_converts_custom_oper_matrices_directly():
+    """Send fixed O operational matrices as MATLAB arrays, not functions."""
+
+    prepared = prepare_aircraft(
+        {
+            "Specs": {
+                "Propulsion": {
+                    "PropArch": fixed_custom_prop_arch(),
+                },
+            },
+        }
+    )
+
+    matlab_source = python_to_matlab(prepared["Specs"]["Propulsion"]["PropArch"])
+
+    assert '"OperUps", [1, 0; 0, 1]' in matlab_source
+    assert '"OperDwn", [1, 0; 0, 1]' in matlab_source
+
+
+def test_prepare_aircraft_rejects_custom_prop_arch_variables():
+    """Reject direct Python calls with nonnumeric values in O matrices."""
+
+    data = read_raw_json_file(DEFAULT_INPUT_DIR / "InputAircraft.json")
+    changed = deepcopy(data)
+    prop_arch = fixed_custom_prop_arch()
+    prop_arch["OperDwn"][0][0] = "lambda"
+    changed["Specs"]["Propulsion"]["PropArch"] = prop_arch
+
+    with pytest.raises(ValueError, match="PropArch.OperDwn"):
+        prepare_aircraft(changed)
 
 
 def test_input_aircraft_contract_allows_missing_optional_field():
@@ -127,6 +202,51 @@ def test_input_aircraft_contract_rejects_missing_mission_profile():
 
     with pytest.raises(JsonValidationError, match="Mission.*Profile"):
         validate_aircraft_json(changed)
+
+
+def fixed_custom_prop_arch():
+    """Return the minimal fixed numeric O architecture used by contract tests."""
+
+    return {
+        "Type": "O",
+        "Arch": [
+            [1, 0],
+            [0, 1],
+        ],
+        "OperUps": [
+            [1, 0],
+            [0, 1],
+        ],
+        "OperDwn": [
+            [1, 0],
+            [0, 1],
+        ],
+        "EtaUps": [
+            [1, 0],
+            [0, 1],
+        ],
+        "EtaDwn": [
+            [1, 0],
+            [0, 1],
+        ],
+        "SrcType": [
+            1,
+        ],
+        "TrnType": [
+            1,
+            2,
+        ],
+    }
+
+
+def prop_arch_schema():
+    """Return the committed input PropArch schema branch."""
+
+    schema = read_schema_file(INPUT_AIRCRAFT_SCHEMA_JSON_PATH)
+
+    return schema["properties"]["Specs"]["properties"]["Propulsion"]["properties"][
+        "PropArch"
+    ]
 
 
 def test_input_aircraft_contract_rejects_missing_mission():

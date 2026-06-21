@@ -77,7 +77,7 @@ if result["status"] == "Yes":
 
 ## Limitation
 
-Currently only support propulsion architecture for Conventional C and Fully Electrici E
+Currently supports propulsion architecture labels Conventional `C`, Fully Electric `E`, and custom `O` when all custom architecture fields are fixed numeric vectors or matrices.
 
 
 ## Requirements

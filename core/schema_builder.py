@@ -54,12 +54,12 @@ def json_schema_number():
 
 
 def json_schema_prop_arch():
-    """Return the supported propulsion architecture schema.
+    """Return the public propulsion architecture schema.
 
     Assumptions:
-        The Python wrapper currently supports only public FAST architecture
-        labels C and E. Graph-style architecture details are intentionally
-        outside this schema.
+        OutputAircraft exposes only the public FAST architecture label. Custom
+        O matrix details are accepted by the committed input schema but are not
+        preserved in reusable output data.
     """
 
     return {

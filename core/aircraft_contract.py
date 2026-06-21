@@ -5,7 +5,18 @@
 from copy import deepcopy
 
 
-PROP_ARCH_TYPES = ("C", "E")
+PROP_ARCH_PRESET_TYPES = ("C", "E")
+PROP_ARCH_CUSTOM_TYPE = "O"
+PROP_ARCH_TYPES = PROP_ARCH_PRESET_TYPES + (PROP_ARCH_CUSTOM_TYPE,)
+CUSTOM_PROP_ARCH_FIELDS = (
+    "Arch",
+    "OperUps",
+    "OperDwn",
+    "EtaUps",
+    "EtaDwn",
+    "SrcType",
+    "TrnType",
+)
 OUTPUT_FIELDS_TO_REMOVE = (
     ("Geometry", "Preset"),
     ("Mission", "ProfileFxn"),
@@ -23,9 +34,10 @@ def prepare_aircraft(aircraft):
         Deep-copied aircraft dictionary ready for MATLAB literal conversion.
 
     Assumptions:
-        For now the wrapper only supports propulsion architecture types C and
-        E. Any legacy PropArch companion fields are removed so stale graph
-        architecture data cannot leak into a conventional run.
+        The wrapper supports FAST preset architecture types C and E, plus
+        custom O architectures when every architecture field is fixed numeric
+        data. Legacy PropArch companion fields are removed so stale graph
+        architecture data cannot leak into a preset run.
     """
 
     if not isinstance(aircraft, dict):
@@ -45,7 +57,11 @@ def prepare_aircraft(aircraft):
     arch_type = arch_type.upper()
     _require_supported_prop_arch_type(arch_type)
 
-    propulsion["PropArch"] = {"Type": arch_type}
+    if arch_type == PROP_ARCH_CUSTOM_TYPE:
+        _prepare_custom_prop_arch(propulsion)
+    else:
+        propulsion["PropArch"] = {"Type": arch_type}
+
     _remove_legacy_prop_arch_fields(propulsion)
 
     return aircraft
@@ -142,6 +158,44 @@ def _require_supported_prop_arch_type(arch_type):
     raise ValueError(f"PropArch.Type must be one of: {joined_types}.")
 
 
+def _prepare_custom_prop_arch(propulsion):
+    """Normalize and validate fixed numeric custom architecture data."""
+
+    prop_arch = propulsion.get("PropArch")
+
+    if not isinstance(prop_arch, dict):
+        raise ValueError("PropArch.Type O requires PropArch to be an object.")
+
+    prop_arch["Type"] = PROP_ARCH_CUSTOM_TYPE
+
+    for field_name in CUSTOM_PROP_ARCH_FIELDS:
+        if field_name not in prop_arch:
+            raise ValueError(f"PropArch.Type O requires PropArch.{field_name}.")
+
+        _require_fixed_numeric_value(
+            prop_arch[field_name],
+            f"PropArch.{field_name}",
+        )
+
+
+def _require_fixed_numeric_value(value, label):
+    """Reject variables, marker objects, strings, and booleans in O data."""
+
+    if isinstance(value, bool):
+        raise ValueError(f"{label} must contain only fixed numeric values.")
+
+    if isinstance(value, int) or isinstance(value, float):
+        return
+
+    if isinstance(value, list) or isinstance(value, tuple):
+        for index, item in enumerate(value):
+            _require_fixed_numeric_value(item, f"{label}[{index}]")
+
+        return
+
+    raise ValueError(f"{label} must contain only fixed numeric values.")
+
+
 def _remove_legacy_prop_arch_fields(propulsion):
     """Drop old PropArch companion fields that FAST no longer needs here."""
 
@@ -172,8 +226,8 @@ def _clean_prop_arch_fields(value):
 
     Assumptions:
         FAST may expand propulsion architectures into internal graph-like data.
-        The wrapper currently supports only the public architecture labels C
-        and E, so expanded fields are intentionally removed from output.
+        The wrapper exposes only the public architecture label, so expanded
+        fields are intentionally removed from output.
     """
 
     if isinstance(value, dict):
