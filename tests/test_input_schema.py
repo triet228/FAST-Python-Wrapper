@@ -6,7 +6,7 @@ from copy import deepcopy
 
 import pytest
 
-from core.aircraft_contract import prepare_aircraft
+from core.aircraft_contract import ENGINE_SPEC_NAMES, prepare_aircraft
 from core.json_io import (
     INPUT_AIRCRAFT_SCHEMA_JSON_PATH,
     JsonValidationError,
@@ -111,6 +111,49 @@ def test_input_aircraft_contract_rejects_unsupported_prop_arch():
 
     with pytest.raises(JsonValidationError, match="PropArch"):
         validate_aircraft_json(changed)
+
+
+@pytest.mark.parametrize("engine_name", ENGINE_SPEC_NAMES)
+def test_input_aircraft_contract_accepts_engine_spec_name(engine_name):
+    """Accept engine names that map to FAST EngineSpecsPkg functions."""
+
+    data = read_raw_json_file(DEFAULT_INPUT_DIR / "InputAircraft.json")
+    changed = deepcopy(data)
+    changed["Specs"]["Propulsion"]["Engine"] = engine_name
+
+    validate_aircraft_json(changed)
+
+
+def test_input_aircraft_contract_rejects_unknown_engine_spec_name():
+    """Reject engine names outside FAST EngineSpecsPkg."""
+
+    data = read_raw_json_file(DEFAULT_INPUT_DIR / "InputAircraft.json")
+    changed = deepcopy(data)
+    changed["Specs"]["Propulsion"]["Engine"] = "NotAnEngine"
+
+    with pytest.raises(JsonValidationError, match="Engine"):
+        validate_aircraft_json(changed)
+
+
+def test_prepare_aircraft_converts_engine_spec_name_to_matlab_expression():
+    """Convert public engine names to FAST package calls only at runtime."""
+
+    prepared = prepare_aircraft(
+        {
+            "Specs": {
+                "Propulsion": {
+                    "Engine": "CF34_8E5",
+                    "PropArch": {
+                        "Type": "C",
+                    },
+                },
+            },
+        }
+    )
+
+    matlab_source = python_to_matlab(prepared["Specs"]["Propulsion"]["Engine"])
+
+    assert matlab_source == "EngineModelPkg.EngineSpecsPkg.CF34_8E5"
 
 
 @pytest.mark.parametrize("arch_type", ["C", "E", "PHE", "SHE", "TE", "PE"])

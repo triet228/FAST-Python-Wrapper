@@ -17,7 +17,7 @@ from .json_io import (
     read_raw_json_file,
     require_json_object,
 )
-from .schema_builder import MATLAB_EXPRESSION_KEY, MATLAB_ROW_KEY
+from .schema_builder import MATLAB_ROW_KEY
 
 
 def read_schema_file(file_name):
@@ -370,30 +370,15 @@ def validate_json_schema_number_limits(data, schema, label):
 
 
 def require_json_number(data, keys, file_name):
-    """Validate that a required nested field is numeric or a MATLAB expression.
-
-    Assumptions:
-        FAST templates sometimes store package-derived numeric values as
-        explicit MATLAB expressions, so validation accepts that marker where a
-        number would otherwise be required.
-    """
+    """Validate that a required nested field is numeric."""
 
     value = get_json_path(data, keys, file_name)
 
     if is_json_number(value):
         return
 
-    if (
-        isinstance(value, dict)
-        and set(value.keys()) == {MATLAB_EXPRESSION_KEY}
-        and isinstance(value[MATLAB_EXPRESSION_KEY], str)
-    ):
-        return
-
     joined = ".".join(keys)
-    raise JsonValidationError(
-        f"{file_name}.{joined} must be a number or a _matlab_expression marker."
-    )
+    raise JsonValidationError(f"{file_name}.{joined} must be a number.")
 
 
 def require_json_string(data, keys, file_name):
@@ -442,13 +427,6 @@ def validate_json_markers(value, file_name, path=""):
         marker_keys = [key for key in keys if key.startswith("_")]
 
         if marker_keys:
-            if keys == {MATLAB_EXPRESSION_KEY}:
-                if not isinstance(value[MATLAB_EXPRESSION_KEY], str):
-                    raise JsonValidationError(
-                        f"{label}._matlab_expression must be a string."
-                    )
-                return
-
             if keys == {MATLAB_ROW_KEY}:
                 if not isinstance(value[MATLAB_ROW_KEY], list):
                     raise JsonValidationError(f"{label}._matlab_row must be an array.")

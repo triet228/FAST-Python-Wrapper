@@ -22,51 +22,7 @@
       "PropArch": {
         "Type": "C"
       },
-      "Engine": {
-        "Mach": 0.05,
-        "Alt": 0,
-        "OPR": 50,
-        "FPR": 1.4,
-        "BPR": 11,
-        "Tt4Max": 1593,
-        "TempLimit": {
-          "Val": "NaN",
-          "Type": "NaN"
-        },
-        "DesignThrust": 120640,
-        "NoSpools": 2,
-        "RPMs": {
-          "_matlab_row": [
-            3894,
-            19391
-          ]
-        },
-        "FanGearRatio": "NaN",
-        "FanBoosters": true,
-        "CoreFlow": {
-          "PaxBleed": 0.03,
-          "Leakage": 0.01,
-          "Cooling": 0
-        },
-        "MaxIter": 300,
-        "EtaPoly": {
-          "Inlet": 0.99,
-          "Diffusers": 0.99,
-          "Fan": 0.99,
-          "Compressors": 0.96,
-          "BypassNozzle": 0.99,
-          "Combustor": 0.995,
-          "Turbines": 0.96,
-          "CoreNozzle": 0.99,
-          "Nozzles": 0.99,
-          "Mixing": 0
-        },
-        "Cff3": 0.4006,
-        "Cff2": -0.4323,
-        "Cff1": 0.9946,
-        "Cffch": 0,
-        "HEcoeff": 1
-      },
+      "Engine": "LEAP_1A26",
       "NumEngines": 2,
       "T_W": {
         "SLS": 0.3287

@@ -13,43 +13,14 @@ from .aircraft_contract import PROP_ARCH_TYPES
 from .json_io import is_json_number
 
 
-MATLAB_EXPRESSION_KEY = "_matlab_expression"
 MATLAB_ROW_KEY = "_matlab_row"
 
 
-def json_schema_matlab_expression():
-    """Return the inline schema for a MATLAB expression marker."""
-
-    return {
-        "type": "object",
-        "properties": {
-            MATLAB_EXPRESSION_KEY: {
-                "type": "string",
-            },
-        },
-        "required": [
-            MATLAB_EXPRESSION_KEY,
-        ],
-        "additionalProperties": False,
-    }
-
-
 def json_schema_number():
-    """Return the FAST numeric schema, including MATLAB expression markers.
-
-    Assumptions:
-        Input templates can still contain trusted MATLAB expressions for values
-        defined by FAST packages, so numeric fields accept either JSON numbers
-        or the explicit marker object.
-    """
+    """Return the FAST numeric schema."""
 
     return {
-        "anyOf": [
-            {
-                "type": "number",
-            },
-            json_schema_matlab_expression(),
-        ],
+        "type": "number",
     }
 
 
@@ -151,9 +122,6 @@ def _schema_from_object(value, require_properties, require_lengths):
     """Build the schema for a JSON object or wrapper marker."""
 
     keys = set(value.keys())
-
-    if keys == {MATLAB_EXPRESSION_KEY}:
-        return json_schema_matlab_expression()
 
     if keys == {MATLAB_ROW_KEY}:
         return _schema_from_matlab_row(value, require_properties, require_lengths)

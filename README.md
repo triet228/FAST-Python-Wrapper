@@ -10,14 +10,11 @@ The wrapper accepts an `input_aircraft` dictionary and the local path to FAST.
 ```python
 
 
-from math import nan
 from pathlib import Path
 
 from numpy import nan
 
 from main import FAST_Python_Wrapper
-
-from core.matlab_bridge import matlab_expr
 
 project_dir = Path(__file__).resolve().parent
 fast_dir = project_dir.parent / "FAST"
@@ -35,9 +32,9 @@ input_aircraft = {
             "PropArch": {
                 "Type": "C", # C, E, PHE, SHE, TE, PE, or O
             },
-            # Turboprop: nan, AE2100_D3, AE501D_22G, Allison_250_C30G, PT6A_114A, PW_123, PW_127M, TPE331_14GR_805H
-            # Turbofan: LEAP_1A26, CF34_8E5
-            "Engine": matlab_expr("EngineModelPkg.EngineSpecsPkg.CF34_8E5")
+            # Turboprop: AE2100_D3, AE501D_22G, Allison_250_C30G, PT6A_114A, PW_123, PW_127M, TPE331_14GR_805H
+            # Turbofan: AE3007A, CeRAS, CF34_8E5, CF6_80C2_B7F, LEAP_1A26, PW_1919G, PW_2037, RB211_22B_02, Trent_970B_84
+            "Engine": "CF34_8E5"
         },
         "Power": {
             "P_W": {},

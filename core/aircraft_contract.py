@@ -5,6 +5,26 @@
 from copy import deepcopy
 
 
+ENGINE_SPEC_NAMES = (
+    "AE2100_D3",
+    "AE3007A",
+    "AE501D_22G",
+    "Allison_250_C30G",
+    "CeRAS",
+    "CF34_8E5",
+    "CF6_80C2_B7F",
+    "ExampleTF",
+    "ExampleTP",
+    "LEAP_1A26",
+    "PT6A_114A",
+    "PW_123",
+    "PW_127M",
+    "PW_1919G",
+    "PW_2037",
+    "RB211_22B_02",
+    "TPE331_14GR_805H",
+    "Trent_970B_84",
+)
 PROP_ARCH_PRESET_TYPES = ("C", "E", "PHE", "SHE", "TE", "PE")
 PROP_ARCH_CUSTOM_TYPE = "O"
 PROP_ARCH_TYPES = PROP_ARCH_PRESET_TYPES + (PROP_ARCH_CUSTOM_TYPE,)
@@ -62,6 +82,7 @@ def prepare_aircraft(aircraft):
     else:
         propulsion["PropArch"] = {"Type": arch_type}
 
+    _prepare_engine_spec(propulsion)
     _remove_legacy_prop_arch_fields(propulsion)
 
     return aircraft
@@ -176,6 +197,26 @@ def _prepare_custom_prop_arch(propulsion):
             prop_arch[field_name],
             f"PropArch.{field_name}",
         )
+
+
+def _prepare_engine_spec(propulsion):
+    """Convert an allowlisted EngineSpecsPkg name into a MATLAB package call."""
+
+    engine = propulsion.get("Engine")
+
+    if engine is None or isinstance(engine, dict):
+        return
+
+    if not isinstance(engine, str):
+        raise ValueError("Specs.Propulsion.Engine must be an EngineSpecsPkg name.")
+
+    if engine not in ENGINE_SPEC_NAMES:
+        joined_names = ", ".join(ENGINE_SPEC_NAMES)
+        raise ValueError(f"Specs.Propulsion.Engine must be one of: {joined_names}.")
+
+    propulsion["Engine"] = {
+        "_matlab_expression": f"EngineModelPkg.EngineSpecsPkg.{engine}",
+    }
 
 
 def _require_fixed_numeric_value(value, label):

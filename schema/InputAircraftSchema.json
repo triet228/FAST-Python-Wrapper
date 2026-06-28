@@ -217,25 +217,28 @@
           "additionalProperties": false,
           "properties": {
             "Engine": {
-              "description": "Engine specification object. Omit this field for generated electric aircraft unless complete engine data are available; if provided for a turbofan architecture, include EtaPoly.Fan because FAST uses it as the fan efficiency.",
-              "type": "object",
-              "required": [
-                "EtaPoly"
-              ],
-              "additionalProperties": true,
-              "properties": {
-                "EtaPoly": {
-                  "type": "object",
-                  "additionalProperties": true,
-                  "properties": {
-                    "Fan": {
-                      "type": "number",
-                      "description": "Fan polytropic efficiency used by FAST electric turbofan/fan propulsion architectures.",
-                      "units": "unitless"
-                    }
-                  }
-                }
-              }
+              "description": "Engine specification name from FAST EngineModelPkg.EngineSpecsPkg. Omit this field for generated electric aircraft unless an engine spec is required.",
+              "type": "string",
+              "enum": [
+                "AE2100_D3",
+                "AE3007A",
+                "AE501D_22G",
+                "Allison_250_C30G",
+                "CeRAS",
+                "CF34_8E5",
+                "CF6_80C2_B7F",
+                "ExampleTF",
+                "ExampleTP",
+                "LEAP_1A26",
+                "PT6A_114A",
+                "PW_123",
+                "PW_127M",
+                "PW_1919G",
+                "PW_2037",
+                "RB211_22B_02",
+                "TPE331_14GR_805H",
+                "Trent_970B_84"
+              ]
             },
             "NumEngines": {
               "type": "integer",
