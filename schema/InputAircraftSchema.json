@@ -112,12 +112,20 @@
         },
         "Aero": {
           "type": "object",
-          "additionalProperties": false,
+          "additionalProperties": true,
           "properties": {
             "L_D": {
               "type": "object",
               "additionalProperties": false,
               "properties": {
+                "Method": {
+                  "type": "string",
+                  "description": "Aerodynamic analysis method from FAST AerodynamicsPkg.",
+                  "enum": [
+                    "ConstantLD",
+                    "DragPolar"
+                  ]
+                },
                 "Clb": {
                   "type": "number",
                   "description": "Lift-to-drag ratio during climb.",
@@ -168,7 +176,14 @@
               "units": "kg"
             },
             "MLW": {
-              "type": "number",
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "const": "NaN"
+                }
+              ],
               "description": "Maximum landing mass.",
               "units": "kg"
             },
@@ -495,7 +510,7 @@
         },
         "Power": {
           "type": "object",
-          "additionalProperties": false,
+          "additionalProperties": true,
           "properties": {
             "SLS": {
               "type": "number",
@@ -565,7 +580,14 @@
                   "maximum": 100
                 },
                 "AC": {
-                  "type": "number",
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "const": "NaN"
+                    }
+                  ],
                   "description": "Aircraft power-to-weight ratio after internal processing.",
                   "units": "W/kg"
                 }
@@ -858,7 +880,10 @@
         "Preset": {
           "type": "string",
           "description": "Geometry preset function handle in MATLAB inputs.",
-          "units": "unitless"
+          "units": "unitless",
+          "enum": [
+            "LM100JNominalGeometry"
+          ]
         }
       }
     },

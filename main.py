@@ -2,6 +2,7 @@
 
 from pathlib import Path
 from math import nan
+import json
 
 from core.aircraft_contract import (
     clean_output_fields,
@@ -14,6 +15,7 @@ from core.matlab_bridge import (
     start_matlab,
     matlab_to_python,
 )
+from core.json_io import build_json_data, load_json_data
 
 
 def FAST_Python_Wrapper(input_aircraft, fast_path):
@@ -38,6 +40,9 @@ def FAST_Python_Wrapper(input_aircraft, fast_path):
     # Start MATLAB Engine
     engine = start_matlab(resolve_fast_path(fast_path))
 
+    if hasattr(engine, "addpath"):
+        engine.addpath(str(Path(__file__).resolve().parent / "core"), nargout=0)
+
     try:
         try:
             # Convert Python Dictionary to MATLAB struct
@@ -59,9 +64,23 @@ def FAST_Python_Wrapper(input_aircraft, fast_path):
                 aircraft_spec = {aircraft_matlab};
                 mission_profile = @(Aircraft) setfield(Aircraft, "Mission", "Profile", {mission_matlab});
                 fast_result = struct();
+                fast_result_json = '';
                 fast_status = 'No';
                 try
                     fast_result = Main(aircraft_spec, mission_profile);
+                    if isfield(fast_result, 'Specs') && isfield(fast_result.Specs, 'Aero') && isfield(fast_result.Specs.Aero, 'L_D') && isfield(fast_result.Specs.Aero.L_D, 'Method')
+                        fast_result.Specs.Aero.L_D = rmfield(fast_result.Specs.Aero.L_D, 'Method');
+                    end
+                    if isfield(fast_result, 'Geometry') && isfield(fast_result.Geometry, 'Preset')
+                        fast_result.Geometry = rmfield(fast_result.Geometry, 'Preset');
+                    end
+                    if isfield(fast_result, 'Mission') && isfield(fast_result.Mission, 'ProfileFxn')
+                        fast_result.Mission = rmfield(fast_result.Mission, 'ProfileFxn');
+                    end
+                    if isfield(fast_result, 'Settings') && isfield(fast_result.Settings, 'Dir') && isfield(fast_result.Settings.Dir, 'Size')
+                        fast_result.Settings.Dir = rmfield(fast_result.Settings.Dir, 'Size');
+                    end
+                    fast_result_json = jsonencode(fast_json_ready(fast_result));
                     fast_status = 'Yes';
                 catch fast_exception
                     disp(getReport(fast_exception, 'extended', 'hyperlinks', 'off'));
@@ -84,11 +103,15 @@ def FAST_Python_Wrapper(input_aircraft, fast_path):
 
         try:
             # Extract OutputAircraft
-            fast_result = engine.workspace["fast_result"]
-            # Convert MATLAB struct to Python dictionary
-            output = matlab_to_python(fast_result)
+            fast_result_json = engine.workspace["fast_result_json"]
+            output = build_json_data(load_json_data(json.loads(fast_result_json)))
         except Exception:
-            output = {}
+            try:
+                fast_result = engine.workspace["fast_result"]
+                # Convert MATLAB struct to Python dictionary
+                output = matlab_to_python(fast_result)
+            except Exception:
+                output = {}
 
         # Clean OutputAircraft fields that are too specific (like local file paths)
         if isinstance(output, dict):

@@ -25,6 +25,20 @@ ENGINE_SPEC_NAMES = (
     "TPE331_14GR_805H",
     "Trent_970B_84",
 )
+AERO_METHOD_NAMES = (
+    "ConstantLD",
+    "DragPolar",
+)
+AERO_METHOD_EXPRESSIONS = {
+    "ConstantLD": "@(Aircraft) AerodynamicsPkg.ConstantLD(Aircraft)",
+    "DragPolar": "@(Aircraft) AerodynamicsPkg.DragPolar(Aircraft)",
+}
+GEOMETRY_PRESET_NAMES = (
+    "LM100JNominalGeometry",
+)
+GEOMETRY_PRESET_EXPRESSIONS = {
+    "LM100JNominalGeometry": "@(Aircraft) VisualizationPkg.GeometrySpecsPkg.LM100JNominalGeometry(Aircraft)",
+}
 PROP_ARCH_PRESET_TYPES = ("C", "E", "PHE", "SHE", "TE", "PE")
 PROP_ARCH_CUSTOM_TYPE = "O"
 PROP_ARCH_TYPES = PROP_ARCH_PRESET_TYPES + (PROP_ARCH_CUSTOM_TYPE,)
@@ -38,6 +52,7 @@ CUSTOM_PROP_ARCH_FIELDS = (
     "TrnType",
 )
 OUTPUT_FIELDS_TO_REMOVE = (
+    ("Specs", "Aero", "L_D", "Method"),
     ("Geometry", "Preset"),
     ("Mission", "ProfileFxn"),
     ("Settings", "Dir", "Size"),
@@ -82,6 +97,8 @@ def prepare_aircraft(aircraft):
     else:
         propulsion["PropArch"] = {"Type": arch_type}
 
+    _prepare_aero_method(aircraft)
+    _prepare_geometry_preset(aircraft)
     _prepare_engine_spec(propulsion)
     _remove_legacy_prop_arch_fields(propulsion)
 
@@ -216,6 +233,62 @@ def _prepare_engine_spec(propulsion):
 
     propulsion["Engine"] = {
         "_matlab_expression": f"EngineModelPkg.EngineSpecsPkg.{engine}",
+    }
+
+
+def _prepare_aero_method(aircraft):
+    """Convert public Aero.L_D.Method names into FAST function handles."""
+
+    try:
+        l_d = aircraft["Specs"]["Aero"]["L_D"]
+    except KeyError:
+        return
+
+    if not isinstance(l_d, dict):
+        return
+
+    method = l_d.get("Method")
+
+    if isinstance(method, dict):
+        return
+
+    if method is None:
+        method = "ConstantLD"
+
+    if not isinstance(method, str):
+        raise ValueError("Specs.Aero.L_D.Method must be an aerodynamic method name.")
+
+    if method not in AERO_METHOD_EXPRESSIONS:
+        joined_names = ", ".join(AERO_METHOD_NAMES)
+        raise ValueError(f"Specs.Aero.L_D.Method must be one of: {joined_names}.")
+
+    l_d["Method"] = {
+        "_matlab_expression": AERO_METHOD_EXPRESSIONS[method],
+    }
+
+
+def _prepare_geometry_preset(aircraft):
+    """Convert public Geometry.Preset names into FAST visualization handles."""
+
+    geometry = aircraft.get("Geometry")
+
+    if not isinstance(geometry, dict):
+        return
+
+    preset = geometry.get("Preset")
+
+    if preset is None or isinstance(preset, dict):
+        return
+
+    if not isinstance(preset, str):
+        raise ValueError("Geometry.Preset must be a geometry preset name.")
+
+    if preset not in GEOMETRY_PRESET_EXPRESSIONS:
+        joined_names = ", ".join(GEOMETRY_PRESET_NAMES)
+        raise ValueError(f"Geometry.Preset must be one of: {joined_names}.")
+
+    geometry["Preset"] = {
+        "_matlab_expression": GEOMETRY_PRESET_EXPRESSIONS[preset],
     }
 
 

@@ -6,7 +6,12 @@ from copy import deepcopy
 
 import pytest
 
-from core.aircraft_contract import ENGINE_SPEC_NAMES, prepare_aircraft
+from core.aircraft_contract import (
+    AERO_METHOD_NAMES,
+    ENGINE_SPEC_NAMES,
+    GEOMETRY_PRESET_NAMES,
+    prepare_aircraft,
+)
 from core.json_io import (
     INPUT_AIRCRAFT_SCHEMA_JSON_PATH,
     JsonValidationError,
@@ -25,7 +30,18 @@ from tests.helpers import PROJECT_ROOT
 
 DEFAULT_INPUT_DIR = PROJECT_ROOT / "examples" / "CeRAS"
 EXAMPLES_DIR = PROJECT_ROOT / "examples"
-CASE_NAMES = ["A320", "AEA", "ATR42", "CeRAS"]
+CASE_NAMES = [
+    "A320",
+    "AEA",
+    "ATR42",
+    "CeRAS",
+    "ERJ175LR",
+    "ERJ175LR_ClimbThenAccel",
+    "ERJ175LR_Elec",
+    "ERJ190_E2",
+    "ERJ190_FE",
+    "LM100J_Conventional",
+]
 
 
 def test_input_aircraft_matches_schema_contract():
@@ -154,6 +170,105 @@ def test_prepare_aircraft_converts_engine_spec_name_to_matlab_expression():
     matlab_source = python_to_matlab(prepared["Specs"]["Propulsion"]["Engine"])
 
     assert matlab_source == "EngineModelPkg.EngineSpecsPkg.CF34_8E5"
+
+
+@pytest.mark.parametrize("method_name", AERO_METHOD_NAMES)
+def test_input_aircraft_contract_accepts_aero_method_name(method_name):
+    """Accept aerodynamic method names that map to FAST AerodynamicsPkg."""
+
+    data = read_raw_json_file(DEFAULT_INPUT_DIR / "InputAircraft.json")
+    changed = deepcopy(data)
+    changed["Specs"]["Aero"]["L_D"]["Method"] = method_name
+
+    validate_aircraft_json(changed)
+
+
+def test_input_aircraft_contract_rejects_unknown_aero_method_name():
+    """Reject aerodynamic method names outside FAST AerodynamicsPkg."""
+
+    data = read_raw_json_file(DEFAULT_INPUT_DIR / "InputAircraft.json")
+    changed = deepcopy(data)
+    changed["Specs"]["Aero"]["L_D"]["Method"] = "NotAMethod"
+
+    with pytest.raises(JsonValidationError, match="Method"):
+        validate_aircraft_json(changed)
+
+
+def test_prepare_aircraft_converts_aero_method_name_to_matlab_expression():
+    """Convert public aerodynamic method names to FAST handles at runtime."""
+
+    prepared = prepare_aircraft(
+        {
+            "Specs": {
+                "Aero": {
+                    "L_D": {
+                        "Method": "DragPolar",
+                    },
+                },
+                "Propulsion": {
+                    "PropArch": {
+                        "Type": "C",
+                    },
+                },
+            },
+        }
+    )
+
+    matlab_source = python_to_matlab(prepared["Specs"]["Aero"]["L_D"]["Method"])
+
+    assert matlab_source == "@(Aircraft) AerodynamicsPkg.DragPolar(Aircraft)"
+
+
+@pytest.mark.parametrize("preset_name", GEOMETRY_PRESET_NAMES)
+def test_input_aircraft_contract_accepts_geometry_preset_name(preset_name):
+    """Accept geometry preset names that map to FAST VisualizationPkg."""
+
+    data = read_raw_json_file(DEFAULT_INPUT_DIR / "InputAircraft.json")
+    changed = deepcopy(data)
+    changed["Geometry"] = {
+        "Preset": preset_name,
+    }
+
+    validate_aircraft_json(changed)
+
+
+def test_input_aircraft_contract_rejects_unknown_geometry_preset_name():
+    """Reject geometry preset names outside FAST VisualizationPkg."""
+
+    data = read_raw_json_file(DEFAULT_INPUT_DIR / "InputAircraft.json")
+    changed = deepcopy(data)
+    changed["Geometry"] = {
+        "Preset": "NotAPreset",
+    }
+
+    with pytest.raises(JsonValidationError, match="Preset"):
+        validate_aircraft_json(changed)
+
+
+def test_prepare_aircraft_converts_geometry_preset_name_to_matlab_expression():
+    """Convert public geometry preset names to FAST handles at runtime."""
+
+    prepared = prepare_aircraft(
+        {
+            "Specs": {
+                "Propulsion": {
+                    "PropArch": {
+                        "Type": "C",
+                    },
+                },
+            },
+            "Geometry": {
+                "Preset": "LM100JNominalGeometry",
+            },
+        }
+    )
+
+    matlab_source = python_to_matlab(prepared["Geometry"]["Preset"])
+
+    assert (
+        matlab_source
+        == "@(Aircraft) VisualizationPkg.GeometrySpecsPkg.LM100JNominalGeometry(Aircraft)"
+    )
 
 
 @pytest.mark.parametrize("arch_type", ["C", "E", "PHE", "SHE", "TE", "PE"])
