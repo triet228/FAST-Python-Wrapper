@@ -6,6 +6,7 @@ from math import isnan
 
 import pytest
 
+from core.aircraft_contract import clean_output_fields
 from core.json_io import (
     JsonValidationError,
     load_json_data,
@@ -227,3 +228,27 @@ def test_wrapper_keeps_only_supported_prop_arch_output(monkeypatch, tmp_path):
     assert "ProfileFxn" not in output["Mission"]
     assert "Size" not in output["Settings"]["Dir"]
     assert output["Settings"]["Dir"]["Oper"] == "keep"
+
+
+@pytest.mark.parametrize("arch_type", ["C", "E", "PHE", "SHE", "TE", "PE", "O"])
+def test_output_keeps_fast_supported_prop_arch_labels(arch_type):
+    """Collapse expanded FAST PropArch output for every supported label."""
+
+    output = {
+        "Specs": {
+            "Propulsion": {
+                "PropArch": {
+                    "Type": arch_type,
+                    "Arch": [
+                        [1],
+                    ],
+                },
+            },
+        },
+    }
+
+    clean_output_fields(output)
+
+    assert output["Specs"]["Propulsion"]["PropArch"] == {
+        "Type": arch_type,
+    }

@@ -113,6 +113,40 @@ def test_input_aircraft_contract_rejects_unsupported_prop_arch():
         validate_aircraft_json(changed)
 
 
+@pytest.mark.parametrize("arch_type", ["C", "E", "PHE", "SHE", "TE", "PE"])
+def test_input_aircraft_contract_accepts_fast_preset_prop_arch(arch_type):
+    """Accept every preset propulsion architecture implemented by FAST."""
+
+    data = read_raw_json_file(DEFAULT_INPUT_DIR / "InputAircraft.json")
+    changed = deepcopy(data)
+    changed["Specs"]["Propulsion"]["PropArch"]["Type"] = arch_type
+
+    validate_aircraft_json(changed)
+
+
+@pytest.mark.parametrize("arch_type", ["phe", "she", "te", "pe"])
+def test_prepare_aircraft_normalizes_fast_preset_prop_arch(arch_type):
+    """Normalize FAST preset labels before converting input to MATLAB."""
+
+    prepared = prepare_aircraft(
+        {
+            "Specs": {
+                "Propulsion": {
+                    "PropArch": {
+                        "Type": arch_type,
+                    },
+                    "PropArchLegacy": "drop",
+                },
+            },
+        }
+    )
+
+    assert prepared["Specs"]["Propulsion"]["PropArch"] == {
+        "Type": arch_type.upper(),
+    }
+    assert "PropArchLegacy" not in prepared["Specs"]["Propulsion"]
+
+
 def test_input_aircraft_contract_accepts_fixed_numeric_custom_prop_arch():
     """Allow O propulsion architectures with fixed numeric matrix fields."""
 

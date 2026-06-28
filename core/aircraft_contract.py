@@ -5,7 +5,7 @@
 from copy import deepcopy
 
 
-PROP_ARCH_PRESET_TYPES = ("C", "E")
+PROP_ARCH_PRESET_TYPES = ("C", "E", "PHE", "SHE", "TE", "PE")
 PROP_ARCH_CUSTOM_TYPE = "O"
 PROP_ARCH_TYPES = PROP_ARCH_PRESET_TYPES + (PROP_ARCH_CUSTOM_TYPE,)
 CUSTOM_PROP_ARCH_FIELDS = (
@@ -34,10 +34,10 @@ def prepare_aircraft(aircraft):
         Deep-copied aircraft dictionary ready for MATLAB literal conversion.
 
     Assumptions:
-        The wrapper supports FAST preset architecture types C and E, plus
-        custom O architectures when every architecture field is fixed numeric
-        data. Legacy PropArch companion fields are removed so stale graph
-        architecture data cannot leak into a preset run.
+        The wrapper supports FAST preset architecture labels, plus custom O
+        architectures when every architecture field is fixed numeric data.
+        Legacy PropArch companion fields are removed so stale graph architecture
+        data cannot leak into a preset run.
     """
 
     if not isinstance(aircraft, dict):

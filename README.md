@@ -33,7 +33,7 @@ input_aircraft = {
         },
         "Propulsion": {
             "PropArch": {
-                "Type": "C", # C for Conventional, E for Electric
+                "Type": "C", # C, E, PHE, SHE, TE, PE, or O
             },
             # Turboprop: nan, AE2100_D3, AE501D_22G, Allison_250_C30G, PT6A_114A, PW_123, PW_127M, TPE331_14GR_805H
             # Turbofan: LEAP_1A26, CF34_8E5
@@ -77,7 +77,7 @@ if result["status"] == "Yes":
 
 ## Limitation
 
-Currently supports propulsion architecture labels Conventional `C`, Fully Electric `E`, and custom `O` when all custom architecture fields are fixed numeric vectors or matrices.
+Supports FAST preset propulsion architecture labels Conventional `C`, Fully Electric `E`, Parallel Hybrid Electric `PHE`, Series Hybrid Electric `SHE`, Turboelectric `TE`, and Partial Turboelectric `PE`. Custom `O` architectures are supported when all custom architecture fields are fixed numeric vectors or matrices.
 
 
 ## Requirements
