@@ -237,7 +237,7 @@ def _prepare_engine_spec(propulsion):
 
 
 def _prepare_aero_method(aircraft):
-    """Convert public Aero.L_D.Method names into FAST function handles."""
+    """Convert explicit public Aero.L_D.Method names into FAST function handles."""
 
     try:
         l_d = aircraft["Specs"]["Aero"]["L_D"]
@@ -253,7 +253,7 @@ def _prepare_aero_method(aircraft):
         return
 
     if method is None:
-        method = "ConstantLD"
+        return
 
     if not isinstance(method, str):
         raise ValueError("Specs.Aero.L_D.Method must be an aerodynamic method name.")

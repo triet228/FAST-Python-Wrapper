@@ -219,6 +219,16 @@ def test_prepare_aircraft_converts_aero_method_name_to_matlab_expression():
     assert matlab_source == "@(Aircraft) AerodynamicsPkg.DragPolar(Aircraft)"
 
 
+def test_prepare_aircraft_preserves_omitted_aero_method():
+    """Let FAST apply its own aerodynamic default when Method is omitted."""
+
+    data = read_raw_json_file(DEFAULT_INPUT_DIR / "InputAircraft.json")
+
+    prepared = prepare_aircraft(data)
+
+    assert "Method" not in prepared["Specs"]["Aero"]["L_D"]
+
+
 @pytest.mark.parametrize("preset_name", GEOMETRY_PRESET_NAMES)
 def test_input_aircraft_contract_accepts_geometry_preset_name(preset_name):
     """Accept geometry preset names that map to FAST VisualizationPkg."""
