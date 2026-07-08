@@ -253,7 +253,7 @@ def _prepare_aero_method(aircraft):
         return
 
     if method is None:
-        return
+        method = "ConstantLD"
 
     if not isinstance(method, str):
         raise ValueError("Specs.Aero.L_D.Method must be an aerodynamic method name.")
