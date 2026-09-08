@@ -72,9 +72,13 @@ if result["status"] == "Yes":
 ```
 
 
-## Limitation
+## FAST Coverage
 
-Supports FAST preset propulsion architecture labels Conventional `C`, Fully Electric `E`, Parallel Hybrid Electric `PHE`, Series Hybrid Electric `SHE`, Turboelectric `TE`, and Partial Turboelectric `PE`. Custom `O` architectures are supported when all custom architecture fields are fixed numeric vectors or matrices.
+The wrapper passes aircraft data through to FAST and keeps wrapper-side rules limited to the MATLAB bridge. Known FAST package functions can be written as short names, such as engine specs, aero methods, and geometry presets. New FAST package functions also work when their function name is a valid MATLAB identifier.
+
+Custom `O` propulsion architectures support fixed numeric vectors or matrices, and JSON inputs can use explicit `_matlab_expression` marker objects when FAST needs a function handle.
+
+By default, `FAST_Python_Wrapper()` returns the full FAST output after converting MATLAB values into Python data. Use `simplify_output=True` only when regenerating or comparing the repository's simplified JSON fixtures.
 
 
 ## Requirements

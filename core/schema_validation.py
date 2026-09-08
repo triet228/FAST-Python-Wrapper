@@ -103,6 +103,9 @@ def validate_json_schema_value(data, schema, file_name, label, root_schema):
         validator implements only keywords used by the committed schemas.
     """
 
+    if isinstance(data, dict) and set(data.keys()) == {"_matlab_expression"}:
+        return
+
     if "$ref" in schema:
         schema = _validate_ref_schema(data, schema, file_name, label, root_schema)
 
@@ -427,6 +430,13 @@ def validate_json_markers(value, file_name, path=""):
         marker_keys = [key for key in keys if key.startswith("_")]
 
         if marker_keys:
+            if keys == {"_matlab_expression"}:
+                if not isinstance(value["_matlab_expression"], str):
+                    raise JsonValidationError(
+                        f"{label}._matlab_expression must be a string."
+                    )
+                return
+
             if keys == {MATLAB_ROW_KEY}:
                 if not isinstance(value[MATLAB_ROW_KEY], list):
                     raise JsonValidationError(f"{label}._matlab_row must be an array.")
@@ -452,15 +462,15 @@ def validate_json_markers(value, file_name, path=""):
 
 
 def validate_aircraft_json(data):
-    """Validate InputAircraft.json before converting it into FAST input data."""
+    """Validate wrapper-essential InputAircraft.json structure.
+
+    FAST owns the full aircraft contract. The wrapper validates only portable
+    JSON markers and the embedded mission profile shape it must extract before
+    calling Main.m.
+    """
 
     require_json_object(data, "InputAircraft.json")
     validate_json_markers(data, "InputAircraft.json")
-    validate_json_schema_document(
-        data,
-        read_schema_file(INPUT_AIRCRAFT_SCHEMA_JSON_PATH),
-        "InputAircraft.json",
-    )
 
     mission_profile = get_json_path(
         data,
@@ -543,6 +553,15 @@ def validate_mission_profile_json(data):
                 "InputAircraft.json Mission.Profile Segs"
                 f"[{index}] must be a string."
             )
+
+    for index, climb_rate in enumerate(data["ClbRate"]):
+        if climb_rate is None or is_json_number(climb_rate):
+            continue
+
+        raise JsonValidationError(
+            "InputAircraft.json Mission.Profile ClbRate"
+            f"[{index}] must be a number or null."
+        )
 
 
 def validate_output_aircraft_json(data):

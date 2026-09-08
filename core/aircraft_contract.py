@@ -2,6 +2,7 @@
 
 """Keep Python aircraft dictionaries aligned with the public FAST contract."""
 
+import re
 from copy import deepcopy
 
 
@@ -51,6 +52,8 @@ GEOMETRY_PRESET_EXPRESSIONS = {
 PROP_ARCH_PRESET_TYPES = ("C", "E", "PHE", "SHE", "TE", "PE")
 PROP_ARCH_CUSTOM_TYPE = "O"
 PROP_ARCH_TYPES = PROP_ARCH_PRESET_TYPES + (PROP_ARCH_CUSTOM_TYPE,)
+MATLAB_EXPRESSION_KEY = "_matlab_expression"
+MATLAB_IDENTIFIER = re.compile(r"^[A-Za-z]\w*$")
 CUSTOM_PROP_ARCH_FIELDS = (
     "Arch",
     "OperUps",
@@ -99,13 +102,12 @@ def prepare_aircraft(aircraft):
         return aircraft
 
     arch_type = arch_type.upper()
-    _require_supported_prop_arch_type(arch_type)
-
     if arch_type == PROP_ARCH_CUSTOM_TYPE:
         _prepare_custom_prop_arch(propulsion)
     else:
         propulsion["PropArch"] = {"Type": arch_type}
 
+    _prepare_power_defaults(aircraft)
     _prepare_aero_method(aircraft)
     _prepare_geometry_preset(aircraft)
     _prepare_engine_spec(propulsion)
@@ -226,7 +228,7 @@ def _prepare_custom_prop_arch(propulsion):
 
 
 def _prepare_engine_spec(propulsion):
-    """Convert an allowlisted EngineSpecsPkg name into a MATLAB package call."""
+    """Convert an EngineSpecsPkg function name into a MATLAB package call."""
 
     engine = propulsion.get("Engine")
 
@@ -236,13 +238,23 @@ def _prepare_engine_spec(propulsion):
     if not isinstance(engine, str):
         raise ValueError("Specs.Propulsion.Engine must be an EngineSpecsPkg name.")
 
-    if engine not in ENGINE_SPEC_NAMES:
-        joined_names = ", ".join(ENGINE_SPEC_NAMES)
-        raise ValueError(f"Specs.Propulsion.Engine must be one of: {joined_names}.")
+    _require_matlab_identifier(engine, "Specs.Propulsion.Engine")
 
     propulsion["Engine"] = {
-        "_matlab_expression": f"EngineModelPkg.EngineSpecsPkg.{engine}",
+        MATLAB_EXPRESSION_KEY: f"EngineModelPkg.EngineSpecsPkg.{engine}",
     }
+
+
+def _prepare_power_defaults(aircraft):
+    """Provide nested power containers that current FAST assumes exist."""
+
+    try:
+        power = aircraft["Specs"]["Power"]
+    except KeyError:
+        return
+
+    if isinstance(power, dict) and "SLS" not in power:
+        power.setdefault("P_W", {})
 
 
 def _prepare_aero_method(aircraft):
@@ -267,12 +279,14 @@ def _prepare_aero_method(aircraft):
     if not isinstance(method, str):
         raise ValueError("Specs.Aero.L_D.Method must be an aerodynamic method name.")
 
-    if method not in AERO_METHOD_EXPRESSIONS:
-        joined_names = ", ".join(AERO_METHOD_NAMES)
-        raise ValueError(f"Specs.Aero.L_D.Method must be one of: {joined_names}.")
+    if method in AERO_METHOD_EXPRESSIONS:
+        expression = AERO_METHOD_EXPRESSIONS[method]
+    else:
+        _require_matlab_identifier(method, "Specs.Aero.L_D.Method")
+        expression = f"@(Aircraft) AerodynamicsPkg.{method}(Aircraft)"
 
     l_d["Method"] = {
-        "_matlab_expression": AERO_METHOD_EXPRESSIONS[method],
+        MATLAB_EXPRESSION_KEY: expression,
     }
 
 
@@ -292,17 +306,25 @@ def _prepare_geometry_preset(aircraft):
     if not isinstance(preset, str):
         raise ValueError("Geometry.Preset must be a geometry preset name.")
 
-    if preset not in GEOMETRY_PRESET_EXPRESSIONS:
-        joined_names = ", ".join(GEOMETRY_PRESET_NAMES)
-        raise ValueError(f"Geometry.Preset must be one of: {joined_names}.")
+    if preset in GEOMETRY_PRESET_EXPRESSIONS:
+        expression = GEOMETRY_PRESET_EXPRESSIONS[preset]
+    else:
+        _require_matlab_identifier(preset, "Geometry.Preset")
+        expression = f"@(Aircraft) VisualizationPkg.GeometrySpecsPkg.{preset}(Aircraft)"
 
     geometry["Preset"] = {
-        "_matlab_expression": GEOMETRY_PRESET_EXPRESSIONS[preset],
+        MATLAB_EXPRESSION_KEY: expression,
     }
 
 
 def _require_fixed_numeric_value(value, label):
-    """Reject variables, marker objects, strings, and booleans in O data."""
+    """Reject values FAST cannot receive as fixed data or MATLAB expressions."""
+
+    if isinstance(value, dict) and set(value.keys()) == {MATLAB_EXPRESSION_KEY}:
+        if not isinstance(value[MATLAB_EXPRESSION_KEY], str):
+            raise ValueError(f"{label} MATLAB expression must be a string.")
+
+        return
 
     if isinstance(value, bool):
         raise ValueError(f"{label} must contain only fixed numeric values.")
@@ -317,6 +339,15 @@ def _require_fixed_numeric_value(value, label):
         return
 
     raise ValueError(f"{label} must contain only fixed numeric values.")
+
+
+def _require_matlab_identifier(value, label):
+    """Require a bare MATLAB function name for package shorthand fields."""
+
+    if MATLAB_IDENTIFIER.match(value):
+        return
+
+    raise ValueError(f"{label} must be a MATLAB function name.")
 
 
 def _remove_legacy_prop_arch_fields(propulsion):

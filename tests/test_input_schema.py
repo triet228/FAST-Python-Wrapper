@@ -107,26 +107,34 @@ def test_json_data_serializes_nonfinite_numbers_as_strings():
     ]
 
 
-def test_input_aircraft_contract_rejects_unexpected_field():
-    """Reject aircraft inputs that drift outside the committed schema."""
+def test_input_aircraft_contract_allows_fast_owned_fields():
+    """Let FAST own aircraft fields the wrapper does not need to interpret."""
 
     data = read_raw_json_file(DEFAULT_INPUT_DIR / "InputAircraft.json")
     changed = deepcopy(data)
     changed["Specs"]["Unexpected"] = {}
 
-    with pytest.raises(JsonValidationError, match="unexpected field"):
-        validate_aircraft_json(changed)
+    validate_aircraft_json(changed)
 
 
-def test_input_aircraft_contract_rejects_unsupported_prop_arch():
-    """Reject propulsion architecture labels outside the wrapper contract."""
+def test_prepare_aircraft_passes_unknown_prop_arch_to_fast():
+    """Let FAST decide whether a propulsion architecture label is supported."""
 
-    data = read_raw_json_file(DEFAULT_INPUT_DIR / "InputAircraft.json")
-    changed = deepcopy(data)
-    changed["Specs"]["Propulsion"]["PropArch"]["Type"] = "Unsupported"
+    prepared = prepare_aircraft(
+        {
+            "Specs": {
+                "Propulsion": {
+                    "PropArch": {
+                        "Type": "future",
+                    },
+                },
+            },
+        }
+    )
 
-    with pytest.raises(JsonValidationError, match="PropArch"):
-        validate_aircraft_json(changed)
+    assert prepared["Specs"]["Propulsion"]["PropArch"] == {
+        "Type": "FUTURE",
+    }
 
 
 @pytest.mark.parametrize("engine_name", ENGINE_SPEC_NAMES)
@@ -140,15 +148,25 @@ def test_input_aircraft_contract_accepts_engine_spec_name(engine_name):
     validate_aircraft_json(changed)
 
 
-def test_input_aircraft_contract_rejects_unknown_engine_spec_name():
-    """Reject engine names outside FAST EngineSpecsPkg."""
+def test_prepare_aircraft_accepts_future_engine_spec_name():
+    """Convert future FAST EngineSpecsPkg names without a wrapper release."""
 
-    data = read_raw_json_file(DEFAULT_INPUT_DIR / "InputAircraft.json")
-    changed = deepcopy(data)
-    changed["Specs"]["Propulsion"]["Engine"] = "NotAnEngine"
+    prepared = prepare_aircraft(
+        {
+            "Specs": {
+                "Propulsion": {
+                    "Engine": "FutureEngine",
+                    "PropArch": {
+                        "Type": "C",
+                    },
+                },
+            },
+        }
+    )
 
-    with pytest.raises(JsonValidationError, match="Engine"):
-        validate_aircraft_json(changed)
+    matlab_source = python_to_matlab(prepared["Specs"]["Propulsion"]["Engine"])
+
+    assert matlab_source == "EngineModelPkg.EngineSpecsPkg.FutureEngine"
 
 
 def test_prepare_aircraft_converts_engine_spec_name_to_matlab_expression():
@@ -172,6 +190,25 @@ def test_prepare_aircraft_converts_engine_spec_name_to_matlab_expression():
     assert matlab_source == "EngineModelPkg.EngineSpecsPkg.CF34_8E5"
 
 
+def test_prepare_aircraft_adds_missing_power_to_weight_container():
+    """Provide P_W when FAST needs to fill default power-to-weight fields."""
+
+    prepared = prepare_aircraft(
+        {
+            "Specs": {
+                "Power": {},
+                "Propulsion": {
+                    "PropArch": {
+                        "Type": "C",
+                    },
+                },
+            },
+        }
+    )
+
+    assert prepared["Specs"]["Power"]["P_W"] == {}
+
+
 @pytest.mark.parametrize("method_name", AERO_METHOD_NAMES)
 def test_input_aircraft_contract_accepts_aero_method_name(method_name):
     """Accept aerodynamic method names that map to FAST AerodynamicsPkg."""
@@ -183,15 +220,29 @@ def test_input_aircraft_contract_accepts_aero_method_name(method_name):
     validate_aircraft_json(changed)
 
 
-def test_input_aircraft_contract_rejects_unknown_aero_method_name():
-    """Reject aerodynamic method names outside FAST AerodynamicsPkg."""
+def test_prepare_aircraft_accepts_future_aero_method_name():
+    """Convert future FAST AerodynamicsPkg names without a wrapper release."""
 
-    data = read_raw_json_file(DEFAULT_INPUT_DIR / "InputAircraft.json")
-    changed = deepcopy(data)
-    changed["Specs"]["Aero"]["L_D"]["Method"] = "NotAMethod"
+    prepared = prepare_aircraft(
+        {
+            "Specs": {
+                "Aero": {
+                    "L_D": {
+                        "Method": "FutureAero",
+                    },
+                },
+                "Propulsion": {
+                    "PropArch": {
+                        "Type": "C",
+                    },
+                },
+            },
+        }
+    )
 
-    with pytest.raises(JsonValidationError, match="Method"):
-        validate_aircraft_json(changed)
+    matlab_source = python_to_matlab(prepared["Specs"]["Aero"]["L_D"]["Method"])
+
+    assert matlab_source == "@(Aircraft) AerodynamicsPkg.FutureAero(Aircraft)"
 
 
 def test_prepare_aircraft_converts_aero_method_name_to_matlab_expression():
@@ -219,14 +270,16 @@ def test_prepare_aircraft_converts_aero_method_name_to_matlab_expression():
     assert matlab_source == "@(Aircraft) AerodynamicsPkg.DragPolar(Aircraft)"
 
 
-def test_prepare_aircraft_preserves_omitted_aero_method():
-    """Let FAST apply its own aerodynamic default when Method is omitted."""
+def test_prepare_aircraft_defaults_omitted_aero_method():
+    """Supply FAST's expected aerodynamic function handle when Method is omitted."""
 
     data = read_raw_json_file(DEFAULT_INPUT_DIR / "InputAircraft.json")
 
     prepared = prepare_aircraft(data)
 
-    assert "Method" not in prepared["Specs"]["Aero"]["L_D"]
+    matlab_source = python_to_matlab(prepared["Specs"]["Aero"]["L_D"]["Method"])
+
+    assert matlab_source == "@(Aircraft) AerodynamicsPkg.ConstantLD(Aircraft)"
 
 
 @pytest.mark.parametrize("preset_name", GEOMETRY_PRESET_NAMES)
@@ -242,17 +295,30 @@ def test_input_aircraft_contract_accepts_geometry_preset_name(preset_name):
     validate_aircraft_json(changed)
 
 
-def test_input_aircraft_contract_rejects_unknown_geometry_preset_name():
-    """Reject geometry preset names outside FAST VisualizationPkg."""
+def test_prepare_aircraft_accepts_future_geometry_preset_name():
+    """Convert future FAST GeometrySpecsPkg names without a wrapper release."""
 
-    data = read_raw_json_file(DEFAULT_INPUT_DIR / "InputAircraft.json")
-    changed = deepcopy(data)
-    changed["Geometry"] = {
-        "Preset": "NotAPreset",
-    }
+    prepared = prepare_aircraft(
+        {
+            "Specs": {
+                "Propulsion": {
+                    "PropArch": {
+                        "Type": "C",
+                    },
+                },
+            },
+            "Geometry": {
+                "Preset": "FutureGeometry",
+            },
+        }
+    )
 
-    with pytest.raises(JsonValidationError, match="Preset"):
-        validate_aircraft_json(changed)
+    matlab_source = python_to_matlab(prepared["Geometry"]["Preset"])
+
+    assert (
+        matlab_source
+        == "@(Aircraft) VisualizationPkg.GeometrySpecsPkg.FutureGeometry(Aircraft)"
+    )
 
 
 def test_prepare_aircraft_converts_geometry_preset_name_to_matlab_expression():
@@ -325,20 +391,19 @@ def test_input_aircraft_contract_accepts_fixed_numeric_custom_prop_arch():
     )
 
 
-def test_input_aircraft_contract_rejects_custom_prop_arch_variables():
-    """Reject MATLAB markers and variable-like values inside O matrices."""
+def test_input_aircraft_contract_accepts_custom_prop_arch_expressions():
+    """Allow custom FAST architectures to use explicit MATLAB expressions."""
 
     prop_arch = fixed_custom_prop_arch()
     prop_arch["OperUps"][0][0] = {
         "_matlab_expression": "lambda"
     }
 
-    with pytest.raises(JsonValidationError, match="PropArch"):
-        validate_json_schema_document(
-            prop_arch,
-            prop_arch_schema(),
-            "InputAircraft.json.Specs.Propulsion.PropArch",
-        )
+    validate_json_schema_document(
+        prop_arch,
+        prop_arch_schema(),
+        "InputAircraft.json.Specs.Propulsion.PropArch",
+    )
 
 
 def test_prepare_aircraft_preserves_fixed_numeric_custom_prop_arch():

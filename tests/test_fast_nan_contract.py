@@ -123,7 +123,7 @@ def test_wrapper_returns_status_log_output_dict(monkeypatch, tmp_path):
         },
     }
 
-    result = FAST_Python_Wrapper(input_aircraft, fast_path)
+    result = FAST_Python_Wrapper(input_aircraft, fast_path, simplify_output=True)
 
     assert result["status"] == "Yes"
     assert result["log"] == "fake log"
@@ -156,7 +156,7 @@ def test_wrapper_reports_no_when_output_is_missing(monkeypatch, tmp_path):
         },
     }
 
-    result = FAST_Python_Wrapper(input_aircraft, fast_path)
+    result = FAST_Python_Wrapper(input_aircraft, fast_path, simplify_output=True)
 
     assert result == {
         "status": "No",
@@ -219,7 +219,7 @@ def test_wrapper_keeps_only_supported_prop_arch_output(monkeypatch, tmp_path):
         },
     }
 
-    result = FAST_Python_Wrapper(input_aircraft, fast_path)
+    result = FAST_Python_Wrapper(input_aircraft, fast_path, simplify_output=True)
     output = result["output"]
 
     assert "Preset" not in output["Geometry"]

@@ -18,7 +18,7 @@ from core.matlab_bridge import (
 from core.json_io import build_json_data, load_json_data
 
 
-def FAST_Python_Wrapper(input_aircraft, fast_path):
+def FAST_Python_Wrapper(input_aircraft, fast_path, simplify_output=False):
     """Run FAST once from a Python InputAircraft dictionary.
 
     Inputs:
@@ -32,6 +32,8 @@ def FAST_Python_Wrapper(input_aircraft, fast_path):
         - log: MATLAB stdout captured during the run.
         - output: Python dictionary equivalent of FAST OutputAircraft, or an
             empty dictionary when FAST does not produce one.
+        Pass simplify_output=True to remove wrapper-specific runtime fields
+            used by the committed JSON fixtures.
 
     Side effects:
         Starts MATLAB Engine, adds FAST to the MATLAB path, runs Main.m, and
@@ -68,18 +70,6 @@ def FAST_Python_Wrapper(input_aircraft, fast_path):
                 fast_status = 'No';
                 try
                     fast_result = Main(aircraft_spec, mission_profile);
-                    if isfield(fast_result, 'Specs') && isfield(fast_result.Specs, 'Aero') && isfield(fast_result.Specs.Aero, 'L_D') && isfield(fast_result.Specs.Aero.L_D, 'Method')
-                        fast_result.Specs.Aero.L_D = rmfield(fast_result.Specs.Aero.L_D, 'Method');
-                    end
-                    if isfield(fast_result, 'Geometry') && isfield(fast_result.Geometry, 'Preset')
-                        fast_result.Geometry = rmfield(fast_result.Geometry, 'Preset');
-                    end
-                    if isfield(fast_result, 'Mission') && isfield(fast_result.Mission, 'ProfileFxn')
-                        fast_result.Mission = rmfield(fast_result.Mission, 'ProfileFxn');
-                    end
-                    if isfield(fast_result, 'Settings') && isfield(fast_result.Settings, 'Dir') && isfield(fast_result.Settings.Dir, 'Size')
-                        fast_result.Settings.Dir = rmfield(fast_result.Settings.Dir, 'Size');
-                    end
                     fast_result_json = jsonencode(fast_json_ready(fast_result));
                     fast_status = 'Yes';
                 catch fast_exception
@@ -113,8 +103,9 @@ def FAST_Python_Wrapper(input_aircraft, fast_path):
             except Exception:
                 output = {}
 
-        # Clean OutputAircraft fields that are too specific (like local file paths)
-        if isinstance(output, dict):
+        # Keep default output as close to FAST as possible. Fixture generation
+        # can opt into the older simplified shape.
+        if simplify_output and isinstance(output, dict):
             clean_output_fields(output)
 
         # FAST ran successfully and produced an output

@@ -218,7 +218,7 @@ def assert_fast_model_wrapper_matches_saved_output(
     if not examples_path.exists():
         pytest.skip(f"examples path not found: {examples_path}")
 
-    result = FAST_Python_Wrapper(aircraft, fast_path)
+    result = FAST_Python_Wrapper(aircraft, fast_path, simplify_output=True)
 
     assert result["status"] == "Yes", f"{name} FAST run failed:\n{result['log']}"
 
