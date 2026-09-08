@@ -10,11 +10,11 @@ from pathlib import Path
 # FAST unspecified input marker.
 nan = float("nan")
 
-# Default example case directory and schema file names. InputAircraft.json is
-# the single required run input.
+# Default example case directory and schema file names.
 DEFAULT_INPUT_DIR = Path("examples/CeRAS")
 SCHEMA_DIR = Path("schema")
 AIRCRAFT_JSON_PATH = Path("InputAircraft.json")
+MISSION_JSON_PATH = Path("Mission.json")
 INPUT_AIRCRAFT_SCHEMA_JSON_PATH = Path("InputAircraftSchema.json")
 OUTPUT_AIRCRAFT_SCHEMA_JSON_PATH = Path("OutputAircraftSchema.json")
 
@@ -118,7 +118,7 @@ def load_json_data(value):
     """Convert JSON FAST input data back into FAST-ready Python data.
 
     Inputs:
-        value: Data loaded from InputAircraft.json.
+        value: Data loaded from InputAircraft.json or Mission.json.
 
     Outputs:
         Python data accepted by FAST_Python_Wrapper(), including restored MATLAB marker

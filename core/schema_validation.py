@@ -465,35 +465,41 @@ def validate_aircraft_json(data):
     """Validate wrapper-essential InputAircraft.json structure.
 
     FAST owns the full aircraft contract. The wrapper validates only portable
-    JSON markers and the embedded mission profile shape it must extract before
-    calling Main.m.
+    JSON markers for aircraft data before calling Main.m.
     """
 
     require_json_object(data, "InputAircraft.json")
     validate_json_markers(data, "InputAircraft.json")
 
+
+def validate_mission_json(data):
+    """Validate wrapper-essential Mission.json structure."""
+
+    require_json_object(data, "Mission.json")
+    validate_json_markers(data, "Mission.json")
+
     mission_profile = get_json_path(
         data,
-        ["Mission", "Profile"],
-        "InputAircraft.json",
+        ["Profile"],
+        "Mission.json",
     )
     validate_mission_profile_json(mission_profile)
 
 
 def validate_mission_profile_json(data):
-    """Validate the Mission.Profile object embedded in InputAircraft.json."""
+    """Validate the Mission.Profile object in Mission.json."""
 
-    require_json_object(data, "InputAircraft.json.Mission.Profile")
+    require_json_object(data, "Mission.json.Profile")
 
     targets = get_json_path(
         data,
         ["Target", "Valu"],
-        "InputAircraft.json.Mission.Profile",
+        "Mission.json.Profile",
     )
     target_types = get_json_path(
         data,
         ["Target", "Type"],
-        "InputAircraft.json.Mission.Profile",
+        "Mission.json.Profile",
     )
 
     if not isinstance(targets, list):
@@ -504,14 +510,14 @@ def validate_mission_profile_json(data):
 
     if len(targets) != len(target_types):
         raise JsonValidationError(
-            "InputAircraft.json Mission.Profile Target.Valu and Target.Type "
+            "Mission.json Profile Target.Valu and Target.Type "
             "must have the same length."
         )
 
     for index, target_type in enumerate(target_types):
         if target_type not in ("Dist", "Time"):
             raise JsonValidationError(
-                "InputAircraft.json Mission.Profile Target.Type"
+                "Mission.json Profile Target.Type"
                 f"[{index}] must be \"Dist\" or \"Time\"."
             )
 
@@ -533,7 +539,7 @@ def validate_mission_profile_json(data):
             require_json_list(
                 data,
                 [field_name],
-                "InputAircraft.json.Mission.Profile",
+                "Mission.json.Profile",
             )
         )
 
@@ -542,7 +548,7 @@ def validate_mission_profile_json(data):
     for field_name, length in segment_lengths.items():
         if length != expected_length:
             raise JsonValidationError(
-                "InputAircraft.json Mission.Profile segment arrays must have "
+                "Mission.json Profile segment arrays must have "
                 "the same length: "
                 f"Segs has {expected_length}, {field_name} has {length}."
             )
@@ -550,7 +556,7 @@ def validate_mission_profile_json(data):
     for index, segment_name in enumerate(data["Segs"]):
         if not isinstance(segment_name, str):
             raise JsonValidationError(
-                "InputAircraft.json Mission.Profile Segs"
+                "Mission.json Profile Segs"
                 f"[{index}] must be a string."
             )
 
@@ -559,7 +565,7 @@ def validate_mission_profile_json(data):
             continue
 
         raise JsonValidationError(
-            "InputAircraft.json Mission.Profile ClbRate"
+            "Mission.json Profile ClbRate"
             f"[{index}] must be a number or null."
         )
 

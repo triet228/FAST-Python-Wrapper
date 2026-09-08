@@ -85,14 +85,14 @@ def examples_path(monkeypatch):
 
 
 def load_example_input(examples_path, case_path):
-    """Load an example JSON input fixture.
+    """Load example aircraft and mission JSON input fixtures.
 
     Inputs:
         examples_path: Root path for examples.
         case_path: Case directory name, such as A320.
 
     Outputs:
-        Python data accepted by FAST_Python_Wrapper().
+        Pair of Python dictionaries accepted by FAST_Python_Wrapper().
 
     Assumptions:
         These fixture files intentionally mirror historical FAST MATLAB input
@@ -100,8 +100,12 @@ def load_example_input(examples_path, case_path):
         row vectors where MATLAB orientation matters.
     """
 
-    path = examples_path / case_path / "InputAircraft.json"
-    return load_json_data(read_raw_json_file(path))
+    aircraft_path = examples_path / case_path / "InputAircraft.json"
+    mission_path = examples_path / case_path / "Mission.json"
+    return (
+        load_json_data(read_raw_json_file(aircraft_path)),
+        load_json_data(read_raw_json_file(mission_path)),
+    )
 
 
 def compare_json_value(actual, expected, path="Aircraft"):
@@ -190,7 +194,7 @@ def compare_json_value(actual, expected, path="Aircraft"):
 
 def assert_fast_model_wrapper_matches_saved_output(
     name,
-    aircraft,
+    aircraft_and_mission,
     saved,
     fast_path,
     examples_path,
@@ -199,8 +203,8 @@ def assert_fast_model_wrapper_matches_saved_output(
 
     Inputs:
         name: Aircraft case name used in failure output.
-        aircraft: Python dictionary generated from the vendored merged aircraft
-            JSON input fixture.
+        aircraft_and_mission: Pair of Python dictionaries generated from the
+            vendored aircraft and mission JSON input fixtures.
         saved: Case-relative path to the saved OutputAircraft.json baseline.
         fast_path: Local FAST checkout path.
         examples_path: Example fixture root.
@@ -210,15 +214,16 @@ def assert_fast_model_wrapper_matches_saved_output(
         from the saved FAST output JSON field.
 
     Assumptions:
-        The JSON fixture files provide merged aircraft and mission data for the
-        run. Integration checks compare the final aircraft recursively because
+        The JSON fixture files provide separate aircraft and mission data for
+        the run. Integration checks compare the final aircraft recursively because
         smaller mocked checks cannot prove parity with MATLAB FAST.
     """
 
     if not examples_path.exists():
         pytest.skip(f"examples path not found: {examples_path}")
 
-    result = FAST_Python_Wrapper(aircraft, fast_path, simplify_output=True)
+    aircraft, mission = aircraft_and_mission
+    result = FAST_Python_Wrapper(aircraft, mission, fast_path, simplify_output=True)
 
     assert result["status"] == "Yes", f"{name} FAST run failed:\n{result['log']}"
 

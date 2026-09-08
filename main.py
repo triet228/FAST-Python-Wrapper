@@ -18,12 +18,12 @@ from core.matlab_bridge import (
 from core.json_io import build_json_data, load_json_data
 
 
-def FAST_Python_Wrapper(input_aircraft, fast_path, simplify_output=False):
-    """Run FAST once from a Python InputAircraft dictionary.
+def FAST_Python_Wrapper(input_aircraft, mission, fast_path, simplify_output=False):
+    """Run FAST once from Python InputAircraft and Mission dictionaries.
 
     Inputs:
-        input_aircraft: Nested dictionary matching InputAircraftSchema, with
-            Mission.Profile holding the mission profile fields.
+        input_aircraft: Nested aircraft dictionary without Mission.Profile.
+        mission: Nested Mission dictionary containing Profile.
         fast_path: Local FAST checkout path containing Main.m.
 
     Outputs:
@@ -49,7 +49,7 @@ def FAST_Python_Wrapper(input_aircraft, fast_path, simplify_output=False):
         try:
             # Convert Python Dictionary to MATLAB struct
             aircraft_python = prepare_aircraft(input_aircraft)
-            mission_python = extract_mission_profile(aircraft_python)
+            mission_python = extract_mission_profile(mission)
             aircraft_matlab = python_to_matlab(aircraft_python)
             mission_matlab = python_to_matlab(mission_python)
         except Exception as error:
@@ -208,86 +208,86 @@ if __name__ == "__main__":
             "Plotting": 0,
             "Table": 0,
         },
-        "Mission": {
-            "Profile": {
-                "Target": {
-                    "Valu": [
-                        1620500,
-                        3009500,
-                    ],
-                    "Type": [
-                        "Dist",
-                        "Dist",
-                    ],
-                },
-                "Segs": [
-                    "Climb",
-                    "Cruise",
-                    "Climb",
-                    "Cruise",
-                    "Descent",
+    }
+    mission = {
+        "Profile": {
+            "Target": {
+                "Valu": [
+                    1620500,
+                    3009500,
                 ],
-                "ID": [
-                    1,
-                    1,
-                    2,
-                    2,
-                    2,
-                ],
-                "AltBeg": [
-                    0,
-                    10058.4,
-                    10058.4,
-                    10668,
-                    10668,
-                ],
-                "AltEnd": [
-                    10058.4,
-                    10058.4,
-                    10668,
-                    10668,
-                    0,
-                ],
-                "VelBeg": [
-                    0.2,
-                    0.78,
-                    0.78,
-                    0.78,
-                    0.78,
-                ],
-                "VelEnd": [
-                    0.78,
-                    0.78,
-                    0.78,
-                    0.78,
-                    0.2,
-                ],
-                "TypeBeg": [
-                    "Mach",
-                    "Mach",
-                    "Mach",
-                    "Mach",
-                    "Mach",
-                ],
-                "TypeEnd": [
-                    "Mach",
-                    "Mach",
-                    "Mach",
-                    "Mach",
-                    "Mach",
-                ],
-                "ClbRate": [
-                    nan,
-                    nan,
-                    nan,
-                    nan,
-                    nan,
+                "Type": [
+                    "Dist",
+                    "Dist",
                 ],
             },
+            "Segs": [
+                "Climb",
+                "Cruise",
+                "Climb",
+                "Cruise",
+                "Descent",
+            ],
+            "ID": [
+                1,
+                1,
+                2,
+                2,
+                2,
+            ],
+            "AltBeg": [
+                0,
+                10058.4,
+                10058.4,
+                10668,
+                10668,
+            ],
+            "AltEnd": [
+                10058.4,
+                10058.4,
+                10668,
+                10668,
+                0,
+            ],
+            "VelBeg": [
+                0.2,
+                0.78,
+                0.78,
+                0.78,
+                0.78,
+            ],
+            "VelEnd": [
+                0.78,
+                0.78,
+                0.78,
+                0.78,
+                0.2,
+            ],
+            "TypeBeg": [
+                "Mach",
+                "Mach",
+                "Mach",
+                "Mach",
+                "Mach",
+            ],
+            "TypeEnd": [
+                "Mach",
+                "Mach",
+                "Mach",
+                "Mach",
+                "Mach",
+            ],
+            "ClbRate": [
+                nan,
+                nan,
+                nan,
+                nan,
+                nan,
+            ],
         },
     }
 
-    result = FAST_Python_Wrapper(input_aircraft, fast_dir)
+    result = FAST_Python_Wrapper(input_aircraft, mission, fast_dir)
 
     print("Run success:" + str(result["status"]))
     print(result["log"])

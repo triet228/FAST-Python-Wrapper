@@ -30,7 +30,7 @@ def test_expanded_example_wrapper_output_matches_saved_json_file(
 
     assert_fast_model_wrapper_matches_saved_output(
         name=case_name,
-        aircraft=load_example_input(examples_path, case_name),
+        aircraft_and_mission=load_example_input(examples_path, case_name),
         saved=f"{case_name}/OutputAircraft.json",
         fast_path=fast_path,
         examples_path=examples_path,

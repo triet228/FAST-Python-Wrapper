@@ -5,7 +5,7 @@ Python wrapper for running [Future Aircraft Sizing Tool (FAST)](https://github.c
 
 ## Running FAST-Python-Wrapper
 
-The wrapper accepts an `input_aircraft` dictionary and the local path to FAST.
+The wrapper accepts an `input_aircraft` dictionary, a separate `mission` dictionary, and the local path to FAST.
 
 ```python
 
@@ -40,26 +40,27 @@ input_aircraft = {
             "P_W": {},
         },
     },
-    "Mission": {
-        "Profile": {
-            "Target": {
-                "Valu": [4630000],
-                "Type": ["Dist"],
-            },
-            "Segs": ["Climb", "Cruise", "Descent"],
-            "ID": [1, 1, 1],
-            "AltBeg": [0, 10668, 10668],
-            "AltEnd": [10668, 10668, 0],
-            "ClbRate": [nan, nan, nan],
-            "VelBeg": [0.2, 0.78, 0.78],
-            "VelEnd": [0.78, 0.78, 0.2],
-            "TypeBeg": ["Mach", "Mach", "Mach"],
-            "TypeEnd": ["Mach", "Mach", "Mach"],
+}
+
+mission = {
+    "Profile": {
+        "Target": {
+            "Valu": [4630000],
+            "Type": ["Dist"],
         },
+        "Segs": ["Climb", "Cruise", "Descent"],
+        "ID": [1, 1, 1],
+        "AltBeg": [0, 10668, 10668],
+        "AltEnd": [10668, 10668, 0],
+        "ClbRate": [nan, nan, nan],
+        "VelBeg": [0.2, 0.78, 0.78],
+        "VelEnd": [0.78, 0.78, 0.2],
+        "TypeBeg": ["Mach", "Mach", "Mach"],
+        "TypeEnd": ["Mach", "Mach", "Mach"],
     },
 }
 
-result = FAST_Python_Wrapper(input_aircraft, fast_dir)
+result = FAST_Python_Wrapper(input_aircraft, mission, fast_dir)
 
 print("Run success:", result["status"])
 # print(result["log"])

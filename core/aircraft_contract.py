@@ -91,6 +91,7 @@ def prepare_aircraft(aircraft):
         return aircraft
 
     aircraft = deepcopy(aircraft)
+    aircraft.pop("Mission", None)
     propulsion = _get_propulsion_section(aircraft)
 
     if propulsion is None:
@@ -116,31 +117,25 @@ def prepare_aircraft(aircraft):
     return aircraft
 
 
-def extract_mission_profile(aircraft):
-    """Remove and return the mission profile embedded in InputAircraft.
+def extract_mission_profile(mission):
+    """Return the mission profile from a separate Mission dictionary.
 
     Inputs:
-        aircraft: Prepared aircraft dictionary that still contains Mission.
+        mission: Python Mission dictionary containing Profile.
 
     Outputs:
         Mission.Profile dictionary passed into FAST's mission_profile handle.
-
-    Side effects:
-        Mutates the prepared copy by removing Mission before aircraft_spec is
-        converted to MATLAB. FAST receives mission data through the function
-        handle, not as a standalone top-level aircraft field.
     """
 
     try:
-        mission_container = aircraft.pop("Mission")
-        mission = mission_container["Profile"]
+        profile = mission["Profile"]
     except (KeyError, TypeError) as error:
-        raise ValueError("InputAircraft must include Mission.Profile for FAST runs.") from error
+        raise ValueError("Mission input must include Mission.Profile for FAST runs.") from error
 
-    if not isinstance(mission, dict):
-        raise ValueError("InputAircraft Mission.Profile must be an object.")
+    if not isinstance(profile, dict):
+        raise ValueError("Mission.Profile must be an object.")
 
-    return mission
+    return profile
 
 
 def clean_output_fields(output):

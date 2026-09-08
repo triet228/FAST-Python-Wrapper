@@ -14,6 +14,7 @@ from core.json_io import (
 )
 from core.schema_validation import (
     validate_aircraft_json,
+    validate_mission_json,
 )
 from tests.helpers import PROJECT_ROOT
 import main as wrapper_module
@@ -21,6 +22,7 @@ from main import FAST_Python_Wrapper
 
 
 DEFAULT_INPUT_PATH = PROJECT_ROOT / "examples" / "CeRAS" / "InputAircraft.json"
+DEFAULT_MISSION_PATH = PROJECT_ROOT / "examples" / "CeRAS" / "Mission.json"
 
 
 def fake_engine(evalc, workspace=None, quit=None):
@@ -39,31 +41,29 @@ def test_json_null_values_load_as_fast_nan():
     """Convert schema-level null placeholders into FAST NaN inputs."""
 
     data = {
-        "Mission": {
-            "Profile": {
-                "ClbRate": [
-                    None,
-                ],
-            },
+        "Profile": {
+            "ClbRate": [
+                None,
+            ],
         },
     }
 
     loaded = load_json_data(data)
 
-    assert isnan(loaded["Mission"]["Profile"]["ClbRate"][0])
+    assert isnan(loaded["Profile"]["ClbRate"][0])
 
 
 def test_schema_rejects_legacy_nan_string_in_mission_profile():
     """Keep mission profile NaN placeholders as JSON null, not strings."""
 
-    data = read_raw_json_file(DEFAULT_INPUT_PATH)
-    data["Mission"]["Profile"]["ClbRate"][0] = "NaN"
+    data = read_raw_json_file(DEFAULT_MISSION_PATH)
+    data["Profile"]["ClbRate"][0] = "NaN"
 
     with pytest.raises(JsonValidationError, match="ClbRate"):
-        validate_aircraft_json(data)
+        validate_mission_json(data)
 
 
-def test_wrapper_requires_embedded_mission_profile(monkeypatch, tmp_path):
+def test_wrapper_requires_mission_profile(monkeypatch, tmp_path):
     """Require Mission.Profile before generating MATLAB FAST source."""
 
     def fail_evalc(script, nargout=1):
@@ -78,7 +78,7 @@ def test_wrapper_requires_embedded_mission_profile(monkeypatch, tmp_path):
         lambda path: fake_engine(fail_evalc),
     )
 
-    result = FAST_Python_Wrapper({"Specs": {}}, fast_path)
+    result = FAST_Python_Wrapper({"Specs": {}}, {}, fast_path)
 
     assert result["status"] == "No"
     assert "Mission.Profile" in result["log"]
@@ -118,12 +118,12 @@ def test_wrapper_returns_status_log_output_dict(monkeypatch, tmp_path):
                 },
             },
         },
-        "Mission": {
-            "Profile": {},
-        },
+    }
+    mission = {
+        "Profile": {},
     }
 
-    result = FAST_Python_Wrapper(input_aircraft, fast_path, simplify_output=True)
+    result = FAST_Python_Wrapper(input_aircraft, mission, fast_path, simplify_output=True)
 
     assert result["status"] == "Yes"
     assert result["log"] == "fake log"
@@ -151,12 +151,12 @@ def test_wrapper_reports_no_when_output_is_missing(monkeypatch, tmp_path):
     )
     input_aircraft = {
         "Specs": {},
-        "Mission": {
-            "Profile": {},
-        },
+    }
+    mission = {
+        "Profile": {},
     }
 
-    result = FAST_Python_Wrapper(input_aircraft, fast_path, simplify_output=True)
+    result = FAST_Python_Wrapper(input_aircraft, mission, fast_path, simplify_output=True)
 
     assert result == {
         "status": "No",
@@ -214,12 +214,12 @@ def test_wrapper_keeps_only_supported_prop_arch_output(monkeypatch, tmp_path):
                 },
             },
         },
-        "Mission": {
-            "Profile": {},
-        },
+    }
+    mission = {
+        "Profile": {},
     }
 
-    result = FAST_Python_Wrapper(input_aircraft, fast_path, simplify_output=True)
+    result = FAST_Python_Wrapper(input_aircraft, mission, fast_path, simplify_output=True)
     output = result["output"]
 
     assert "Preset" not in output["Geometry"]

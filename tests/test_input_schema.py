@@ -1,6 +1,6 @@
 # tests/test_input_schema.py
 
-"""Check committed JSON files against the merged aircraft schemas."""
+"""Check committed JSON files against the aircraft and mission contracts."""
 
 from copy import deepcopy
 
@@ -23,6 +23,7 @@ from core.schema_validation import (
     read_schema_file,
     validate_aircraft_json,
     validate_json_schema_document,
+    validate_mission_json,
     validate_output_aircraft_json,
 )
 from tests.helpers import PROJECT_ROOT
@@ -45,7 +46,7 @@ CASE_NAMES = [
 
 
 def test_input_aircraft_matches_schema_contract():
-    """Validate the default merged aircraft input template contract."""
+    """Validate the default aircraft input template contract."""
 
     data = read_raw_json_file(DEFAULT_INPUT_DIR / "InputAircraft.json")
 
@@ -54,7 +55,7 @@ def test_input_aircraft_matches_schema_contract():
 
 @pytest.mark.parametrize("case_name", CASE_NAMES)
 def test_example_input_aircraft_matches_schema_contract(case_name):
-    """Validate each example aircraft input against the merged schema."""
+    """Validate each example aircraft input against the wrapper contract."""
 
     data = read_raw_json_file(
         EXAMPLES_DIR / case_name / "InputAircraft.json"
@@ -64,12 +65,14 @@ def test_example_input_aircraft_matches_schema_contract(case_name):
 
 
 @pytest.mark.parametrize("case_name", CASE_NAMES)
-def test_example_cases_do_not_have_standalone_mission_files(case_name):
-    """Keep mission data embedded under InputAircraft.json Mission.Profile."""
+def test_example_mission_matches_schema_contract(case_name):
+    """Validate each example mission input against the wrapper contract."""
 
-    input_dir = EXAMPLES_DIR / case_name
+    data = read_raw_json_file(
+        EXAMPLES_DIR / case_name / "Mission.json"
+    )
 
-    assert not list(input_dir.glob("*Mission*.json"))
+    validate_mission_json(data)
 
 
 @pytest.mark.parametrize("case_name", CASE_NAMES)
@@ -460,15 +463,14 @@ def test_input_aircraft_contract_allows_missing_optional_field():
     validate_aircraft_json(changed)
 
 
-def test_input_aircraft_contract_rejects_missing_mission_profile():
-    """Require mission data to live inside InputAircraft.json."""
+def test_input_aircraft_contract_allows_missing_mission():
+    """Keep mission data separate from InputAircraft.json."""
 
     data = read_raw_json_file(DEFAULT_INPUT_DIR / "InputAircraft.json")
     changed = deepcopy(data)
-    del changed["Mission"]["Profile"]
 
-    with pytest.raises(JsonValidationError, match="Mission.*Profile"):
-        validate_aircraft_json(changed)
+    changed.pop("Mission", None)
+    validate_aircraft_json(changed)
 
 
 def fixed_custom_prop_arch():
@@ -516,45 +518,45 @@ def prop_arch_schema():
     ]
 
 
-def test_input_aircraft_contract_rejects_missing_mission():
-    """Require the merged mission block in InputAircraft.json."""
+def test_mission_contract_rejects_missing_profile():
+    """Require Profile in the separate Mission.json file."""
 
-    data = read_raw_json_file(DEFAULT_INPUT_DIR / "InputAircraft.json")
+    data = read_raw_json_file(DEFAULT_INPUT_DIR / "Mission.json")
     changed = deepcopy(data)
-    del changed["Mission"]
+    del changed["Profile"]
 
-    with pytest.raises(JsonValidationError, match="missing required field Mission"):
-        validate_aircraft_json(changed)
+    with pytest.raises(JsonValidationError, match="missing required field Profile"):
+        validate_mission_json(changed)
 
 
 def test_input_aircraft_contract_rejects_legacy_nan_marker():
-    """Reject standalone input NaN marker strings at schema-defined fields."""
+    """Reject standalone mission NaN marker strings."""
 
-    data = read_raw_json_file(DEFAULT_INPUT_DIR / "InputAircraft.json")
-    changed = deepcopy(data)
-    changed["Mission"]["Profile"]["ClbRate"][0] = "NaN"
+    mission = read_raw_json_file(DEFAULT_INPUT_DIR / "Mission.json")
+    changed_mission = deepcopy(mission)
+    changed_mission["Profile"]["ClbRate"][0] = "NaN"
 
     with pytest.raises(JsonValidationError, match="ClbRate"):
-        validate_aircraft_json(changed)
+        validate_mission_json(changed_mission)
 
 
 def test_mission_profile_contract_rejects_mismatched_target_lengths():
     """Reject mission profiles whose target values and types do not align."""
 
-    data = read_raw_json_file(DEFAULT_INPUT_DIR / "InputAircraft.json")
+    data = read_raw_json_file(DEFAULT_INPUT_DIR / "Mission.json")
     changed = deepcopy(data)
-    changed["Mission"]["Profile"]["Target"]["Type"].append("Dist")
+    changed["Profile"]["Target"]["Type"].append("Dist")
 
     with pytest.raises(JsonValidationError, match="same length"):
-        validate_aircraft_json(changed)
+        validate_mission_json(changed)
 
 
 def test_mission_profile_contract_rejects_missing_segment_field():
     """Reject mission profiles that omit a committed segment array."""
 
-    data = read_raw_json_file(DEFAULT_INPUT_DIR / "InputAircraft.json")
+    data = read_raw_json_file(DEFAULT_INPUT_DIR / "Mission.json")
     changed = deepcopy(data)
-    del changed["Mission"]["Profile"]["VelEnd"]
+    del changed["Profile"]["VelEnd"]
 
     with pytest.raises(JsonValidationError, match="missing required field VelEnd"):
-        validate_aircraft_json(changed)
+        validate_mission_json(changed)
