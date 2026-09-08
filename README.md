@@ -5,7 +5,7 @@ Python wrapper for running [Future Aircraft Sizing Tool (FAST)](https://github.c
 
 ## Running FAST-Python-Wrapper
 
-The wrapper accepts an `input_aircraft` dictionary, a separate `mission` dictionary, and the local path to FAST.
+The core wrapper accepts an `input_aircraft` dictionary, a separate `mission` dictionary, and the local path to FAST. JSON files in `examples/` are just an interface pattern for loading those dictionaries.
 
 ```python
 
@@ -80,6 +80,14 @@ The wrapper passes aircraft data through to FAST and keeps wrapper-side rules li
 Custom `O` propulsion architectures support fixed numeric vectors or matrices, and JSON inputs can use explicit `_matlab_expression` marker objects when FAST needs a function handle.
 
 By default, `FAST_Python_Wrapper()` returns the full FAST output after converting MATLAB values into Python data. Use `simplify_output=True` only when regenerating or comparing the repository's simplified JSON fixtures.
+
+Core API shape:
+
+```python
+result = FAST_Python_Wrapper(input_aircraft, mission, fast_dir)
+```
+
+`input_aircraft`, `mission`, and `result["output"]` are normal Python dictionaries. File loading is optional and belongs at the application/example boundary.
 
 
 ## Requirements

@@ -18,8 +18,8 @@ from .schema_validation import (
 )
 
 
-def load_input_aircraft_json(input_dir=None):
-    """Load FAST aircraft and mission inputs from JSON files.
+def load_input_json_files(input_dir=None):
+    """Load example FAST aircraft and mission dictionaries from JSON files.
 
     Inputs:
         input_dir: Directory containing InputAircraft.json and Mission.json. A
@@ -58,3 +58,13 @@ def load_input_aircraft_json(input_dir=None):
     validate_aircraft_json(aircraft_data)
     validate_mission_json(mission_data)
     return load_json_data(aircraft_data), load_json_data(mission_data)
+
+
+def load_input_aircraft_json(input_dir=None):
+    """Load example FAST aircraft and mission dictionaries from JSON files.
+
+    This compatibility wrapper keeps older scripts working while the core
+    FAST_Python_Wrapper() API remains dictionary based.
+    """
+
+    return load_input_json_files(input_dir)

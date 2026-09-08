@@ -86,7 +86,7 @@ def test_wrapper_requires_mission_profile(monkeypatch, tmp_path):
 
 
 def test_wrapper_returns_status_log_output_dict(monkeypatch, tmp_path):
-    """Keep FAST_Python_Wrapper() as the in-memory status/log/output API."""
+    """Keep FAST_Python_Wrapper() as a dict-in, dict-out API."""
 
     workspace = {}
     quit_calls = []
