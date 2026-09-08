@@ -882,7 +882,15 @@
           "description": "Geometry preset function handle in MATLAB inputs.",
           "units": "unitless",
           "enum": [
-            "LM100JNominalGeometry"
+            "DeltaCanard",
+            "LargeTurbofan",
+            "LargeTurboprop",
+            "LM100JNominalGeometry",
+            "PittsSpecial",
+            "SimpleGeometry",
+            "SmallDoubleAisleTurbofan",
+            "SmallTurboprop",
+            "Transport"
           ]
         }
       }

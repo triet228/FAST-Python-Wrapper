@@ -34,10 +34,19 @@ AERO_METHOD_EXPRESSIONS = {
     "DragPolar": "@(Aircraft) AerodynamicsPkg.DragPolar(Aircraft)",
 }
 GEOMETRY_PRESET_NAMES = (
+    "DeltaCanard",
+    "LargeTurbofan",
+    "LargeTurboprop",
     "LM100JNominalGeometry",
+    "PittsSpecial",
+    "SimpleGeometry",
+    "SmallDoubleAisleTurbofan",
+    "SmallTurboprop",
+    "Transport",
 )
 GEOMETRY_PRESET_EXPRESSIONS = {
-    "LM100JNominalGeometry": "@(Aircraft) VisualizationPkg.GeometrySpecsPkg.LM100JNominalGeometry(Aircraft)",
+    name: f"@(Aircraft) VisualizationPkg.GeometrySpecsPkg.{name}(Aircraft)"
+    for name in GEOMETRY_PRESET_NAMES
 }
 PROP_ARCH_PRESET_TYPES = ("C", "E", "PHE", "SHE", "TE", "PE")
 PROP_ARCH_CUSTOM_TYPE = "O"

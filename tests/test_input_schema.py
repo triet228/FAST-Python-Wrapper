@@ -268,7 +268,7 @@ def test_prepare_aircraft_converts_geometry_preset_name_to_matlab_expression():
                 },
             },
             "Geometry": {
-                "Preset": "LM100JNominalGeometry",
+                "Preset": "Transport",
             },
         }
     )
@@ -277,7 +277,7 @@ def test_prepare_aircraft_converts_geometry_preset_name_to_matlab_expression():
 
     assert (
         matlab_source
-        == "@(Aircraft) VisualizationPkg.GeometrySpecsPkg.LM100JNominalGeometry(Aircraft)"
+        == "@(Aircraft) VisualizationPkg.GeometrySpecsPkg.Transport(Aircraft)"
     )
 
 
