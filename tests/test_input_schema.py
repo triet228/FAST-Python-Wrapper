@@ -469,8 +469,8 @@ def test_prepare_aircraft_converts_segment_oper_matrices_to_cells():
     )
     matlab_source = python_to_matlab(prepared["Specs"]["Propulsion"]["PropArch"])
 
-    assert '"OperUpsBySegment", {[1, 0; 0, 1]; [0.95, 0; 0, 1]}' in matlab_source
-    assert '"OperDwnBySegment", {[1, 0; 0, 1]; [1, 0; 0, 0.95]}' in matlab_source
+    assert '"OperUpsBySegment", {{[1, 0; 0, 1]; [0.95, 0; 0, 1]}}' in matlab_source
+    assert '"OperDwnBySegment", {{[1, 0; 0, 1]; [1, 0; 0, 0.95]}}' in matlab_source
 
 
 def test_prepare_aircraft_requires_both_segment_oper_matrix_lists():
