@@ -77,7 +77,7 @@ if result["status"] == "Yes":
 
 The wrapper passes aircraft data through to FAST and keeps wrapper-side rules limited to the MATLAB bridge. Known FAST package functions can be written as short names, such as engine specs, aero methods, and geometry presets. New FAST package functions also work when their function name is a valid MATLAB identifier.
 
-Custom `O` propulsion architectures support fixed numeric vectors or matrices, and JSON inputs can use explicit `_matlab_expression` marker objects when FAST needs a function handle.
+Custom `O` propulsion architectures support fixed numeric vectors or matrices, and JSON inputs can use explicit `_matlab_expression` marker objects when FAST needs a function handle. To vary a fixed topology by mission segment, provide paired `OperUpsBySegment` and `OperDwnBySegment` lists; each list contains one numeric matrix per `Mission.Profile.Segs` row.
 
 By default, `FAST_Python_Wrapper()` returns the full FAST output after converting MATLAB values into Python data. Use `simplify_output=True` only when regenerating or comparing the repository's simplified JSON fixtures.
 
